@@ -1,3 +1,3 @@
 # Energetic Solar PArticle DAta
 
-A compendium of python data loader for measurements of energetic solar particles
+A compendium of python data loaders for in-situ measurements of energetic solar particles
