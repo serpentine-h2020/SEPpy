@@ -42,7 +42,7 @@ The standard usecase is to utilize the ``***_load`` function, which returns Pand
                         startdate="2021/04/16",
                         enddate="2021/04/20")
 
-Please refer to the independent packages for more details and the correct useage!
+Note that the syntax is different for each loader! Please refer to the independent packages for more details and the correct useage:
 
 - `psp-isois-loader <https://github.com/jgieseler/psp-isois-loader>`_
 - `soho-loader <https://github.com/jgieseler/soho-loader>`_
