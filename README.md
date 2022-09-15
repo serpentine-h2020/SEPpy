@@ -1,6 +1,6 @@
 # SEPpy
 
-A compendium of python data loaders for in-situ measurements of Solar Energetic Particles (SEP)
+**A compendium of Python data loaders for in-situ measurements of Solar Energetic Particles (SEP)**
 
 So far combines the following loaders into one PyPI package:
 
