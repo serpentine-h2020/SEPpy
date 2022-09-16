@@ -5,6 +5,7 @@ datetime
 drms
 h5netcdf
 lxml
+matplotlib
 numpy
 pandas
 pooch
