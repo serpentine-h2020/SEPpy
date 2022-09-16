@@ -15,6 +15,10 @@ So far combines the following loaders into one PyPI package:
 
 (* Note that `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ is a `PyPI package itself <https://pypi.org/project/solo-epd-loader/>`_ that just is loaded here for completeness.)
 
+Additional loaders:
+
+- `solo-mag-loader <https://github.com/jgieseler/solo-mag-loader>`_
+
 Disclaimer
 ----------
 This software is provided "as is", with no guarantee. It is no official data source, and not officially endorsed by the corresponding instrument teams. **Please always refer to the official data description of each instrument before using the data!**
@@ -49,5 +53,6 @@ Note that the syntax is different for each loader! Please refer to the independe
 - `psp-isois-loader <https://github.com/jgieseler/psp-isois-loader>`_
 - `soho-loader <https://github.com/jgieseler/soho-loader>`_
 - `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_
+- `solo-mag-loader <https://github.com/jgieseler/solo-mag-loader>`_
 - `stereo-loader <https://github.com/jgieseler/stereo-loader>`_
 - `wind-3dp-loader <https://github.com/jgieseler/wind-3dp-loader>`_
