@@ -13,7 +13,7 @@ So far combines the following loaders into one PyPI package:
 - `stereo-loader <https://github.com/jgieseler/stereo-loader>`_
 - `wind-3dp-loader <https://github.com/jgieseler/wind-3dp-loader>`_
 
-*Note that `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ is a `PyPI package itself <https://pypi.org/project/solo-epd-loader/>`_ that just is loaded here for completeness.
+(* Note that `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ is a `PyPI package itself <https://pypi.org/project/solo-epd-loader/>`_ that just is loaded here for completeness.)
 
 Disclaimer
 ----------
