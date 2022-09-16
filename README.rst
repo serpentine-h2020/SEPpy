@@ -38,7 +38,7 @@ The standard usecase is to utilize the ``***_load`` function, which returns Pand
 
 .. code:: python
 
-   from seppy import soho_load
+   from seppy.loader.soho import soho_load
 
    df, meta = soho_load(dataset="SOHO_ERNE-HED_L2-1MIN",
                         startdate="2021/04/16",
