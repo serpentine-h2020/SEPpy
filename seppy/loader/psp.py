@@ -180,6 +180,14 @@ def _cdf2df_3d_psp(cdf, index_key, dtimeindex=True, ignore=None, include=None):
     return return_df
 
 
+def psp_load(dataset, startdate, enddate, epilo_channel='F', epilo_threshold=None, path=None, resample=None):
+    """
+    Wrapper function for psp_isois_load() that pipes everything directly through.
+    """
+    df, energies_dict = psp_isois_load(dataset, startdate, enddate, epilo_channel, epilo_threshold, path, resample)
+    return df, energies_dict
+
+
 def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_threshold=None, path=None, resample=None):
     """
     Downloads CDF files via SunPy/Fido from CDAWeb for CELIAS, EPHIN, ERNE onboard SOHO
