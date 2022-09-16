@@ -1,5 +1,7 @@
-SEPpy
-=====
+SEPpy (ALPHA VERSION)
+=====================
+
+*This package is in alpha status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
 
 **A compendium of Python data loaders for in-situ measurements of Solar Energetic Particles (SEP)**
 
