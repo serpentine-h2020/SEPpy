@@ -1,6 +1,12 @@
 SEPpy (ALPHA VERSION)
 =====================
 
+|pypi Version| |python version|
+
+.. |pypi Version| image:: https://img.shields.io/pypi/v/seppy?style=flat&logo=pypi
+   :target: https://pypi.org/project/solarmach/
+.. |python version| image:: https://img.shields.io/pypi/pyversions/seppy?style=flat&logo=python
+
 *This package is in alpha status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
 
 **A compendium of Python data loaders for in-situ measurements of Solar Energetic Particles (SEP)**
