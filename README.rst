@@ -1,11 +1,13 @@
 SEPpy (ALPHA VERSION)
 =====================
 
-|pypi Version| |python version|
+|pypi Version| |python version| |zenodo doi|
 
 .. |pypi Version| image:: https://img.shields.io/pypi/v/seppy?style=flat&logo=pypi
    :target: https://pypi.org/project/seppy/
 .. |python version| image:: https://img.shields.io/pypi/pyversions/seppy?style=flat&logo=python
+.. |zenodo doi| image:: https://zenodo.org/badge/451799504.svg
+   :target: https://zenodo.org/badge/latestdoi/451799504
 
 *This package is in alpha status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
 
