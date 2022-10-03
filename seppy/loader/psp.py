@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import os
 import warnings
 
@@ -178,14 +179,6 @@ def _cdf2df_3d_psp(cdf, index_key, dtimeindex=True, ignore=None, include=None):
         return_df = pd.DataFrame(index=index, data=data_dict)
 
     return return_df
-
-
-def psp_load(dataset, startdate, enddate, epilo_channel='F', epilo_threshold=None, path=None, resample=None):
-    """
-    Wrapper function for psp_isois_load() that pipes everything directly through.
-    """
-    df, energies_dict = psp_isois_load(dataset, startdate, enddate, epilo_channel, epilo_threshold, path, resample)
-    return df, energies_dict
 
 
 def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_threshold=None, path=None, resample=None):
@@ -505,3 +498,6 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
                 en_channel = en_channel[0]
                 flux_out = pd.DataFrame({'flux': df[f"{flux_key}_Chan{chan}_E{en_channel}_P{viewing}"]}, index=df.index)
     return flux_out, en_channel_string
+
+
+psp_load = copy.copy(psp_isois_load)

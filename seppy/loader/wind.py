@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import cdflib
+import copy
 import datetime as dt
 import numpy as np
 import os
@@ -389,15 +390,6 @@ def _wind3dp_load(files, resample="1min", threshold=None):
     #     raise Exception(f"Problem while loading CDF file! Delete downloaded file(s) {files} and try again. Sometimes this is enough to solve the problem.")
 
 
-def wind_load(dataset, startdate, enddate, resample="1min", multi_index=True,
-                 path=None, threshold=None, **kwargs):
-    df, meta = wind3dp_load(dataset=dataset, startdate=startdate,
-                            enddate=enddate, resample=resample, 
-                            multi_index=multi_index, path=path,
-                            threshold=threshold)
-    return df, meta
-
-
 def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
                  path=None, threshold=None, **kwargs):
     """
@@ -482,3 +474,6 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
         df = []
         meta = ''
     return df, meta
+
+
+wind_load = copy.copy(wind3dp_load)
