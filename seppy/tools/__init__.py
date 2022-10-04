@@ -951,7 +951,7 @@ class Event:
 
         self.print_info("Particle species", s_identifier)
 
-        if(self.viewing_used is not '' and self.viewing_used is not None):
+        if(self.viewing_used != '' and self.viewing_used is not None):
 
             plt.title(f"{spacecraft}/{sensor} {channels_dict} {s_identifier}\n"
                       f"{self.averaging_used} averaging, viewing: "
