@@ -1,0 +1,49 @@
+{
+    "description": "A compendium of Python data loaders and analysis tools for in-situ measurements of Solar Energetic Particles (SEP).",
+    "license": "BSD-3-Clause",
+    "title": "SEPpy",
+    "upload_type": "software",
+    "creators": [
+        {
+            "name": "Jan Gieseler,  Jan",
+            "orcid": "0000-0003-1848-7067",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Palmroos, Christian",
+            "orcid": "0000-0002-7778-5454",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Dresing, Nina",
+            "orcid": "0000-0003-3903-4649",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Morosan, Diana",
+            "orcid": "0000-0002-8416-1375",
+            "affiliation": "University of Helsinki"
+        },
+        {
+            "name": "Asvestari, Eleanna",
+            "orcid": "0000-0002-6998-7224",
+            "affiliation": "University of Helsinki"
+        },
+        {
+            "name": "Yli-Laurila, Aleksi",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Price, Daniel J.",
+            "orcid": "0000-0002-8065-2847",
+            "affiliation": "University of Helsinki"
+        },
+        {
+            "name": "Vainio, Rami",
+            "orcid": "0000-0002-3298-2067",
+            "affiliation": "University of Turku"
+        }
+    ],
+    "access_right": "open",
+    "grants": [{"id":"101004159"}]
+}
