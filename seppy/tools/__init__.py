@@ -1610,7 +1610,7 @@ class Event:
 
         # settings for y and x axes
         ax.set_yscale("log")
-        ax.set_ylabel(r"Intensity" + "\n" + r"[1/(cm$^{2}$ sr s MeV)$^{-1}$]")
+        ax.set_ylabel(r"Intensity" + "\n" + r"[1/(cm$^{2}$ sr s MeV)]")
 
         ax.set_xlabel(r"$t_{0} = t - L/v$")
         ax.xaxis_date()
