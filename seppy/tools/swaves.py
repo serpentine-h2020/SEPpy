@@ -83,8 +83,9 @@ def plot_swaves(downloaded_files, spacecraft, start_time, end_time, ax, cmap='in
 
     colormesh = ax.pcolormesh(time_arr, freq[::-1], data_arr[::-1], vmin=0, vmax=0.5*np.max(data_arr), cmap=cmap)
 
-    ax.set_ylabel('Frequency (MHz)')
-    ax.set_xlabel('Date and time (UT)')
+    ax.set_ylabel('Frequency [MHz]')
+    # Disable xlabel here because we only use it stacked ontop particle spectrogram:
+    # ax.set_xlabel('Date and time (UT)')
     ax.set_yscale('log')
     ax.set_ylim(freq[-1], freq[0])
     ax.set_yticks([0.01, 0.1, 1, 10])
