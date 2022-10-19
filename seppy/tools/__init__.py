@@ -914,7 +914,7 @@ class Event:
         ax.axvspan(avg_start, avg_end, color=color_dict['bg'],
                    label="Background")
 
-        ax.set_xlabel("Time (HH:MM \nYYYY-mm-dd)", fontsize=16)
+        # ax.set_xlabel("Time [HH:MM \nYYYY-mm-dd]", fontsize=16)
         ax.set_ylabel(r"Intensity [1/(cm$^{2}$ sr s MeV)]", fontsize=16)
         ax.yaxis.set_major_locator(plt.MaxNLocator(4))
 
@@ -931,8 +931,9 @@ class Event:
 
         # date tick locator and formatter
         ax.xaxis_date()
-        ax.xaxis.set_major_locator(ticker.MaxNLocator(9))
-        utc_dt_format1 = DateFormatter('%H:%M \n%Y-%m-%d')
+        # ax.xaxis.set_major_locator(ticker.MaxNLocator(9))
+        # utc_dt_format1 = DateFormatter('%H:%M \n%Y-%m-%d')
+        utc_dt_format1 = DateFormatter('%H:%M\n%b %d\n%Y')
         ax.xaxis.set_major_formatter(utc_dt_format1)
 
         if self.species == 'e':
@@ -1421,12 +1422,12 @@ class Event:
             from seppy.tools.swaves import plot_swaves
             ax[0], colormesh = plot_swaves(downloaded_files=self.radio_files, spacecraft=self.radio_spacecraft[0], start_time=t_start, end_time=t_end, ax=ax[0], cmap=cmap)
 
-            fig.tight_layout(pad=9.5, w_pad=-0.5, h_pad=-0.5)
+            fig.tight_layout(pad=9.5, w_pad=-0.5, h_pad=1.0)
             # plt.subplots_adjust(wspace=-1, hspace=-1.8)
 
             # Colorbar
             cb = fig.colorbar(colormesh, orientation='vertical', ax=ax[0])
-            clabel = "Intensity"
+            clabel = "Intensity" + "\n" + "[dB]"
             cb.set_label(clabel)
 
         # Colormesh
@@ -1451,24 +1452,25 @@ class Event:
         ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
 
         # x-axis settings
-        ax[DYN_SPEC_INDX].set_xlabel("Time [HH:MM \nm-d]")
+        # ax[DYN_SPEC_INDX].set_xlabel("Time [HH:MM \nm-d]")
         ax[DYN_SPEC_INDX].xaxis_date()
         ax[DYN_SPEC_INDX].set_xlim(t_start, t_end)
         # ax[DYN_SPEC_INDX].xaxis.set_major_locator(mdates.HourLocator(interval = 1))
-        utc_dt_format1 = DateFormatter('%H:%M \n%m-%d')
+        # utc_dt_format1 = DateFormatter('%H:%M \n%m-%d')
+        utc_dt_format1 = DateFormatter('%H:%M\n%b %d\n%Y')
         ax[DYN_SPEC_INDX].xaxis.set_major_formatter(utc_dt_format1)
         # ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval = 5))
 
         # Title
         if view is not None:
-            title = f"{spacecraft.upper()} {instrument.upper()} ({view}) {s_identifier}, {date_of_event}"
+            title = f"{spacecraft.upper()}/{instrument.upper()} ({view}) {s_identifier}, {date_of_event}"
         else:
-            title = f"{spacecraft.upper()} {instrument.upper()} {s_identifier}, {date_of_event}"
+            title = f"{spacecraft.upper()}/{instrument.upper()} {s_identifier}, {date_of_event}"
 
         if self.radio_spacecraft is None:
             ax[0].set_title(title)
         else:
-            ax[0].set_title(f"Radio + Dynamic Spectrum, {title}")
+            ax[0].set_title(f"Radio & Dynamic Spectrum, {title}")
 
         # saving of the figure
         if save:
@@ -1610,11 +1612,11 @@ class Event:
 
         # settings for y and x axes
         ax.set_yscale("log")
-        ax.set_ylabel(r"Intensity" + "\n" + r"[1/(cm$^{2}$ sr s MeV)]")
+        ax.set_ylabel(r"Intensity [1/(cm$^{2}$ sr s MeV)]")
 
         ax.set_xlabel(r"$t_{0} = t - L/v$")
         ax.xaxis_date()
-        ax.xaxis.set_major_formatter(DateFormatter('%H:%M\n%m-%d'))
+        ax.xaxis.set_major_formatter(DateFormatter('%H:%M\n%b %d'))
 
         if xlim is None:
             ax.set_xlim(dataframe.index[0], dataframe.index[-1])
@@ -1726,7 +1728,7 @@ class Event:
 
             # Reset the y-axis label
             if plotted_natural[0].get_visible():
-                ax.set_ylabel(r"Intensity" + "\n" + r"[1/(cm$^{2}$ sr s MeV)$^{-1}$]")
+                ax.set_ylabel(r"Intensity [1/(cm$^{2}$ sr s MeV)]")
             else:
                 ax.set_ylabel("Intensity normalized")
 
