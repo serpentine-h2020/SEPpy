@@ -1908,24 +1908,44 @@ class Event:
         if self.spacecraft == "solo":
             if self.sensor == "ept":
                 channel_names = [name[1] for name in channel_names[:SOLO_EPT_CHANNELS_AMOUNT]]
-                channel_numbers = [name.split('_')[-1] for name in channel_names]
+                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
             if self.sensor == "het":
                 channel_names = [name[1] for name in channel_names[:SOLO_HET_CHANNELS_AMOUNT]]
-                channel_numbers = [name.split('_')[-1] for name in channel_names]
+                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.spacecraft in ["sta", "stb"] or self.sensor == "erne":
-            channel_numbers = [name.split('_')[-1] for name in channel_names]
+            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.sensor == "ephin":
-            channel_numbers = [name.split('E')[-1] for name in channel_names]
+            channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
 
+        # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
+        channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
 
-        print(f"{self.spacecraft}, {self.sensor}:\n")
-        print("Channel number | Energy range")
-        for i, energy_range in enumerate(energy_strs):
-            print(f" {channel_numbers[i]}  :  {energy_range}")
+        #print(f"{self.spacecraft}, {self.sensor}:\n")
+        #print("Channel number | Energy range")
+        #for i, energy_range in enumerate(energy_strs):
+        #    print(f" {channel_numbers[i]}  :  {energy_range}")
 
+        # Assemble a pandas dataframe here for nicer presentation
+        column_names = ("Channel", "Energy range")
+        column_data = {
+            column_names[0] : channel_numbers,
+            column_names[1] : energy_strs}
+
+        df = pd.DataFrame(data=column_data)
+
+        # Set the channel number as the index of the dataframe
+        df = df.set_index(column_names[0])
+
+        # Finally display the dataframe such that ALL rows are shown
+        with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       ):
+            display(df)
+
+    # What is this doing here?
     analyse = copy.copy(find_onset)
 
 
