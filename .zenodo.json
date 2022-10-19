@@ -2,6 +2,11 @@
     "description": "A compendium of Python data loaders and analysis tools for in-situ measurements of Solar Energetic Particles (SEP).",
     "license": "BSD-3-Clause",
     "title": "SEPpy",
+    "grants": [
+        {
+            "id": "10.13039/501100000780::101004159"
+        }
+    ], 
     "upload_type": "software",
     "creators": [
         {
@@ -44,6 +49,5 @@
             "affiliation": "University of Turku"
         }
     ],
-    "access_right": "open",
-    "grants": [{"id":"101004159"}]
+    "access_right": "open"
 }
