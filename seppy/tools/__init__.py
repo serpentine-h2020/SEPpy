@@ -1276,7 +1276,10 @@ class Event:
         self.update_onset_attributes(flux_series, onset_stats, onset_found, peak_flux.values[0], peak_time, fig, bg_mean)
 
         return flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean
-
+    
+    # For backwards compatibility, make a copy of the `find_onset` function that is called `analyse` (which was its old name).
+    analyse = copy.copy(find_onset)
+   
     def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False) -> None:
         """
         Shows all the different energy channels in a single 2D plot, and color codes the corresponding intensity*energy^2 by a colormap.
@@ -1944,10 +1947,6 @@ class Event:
                        'display.max_columns', None,
                        ):
             display(df)
-
-    # What is this doing here?
-    analyse = copy.copy(find_onset)
-
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
