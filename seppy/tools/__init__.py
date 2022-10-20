@@ -11,6 +11,7 @@ import astropy.units as u
 import astropy.constants as const
 import sunpy.sun.constants as sconst
 from sunpy.coordinates import get_horizons_coord
+from matplotlib import rcParams
 from matplotlib.dates import DateFormatter
 from matplotlib.ticker import ScalarFormatter
 from matplotlib.offsetbox import AnchoredText
@@ -869,8 +870,9 @@ class Event:
         self.print_info("Std of background intensity",
                         background_stats[1])
 
-        plt.rcParams['axes.linewidth'] = 1.5
-        plt.rcParams['font.size'] = 16
+        # Before starting the plot, save the original rcParam options and update to new ones
+        original_rcparams = self.save_and_update_rcparams("onset_tool")
+        
         fig, ax = plt.subplots()
         ax.plot(flux_series.index, flux_series.values, ds='steps-mid')
 
@@ -1010,6 +1012,9 @@ class Event:
         # ax.add_artist(eslabel)
         plt.tight_layout()
         plt.show()
+
+        # Finally reset matplotlib rcParams to what they were before plotting
+        rcParams.update(original_rcparams)
 
         return flux_series, onset_stats, onset_found, df_flux_peak, df_flux_peak.index[0], fig, background_stats[0]
 
@@ -1396,14 +1401,8 @@ class Event:
 
         # ---only plotting_commands from this point----->
 
-        # Some visual parameters
-        plt.rcParams['axes.linewidth'] = 2.8
-        plt.rcParams['font.size'] = 28 if self.radio_spacecraft is None else 20
-        plt.rcParams['axes.titlesize'] = 32
-        plt.rcParams['axes.labelsize'] = 28 if self.radio_spacecraft is None else 26
-        plt.rcParams['xtick.labelsize'] = 28 if self.radio_spacecraft is None else 26
-        plt.rcParams['ytick.labelsize'] = 20 if self.radio_spacecraft is None else 18
-        plt.rcParams['pcolor.shading'] = 'auto'
+        # Save the original rcParams and update to new ones
+        original_rcparams = self.save_and_update_rcparams("dynamic_spectrum")
 
         normscale = cl.LogNorm()
 
@@ -1479,6 +1478,9 @@ class Event:
 
         self.fig = fig
         plt.show()
+
+        # Finally return plotting options to what they were before plotting
+        rcParams.update(original_rcparams)
 
     def tsa_plot(self, view, selection=None, xlim=None, resample=None):
         """
@@ -1626,9 +1628,11 @@ class Event:
             except ValueError:
                 ax.set_xlim(pd.to_datetime(xlim[0]), pd.to_datetime(xlim[1]))
 
-        # cosmetic settings
-        plt.rcParams['axes.linewidth'] = 1.5
-        plt.rcParams['font.size'] = 12
+        # So far I'm not sure how to return the original rcParams back to what they were in the case of this function,
+        # because it runs interactively and there is no clear "ending" point to the function.
+        # For now I'll attach the original prcparams to a class attribute, so that the user may manually return the parameters
+        # after they are done with tsa.
+        self.original_rcparams = self.save_and_update_rcparams("tsa")
 
         # housekeeping lists
         series_natural = []
@@ -1904,26 +1908,90 @@ class Event:
         if self.spacecraft == "solo":
             if self.sensor == "ept":
                 channel_names = [name[1] for name in channel_names[:SOLO_EPT_CHANNELS_AMOUNT]]
-                channel_numbers = [name.split('_')[-1] for name in channel_names]
+                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
             if self.sensor == "het":
                 channel_names = [name[1] for name in channel_names[:SOLO_HET_CHANNELS_AMOUNT]]
-                channel_numbers = [name.split('_')[-1] for name in channel_names]
+                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.spacecraft in ["sta", "stb"] or self.sensor == "erne":
-            channel_numbers = [name.split('_')[-1] for name in channel_names]
+            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.sensor == "ephin":
-            channel_numbers = [name.split('E')[-1] for name in channel_names]
+            channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
 
+        # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
+        channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
 
-        print(f"{self.spacecraft}, {self.sensor}:\n")
-        print("Channel number | Energy range")
-        for i, energy_range in enumerate(energy_strs):
-            print(f" {channel_numbers[i]}  :  {energy_range}")
+        #print(f"{self.spacecraft}, {self.sensor}:\n")
+        #print("Channel number | Energy range")
+        #for i, energy_range in enumerate(energy_strs):
+        #    print(f" {channel_numbers[i]}  :  {energy_range}")
 
+        # Assemble a pandas dataframe here for nicer presentation
+        column_names = ("Channel", "Energy range")
+        column_data = {
+            column_names[0] : channel_numbers,
+            column_names[1] : energy_strs}
+
+        df = pd.DataFrame(data=column_data)
+
+        # Set the channel number as the index of the dataframe
+        df = df.set_index(column_names[0])
+
+        # Finally display the dataframe such that ALL rows are shown
+        with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       ):
+            display(df)
+
+    # What is this doing here?
     analyse = copy.copy(find_onset)
 
+
+    def save_and_update_rcparams(self, plotting_function: str):
+        """
+        A class method that saves the matplotlib rcParams that are preset before running a plotting routine, and then
+        updates the rcParams to fit the plotting routine that is being run.
+        
+        Parameters:
+        -----------
+        plotting_function : str
+                            The name of the plotting routine that is run, e.g., 'onset_tool', 'dynamic_spectrum' or 'tsa'
+        """
+
+        # The original rcParams set by the user prior to running function
+        original_rcparams = rcParams.copy()
+
+        # Here are listed all the possible dictionaries for the different plotting functions
+        onset_options = {
+            "axes.linewidth" : 1.5,
+            "font.size" : 16
+        }
+
+        dyn_spec_options = {
+            "axes.linewidth" : 2.8,
+            "font.size" : 28 if self.radio_spacecraft is None else 20,
+            "axes.titlesize" : 32,
+            "axes.labelsize" : 28 if self.radio_spacecraft is None else 26,
+            "xtick.labelsize" : 28 if self.radio_spacecraft is None else 26,
+            "ytick.labelsize" : 20 if self.radio_spacecraft is None else 18,
+            "pcolor.shading" : "auto"
+        }
+
+        tsa_options = {
+            "axes.linewidth" : 1.5,
+            "font.size" : 12}
+
+        options_dict = {
+            "onset_tool" : onset_options,
+            "dynamic_spectrum" : dyn_spec_options,
+            "tsa" : tsa_options}
+
+        # Finally we update rcParams with the chosen plotting options 
+        rcParams.update(options_dict[plotting_function])
+
+        return original_rcparams
 
 def flux2series(flux, dates, cadence=None):
     """
