@@ -123,7 +123,7 @@ class Event:
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
 
-        if(self.spacecraft == 'solo'):
+        if self.spacecraft == 'solo':
             df_i, df_e, energs = epd_load(sensor=sensor,
                                           viewing=viewing,
                                           level=data_level,
@@ -135,8 +135,8 @@ class Event:
             self.update_viewing(viewing)
             return df_i, df_e, energs
 
-        if(self.spacecraft[:2].lower() == 'st'):
-            if(self.sensor == 'sept'):
+        if self.spacecraft[:2].lower() == 'st':
+            if self.sensor == 'sept':
                 if self.species in ["p", "i"]:
                     df_i, channels_dict_df_i = stereo_load(instrument=self.sensor,
                                                            startdate=self.start_date,
@@ -168,7 +168,7 @@ class Event:
                     self.update_viewing(viewing)
                     return df_i, df_e, channels_dict_df_i, channels_dict_df_e
 
-            if(self.sensor == 'het'):
+            if self.sensor == 'het':
                 df, meta = stereo_load(instrument=self.sensor,
                                        startdate=self.start_date,
                                        enddate=self.end_date,
@@ -180,8 +180,8 @@ class Event:
                 self.update_viewing(viewing)
                 return df, meta
 
-        if(self.spacecraft.lower() == 'soho'):
-            if(self.sensor == 'erne'):
+        if self.spacecraft.lower() == 'soho':
+            if self.sensor == 'erne':
                 df, meta = soho_load(dataset="SOHO_ERNE-HED_L2-1MIN",
                                      startdate=self.start_date,
                                      enddate=self.end_date,
@@ -192,7 +192,7 @@ class Event:
                 self.update_viewing(viewing)
                 return df, meta
 
-            if(self.sensor == 'ephin'):
+            if self.sensor == 'ephin':
                 df, meta = soho_load(dataset="SOHO_COSTEP-EPHIN_L2-1MIN",
                                      startdate=self.start_date,
                                      enddate=self.end_date,
@@ -203,8 +203,8 @@ class Event:
                 self.update_viewing(viewing)
                 return df, meta
 
-        if(self.spacecraft.lower() == 'wind'):
-            if(self.sensor == '3dp'):
+        if self.spacecraft.lower() == 'wind':
+            if self.sensor == '3dp':
                 df_i, meta_i = wind3dp_load(dataset="WI_SOPD_3DP",
                                             startdate=self.start_date,
                                             enddate=self.end_date,
@@ -224,8 +224,8 @@ class Event:
                 self.update_viewing(viewing)
                 return df_i, df_e, meta_i, meta_e
 
-        if(self.spacecraft.lower() == 'psp'):
-            if(self.sensor.lower() == 'isois-epihi'):
+        if self.spacecraft.lower() == 'psp':
+            if self.sensor.lower() == 'isois-epihi':
                 df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60',
                                           startdate=self.start_date,
                                           enddate=self.end_date,
@@ -234,7 +234,7 @@ class Event:
 
                 self.update_viewing(viewing)
                 return df, meta
-            if(self.sensor.lower() == 'isois-epilo'):
+            if self.sensor.lower() == 'isois-epilo':
                 df, meta = psp_isois_load(dataset='PSP_ISOIS-EPILO_L2-PE',
                                           startdate=self.start_date,
                                           enddate=self.end_date,
@@ -246,7 +246,7 @@ class Event:
                 self.update_viewing(viewing)
                 return df, meta
 
-        if(self.spacecraft.lower() == 'bepi'):
+        if self.spacecraft.lower() == 'bepi':
             df, meta = bepi_sixs_load(startdate=self.start_date,
                                       enddate=self.end_date,
                                       side=viewing,
@@ -257,9 +257,9 @@ class Event:
 
     def load_all_viewing(self):
 
-        if(self.spacecraft == 'solo'):
+        if self.spacecraft == 'solo':
 
-            if(self.sensor in ['het', 'ept']):
+            if self.sensor in ['het', 'ept']:
 
                 self.df_i_sun, self.df_e_sun, self.energies_sun =\
                     self.load_data(self.spacecraft, self.sensor,
@@ -277,15 +277,15 @@ class Event:
                     self.load_data(self.spacecraft, self.sensor,
                                    'south', self.data_level)
 
-            elif(self.sensor == 'step'):
+            elif self.sensor == 'step':
 
                 self.df_step, self.energies_step =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
                                    self.data_level)
 
-        if(self.spacecraft[:2].lower() == 'st'):
+        if self.spacecraft[:2].lower() == 'st':
 
-            if(self.sensor == 'sept'):
+            if self.sensor == 'sept':
 
                 self.df_i_sun, self.df_e_sun, self.energies_i_sun, self.energies_e_sun =\
                     self.load_data(self.spacecraft, self.sensor,
@@ -303,7 +303,7 @@ class Event:
                     self.load_data(self.spacecraft, self.sensor,
                                    'south', self.data_level)
 
-            elif(self.sensor == 'het'):
+            elif self.sensor == 'het':
 
                 self.df_het, self.meta_het =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
@@ -312,9 +312,9 @@ class Event:
                 self.current_df_e = self.df_het.filter(like='Electron')
                 self.current_energies = self.meta_het
 
-        if(self.spacecraft.lower() == 'soho'):
+        if self.spacecraft.lower() == 'soho':
 
-            if(self.sensor.lower() == 'erne'):
+            if self.sensor.lower() == 'erne':
 
                 self.df, self.meta =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
@@ -323,7 +323,7 @@ class Event:
                 # self.current_df_e = self.df.filter(like='Electron')
                 self.current_energies = self.meta
 
-            if(self.sensor.lower() == 'ephin'):
+            if self.sensor.lower() == 'ephin':
                 self.df, self.meta =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
                                    self.data_level)
@@ -331,8 +331,8 @@ class Event:
                 self.current_df_e = self.df.filter(like='E')
                 self.current_energies = self.meta
 
-        if(self.spacecraft.lower() == 'wind'):
-            if(self.sensor.lower() == '3dp'):
+        if self.spacecraft.lower() == 'wind':
+            if self.sensor.lower() == '3dp':
                 self.df_i, self.df_e, self.meta_i, self.meta_e = \
                     self.load_data(self.spacecraft, self.sensor, 'None', self.data_level, threshold=self.threshold)
                 # self.df_i = self.df_i.filter(like='FLUX')
@@ -340,15 +340,15 @@ class Event:
                 self.current_i_energies = self.meta_i
                 self.current_e_energies = self.meta_e
 
-        if(self.spacecraft.lower() == 'psp'):
-            if(self.sensor.lower() == 'isois-epihi'):
+        if self.spacecraft.lower() == 'psp':
+            if self.sensor.lower() == 'isois-epihi':
                 # Note: load_data(viewing='all') doesn't really has an effect, but for PSP/ISOIS-EPIHI all viewings are always loaded anyhow.
                 self.df, self.meta = self.load_data(self.spacecraft, self.sensor, 'all', self.data_level)
                 self.df_e = self.df.filter(like='Electrons_Rate_')
                 self.current_e_energies = self.meta
                 self.df_i = self.df.filter(like='H_Flux_')
                 self.current_i_energies = self.meta
-            if(self.sensor.lower() == 'isois-epilo'):
+            if self.sensor.lower() == 'isois-epilo':
                 # Note: load_data(viewing='all') doesn't really has an effect, but for PSP/ISOIS-EPILO all viewings are always loaded anyhow.
                 self.df, self.meta = self.load_data(self.spacecraft, self.sensor, 'all', self.data_level, threshold=self.threshold)
                 self.df_e = self.df.filter(like='Electron_CountRate_')
@@ -357,7 +357,7 @@ class Event:
                 # self.df_i = self.df.filter(like='H_Flux_')
                 # self.current_i_energies = self.meta
 
-        if(self.spacecraft.lower() == 'bepi'):
+        if self.spacecraft.lower() == 'bepi':
             self.df_i_0, self.df_e_0, self.energies_0 =\
                 self.load_data(self.spacecraft, self.sensor, viewing='0', data_level='None')
             self.df_i_1, self.df_e_1, self.energies_1 =\
@@ -374,89 +374,89 @@ class Event:
 
         self.update_viewing(viewing)
 
-        if(self.spacecraft == 'solo'):
-            if(viewing == 'sun'):
+        if self.spacecraft == 'solo':
+            if viewing == 'sun':
 
                 self.current_df_i = self.df_i_sun
                 self.current_df_e = self.df_e_sun
                 self.current_energies = self.energies_sun
 
-            elif(viewing == 'asun'):
+            elif viewing == 'asun':
 
                 self.current_df_i = self.df_i_asun
                 self.current_df_e = self.df_e_asun
                 self.current_energies = self.energies_asun
 
-            elif(viewing == 'north'):
+            elif viewing == 'north':
 
                 self.current_df_i = self.df_i_north
                 self.current_df_e = self.df_e_north
                 self.current_energies = self.energies_north
 
-            elif(viewing == 'south'):
+            elif viewing == 'south':
 
                 self.current_df_i = self.df_i_south
                 self.current_df_e = self.df_e_south
                 self.current_energies = self.energies_south
 
-        if(self.spacecraft[:2].lower() == 'st'):
-            if(self.sensor == 'sept'):
-                if(viewing == 'sun'):
+        if self.spacecraft[:2].lower() == 'st':
+            if self.sensor == 'sept':
+                if viewing == 'sun':
 
                     self.current_df_i = self.df_i_sun
                     self.current_df_e = self.df_e_sun
                     self.current_i_energies = self.energies_i_sun
                     self.current_e_energies = self.energies_e_sun
 
-                elif(viewing == 'asun'):
+                elif viewing == 'asun':
 
                     self.current_df_i = self.df_i_asun
                     self.current_df_e = self.df_e_asun
                     self.current_i_energies = self.energies_i_asun
                     self.current_e_energies = self.energies_e_asun
 
-                elif(viewing == 'north'):
+                elif viewing == 'north':
 
                     self.current_df_i = self.df_i_north
                     self.current_df_e = self.df_e_north
                     self.current_i_energies = self.energies_i_north
                     self.current_e_energies = self.energies_e_north
 
-                elif(viewing == 'south'):
+                elif viewing == 'south':
 
                     self.current_df_i = self.df_i_south
                     self.current_df_e = self.df_e_south
                     self.current_i_energies = self.energies_i_south
                     self.current_e_energies = self.energies_e_south
 
-        if(self.spacecraft.lower() == 'wind'):
-            if(self.sensor.lower() == '3dp'):
+        if self.spacecraft.lower() == 'wind':
+            if self.sensor.lower() == '3dp':
                 col_list_i = [col for col in self.df_i.columns if col.endswith(str(viewing))]
                 col_list_e = [col for col in self.df_e.columns if col.endswith(str(viewing))]
                 self.current_df_i = self.df_i[col_list_i]
                 self.current_df_e = self.df_e[col_list_e]
 
-        if(self.spacecraft.lower() == 'psp'):
-            if(self.sensor.lower() == 'isois-epihi'):
+        if self.spacecraft.lower() == 'psp':
+            if self.sensor.lower() == 'isois-epihi':
                 # viewing = 'A' or 'B'
                 self.current_df_e = self.df_e[self.df_e.columns[self.df_e.columns.str.startswith(viewing.upper())]]
                 self.current_df_i = self.df_i[self.df_i.columns[self.df_i.columns.str.startswith(viewing.upper())]]
-            if(self.sensor.lower() == 'isois-epilo'):
+            if self.sensor.lower() == 'isois-epilo':
                 # viewing = '0' to '7'
                 self.current_df_e = self.df_e[self.df_e.columns[self.df_e.columns.str.endswith(viewing)]]
                 # protons not yet included in PSP/ISOIS-EPILO dataset
                 # self.current_df_i = self.df_i[self.df_i.columns[self.df_i.columns.str.endswith(viewing)]]
 
-        if(self.spacecraft.lower() == 'bepi'):
-            if(viewing == '0'):
+        if self.spacecraft.lower() == 'bepi':
+            if viewing == '0':
                 self.current_df_i = self.df_i_0
                 self.current_df_e = self.df_e_0
                 self.current_energies = self.energies_0
-            elif(viewing == '1'):
+            elif viewing == '1':
                 self.current_df_i = self.df_i_1
                 self.current_df_e = self.df_e_1
                 self.current_energies = self.energies_1
-            elif(viewing == '2'):
+            elif viewing == '2':
                 self.current_df_i = self.df_i_2
                 self.current_df_e = self.df_e_2
                 self.current_energies = self.energies_2
@@ -800,17 +800,17 @@ class Event:
             'bg': '#de8585'
         }
 
-        if(self.spacecraft == 'solo'):
+        if self.spacecraft == 'solo':
             flux_series = df_flux[channel]
-        if(self.spacecraft[:2].lower() == 'st'):
+        if self.spacecraft[:2].lower() == 'st':
             flux_series = df_flux  # [channel]'
-        if(self.spacecraft.lower() == 'soho'):
+        if self.spacecraft.lower() == 'soho':
             flux_series = df_flux  # [channel]
-        if(self.spacecraft.lower() == 'wind'):
+        if self.spacecraft.lower() == 'wind':
             flux_series = df_flux  # [channel]
-        if(self.spacecraft.lower() == 'psp'):
+        if self.spacecraft.lower() == 'psp':
             flux_series = df_flux[channel]
-        if(self.spacecraft.lower() == 'bepi'):
+        if self.spacecraft.lower() == 'bepi':
             flux_series = df_flux  # [channel]
         date = flux_series.index
 
@@ -848,18 +848,18 @@ class Event:
 
             onset_found = True
 
-        if(self.spacecraft == 'solo'):
+        if self.spacecraft == 'solo':
             df_flux_peak = df_flux[df_flux[channel] == df_flux[channel].max()]
-        if(self.spacecraft[:2].lower() == 'st'):
+        if self.spacecraft[:2].lower() == 'st':
             df_flux_peak = df_flux[df_flux == df_flux.max()]
-        if(self.spacecraft == 'soho'):
+        if self.spacecraft == 'soho':
             df_flux_peak = df_flux[df_flux == df_flux.max()]
-        if(self.spacecraft == 'wind'):
+        if self.spacecraft == 'wind':
             df_flux_peak = df_flux[df_flux == df_flux.max()]
-        if(self.spacecraft == 'psp'):
+        if self.spacecraft == 'psp':
             # df_flux_peak = df_flux[df_flux == df_flux.max()]
             df_flux_peak = df_flux[df_flux[channel] == df_flux[channel].max()]
-        if(self.spacecraft == 'bepi'):
+        if self.spacecraft == 'bepi':
             df_flux_peak = df_flux[df_flux == df_flux.max()]
             # df_flux_peak = df_flux[df_flux[channel] == df_flux[channel].max()]
         self.print_info("Flux peak", df_flux_peak)
@@ -942,7 +942,7 @@ class Event:
 
         if self.species in ['p', 'i']:
 
-            if((spacecraft == 'sta' and sensor == 'sept') or (spacecraft == 'solo' and sensor == 'ept')):
+            if ((spacecraft == 'sta' and sensor == 'sept') or (spacecraft == 'solo' and sensor == 'ept')):
 
                 s_identifier = 'ions'
 
@@ -952,7 +952,7 @@ class Event:
 
         self.print_info("Particle species", s_identifier)
 
-        if(self.viewing_used != '' and self.viewing_used is not None):
+        if (self.viewing_used != '' and self.viewing_used is not None):
 
             plt.title(f"{spacecraft}/{sensor} {channels_dict} {s_identifier}\n"
                       f"{self.averaging_used} averaging, viewing: "
@@ -966,9 +966,9 @@ class Event:
         fig.set_size_inches(16, 8)
 
         # Onset label
-        if(onset_found):
+        if onset_found:
 
-            if(self.spacecraft == 'solo' or self.spacecraft == 'psp'):
+            if (self.spacecraft == 'solo' or self.spacecraft == 'psp'):
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
                                       f"Peak flux: {df_flux_peak['flux'][0]:.2E}",
                                       prop=dict(size=13), frameon=True,
@@ -1072,32 +1072,32 @@ class Event:
         self.averaging_used = resample_period
         self.x_sigma = x_sigma
 
-        if(self.spacecraft == 'solo'):
+        if self.spacecraft == 'solo':
 
-            if(self.sensor == 'het'):
+            if self.sensor == 'het':
 
-                if(self.species in ['p', 'i']):
+                if self.species in ['p', 'i']:
 
                     df_flux, en_channel_string =\
                         self.calc_av_en_flux_HET(self.current_df_i,
                                                  self.current_energies,
                                                  channels)
-                elif(self.species == 'e'):
+                elif self.species == 'e':
 
                     df_flux, en_channel_string =\
                         self.calc_av_en_flux_HET(self.current_df_e,
                                                  self.current_energies,
                                                  channels)
 
-            elif(self.sensor == 'ept'):
+            elif self.sensor == 'ept':
 
-                if(self.species in ['p', 'i']):
+                if self.species in ['p', 'i']:
 
                     df_flux, en_channel_string =\
                         self.calc_av_en_flux_EPT(self.current_df_i,
                                                  self.current_energies,
                                                  channels)
-                elif(self.species == 'e'):
+                elif self.species == 'e':
 
                     df_flux, en_channel_string =\
                         self.calc_av_en_flux_EPT(self.current_df_e,
@@ -1108,22 +1108,22 @@ class Event:
                 invalid_sensor_msg = "Invalid sensor!"
                 raise Exception(invalid_sensor_msg)
 
-        if(self.spacecraft[:2] == 'st'):
+        if self.spacecraft[:2] == 'st':
 
             # Super ugly implementation, but easiest to just wrap both sept and het calculators
             # in try block. KeyError is caused by an invalid channel choice.
             try:
 
-                if(self.sensor == 'het'):
+                if self.sensor == 'het':
 
-                    if(self.species in ['p', 'i']):
+                    if self.species in ['p', 'i']:
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_ST_HET(self.current_df_i,
                                                    self.current_energies['channels_dict_df_p'],
                                                    channels,
                                                    species='p')
-                    elif(self.species == 'e'):
+                    elif self.species == 'e':
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_ST_HET(self.current_df_e,
@@ -1131,15 +1131,15 @@ class Event:
                                                    channels,
                                                    species='e')
 
-                elif(self.sensor == 'sept'):
+                elif self.sensor == 'sept':
 
-                    if(self.species in ['p', 'i']):
+                    if self.species in ['p', 'i']:
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_SEPT(self.current_df_i,
                                                  self.current_i_energies,
                                                  channels)
-                    elif(self.species == 'e'):
+                    elif self.species == 'e':
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_SEPT(self.current_df_e,
@@ -1149,14 +1149,14 @@ class Event:
             except KeyError:
                 raise Exception(f"{channels} is an invalid channel or a combination of channels!")
 
-        if(self.spacecraft == 'soho'):
+        if self.spacecraft == 'soho':
 
             # A KeyError here is caused by invalid channel
             try:
 
-                if(self.sensor == 'erne'):
+                if self.sensor == 'erne':
 
-                    if(self.species in ['p', 'i']):
+                    if self.species in ['p', 'i']:
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_ERNE(self.current_df_i,
@@ -1165,36 +1165,36 @@ class Event:
                                                  species='p',
                                                  sensor='HET')
 
-                if(self.sensor == 'ephin'):
+                if self.sensor == 'ephin':
                     # convert single-element "channels" list to integer
                     if type(channels) == list:
                         if len(channels) == 1:
                             channels = channels[0]
                         else:
                             print("No multi-channel support for SOHO/EPHIN included yet! Select only one single channel.")
-                    if(self.species == 'e'):
+                    if self.species == 'e':
                         df_flux = self.current_df_e[f'E{channels}']
                         en_channel_string = self.current_energies[f'E{channels}']
 
             except KeyError:
                 raise Exception(f"{channels} is an invalid channel or a combination of channels!")
 
-        if(self.spacecraft == 'wind'):
-            if(self.sensor == '3dp'):
+        if self.spacecraft == 'wind':
+            if self.sensor == '3dp':
                 # convert single-element "channels" list to integer
                 if type(channels) == list:
                     if len(channels) == 1:
                         channels = channels[0]
                     else:
                         print("No multi-channel support for Wind/3DP included yet! Select only one single channel.")
-                if(self.species in ['p', 'i']):
+                if self.species in ['p', 'i']:
                     df_flux = self.current_df_i.filter(like=f'FLUX_E{channels}')
                     # extract pd.Series for further use:
                     df_flux = df_flux[df_flux.columns[0]]
                     # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
                     df_flux = df_flux*1e6
                     en_channel_string = self.current_i_energies['channels_dict_df']['Bins_Text'][f'ENERGY_{channels}']
-                elif(self.species == 'e'):
+                elif self.species == 'e':
                     df_flux = self.current_df_e.filter(like=f'FLUX_E{channels}')
                     # extract pd.Series for further use:
                     df_flux = df_flux[df_flux.columns[0]]
@@ -1202,26 +1202,26 @@ class Event:
                     df_flux = df_flux*1e6
                     en_channel_string = self.current_e_energies['channels_dict_df']['Bins_Text'][f'ENERGY_{channels}']
 
-        if(self.spacecraft.lower() == 'bepi'):
+        if self.spacecraft.lower() == 'bepi':
             if type(channels) == list:
                 if len(channels) == 1:
                     # convert single-element "channels" list to integer
                     channels = channels[0]
-                    if(self.species == 'e'):
+                    if self.species == 'e':
                         df_flux = self.current_df_e[f'E{channels}']
                         en_channel_string = self.current_energies['Energy_Bin_str'][f'E{channels}']
-                    if(self.species in ['p', 'i']):
+                    if self.species in ['p', 'i']:
                         df_flux = self.current_df_i[f'P{channels}']
                         en_channel_string = self.current_energies['Energy_Bin_str'][f'P{channels}']
                 else:
-                    if(self.species == 'e'):
+                    if self.species == 'e':
                         df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_e, channels, self.species)
-                    if(self.species in ['p', 'i']):
+                    if self.species in ['p', 'i']:
                         df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_i, channels, self.species)
 
-        if(self.spacecraft.lower() == 'psp'):
-            if(self.sensor.lower() == 'isois-epihi'):
-                if(self.species in ['p', 'i']):
+        if self.spacecraft.lower() == 'psp':
+            if self.sensor.lower() == 'isois-epihi':
+                if self.species in ['p', 'i']:
                     # We're using here only the HET instrument of EPIHI (and not LET1 or LET2)
                     df_flux, en_channel_string =\
                         calc_av_en_flux_PSP_EPIHI(df=self.current_df_i,
@@ -1230,7 +1230,7 @@ class Event:
                                                   species='p',
                                                   instrument='het',
                                                   viewing=viewing.upper())
-                if(self.species == 'e'):
+                if self.species == 'e':
                     # We're using here only the HET instrument of EPIHI (and not LET1 or LET2)
                     df_flux, en_channel_string =\
                         calc_av_en_flux_PSP_EPIHI(df=self.current_df_e,
@@ -1239,8 +1239,8 @@ class Event:
                                                   species='e',
                                                   instrument='het',
                                                   viewing=viewing.upper())
-            if(self.sensor.lower() == 'isois-epilo'):
-                if(self.species == 'e'):
+            if self.sensor.lower() == 'isois-epilo':
+                if self.species == 'e':
                     # We're using here only the F channel of EPILO (and not E or G)
                     df_flux, en_channel_string =\
                         calc_av_en_flux_PSP_EPILO(df=self.current_df_e,
@@ -1251,7 +1251,7 @@ class Event:
                                                   chan='F',
                                                   viewing=viewing)
 
-        if(resample_period is not None):
+        if resample_period is not None:
 
             df_averaged = self.resample(df_flux, resample_period)
 
