@@ -1,5 +1,5 @@
-SEPpy (ALPHA VERSION)
-=====================
+SEPpy
+=====
 
 |pypi Version| |python version| |zenodo doi|
 
@@ -9,7 +9,7 @@ SEPpy (ALPHA VERSION)
 .. |zenodo doi| image:: https://zenodo.org/badge/451799504.svg
    :target: https://zenodo.org/badge/latestdoi/451799504
 
-*This package is in alpha status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
+*This package is in development status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
 
 **A compendium of Python data loaders and analysis tools for in-situ measurements of Solar Energetic Particles (SEP)**
 
