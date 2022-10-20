@@ -872,7 +872,7 @@ class Event:
 
         # Before starting the plot, save the original rcParam options and update to new ones
         original_rcparams = self.save_and_update_rcparams("onset_tool")
-        
+
         fig, ax = plt.subplots()
         ax.plot(flux_series.index, flux_series.values, ds='steps-mid')
 
@@ -1276,10 +1276,10 @@ class Event:
         self.update_onset_attributes(flux_series, onset_stats, onset_found, peak_flux.values[0], peak_time, fig, bg_mean)
 
         return flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean
-    
+
     # For backwards compatibility, make a copy of the `find_onset` function that is called `analyse` (which was its old name).
     analyse = copy.copy(find_onset)
-   
+
     def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False) -> None:
         """
         Shows all the different energy channels in a single 2D plot, and color codes the corresponding intensity*energy^2 by a colormap.
@@ -1926,16 +1926,16 @@ class Event:
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
 
-        #print(f"{self.spacecraft}, {self.sensor}:\n")
-        #print("Channel number | Energy range")
-        #for i, energy_range in enumerate(energy_strs):
-        #    print(f" {channel_numbers[i]}  :  {energy_range}")
+        # print(f"{self.spacecraft}, {self.sensor}:\n")
+        # print("Channel number | Energy range")
+        # for i, energy_range in enumerate(energy_strs):
+        #     print(f" {channel_numbers[i]}  :  {energy_range}")
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
         column_data = {
-            column_names[0] : channel_numbers,
-            column_names[1] : energy_strs}
+            column_names[0]: channel_numbers,
+            column_names[1]: energy_strs}
 
         df = pd.DataFrame(data=column_data)
 
@@ -1944,15 +1944,15 @@ class Event:
 
         # Finally display the dataframe such that ALL rows are shown
         with pd.option_context('display.max_rows', None,
-                       'display.max_columns', None,
-                       ):
+                               'display.max_columns', None,
+                               ):
             display(df)
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
         A class method that saves the matplotlib rcParams that are preset before running a plotting routine, and then
         updates the rcParams to fit the plotting routine that is being run.
-        
+
         Parameters:
         -----------
         plotting_function : str
@@ -1964,33 +1964,34 @@ class Event:
 
         # Here are listed all the possible dictionaries for the different plotting functions
         onset_options = {
-            "axes.linewidth" : 1.5,
-            "font.size" : 16
+            "axes.linewidth": 1.5,
+            "font.size": 16
         }
 
         dyn_spec_options = {
-            "axes.linewidth" : 2.8,
-            "font.size" : 28 if self.radio_spacecraft is None else 20,
-            "axes.titlesize" : 32,
-            "axes.labelsize" : 28 if self.radio_spacecraft is None else 26,
-            "xtick.labelsize" : 28 if self.radio_spacecraft is None else 26,
-            "ytick.labelsize" : 20 if self.radio_spacecraft is None else 18,
-            "pcolor.shading" : "auto"
+            "axes.linewidth": 2.8,
+            "font.size": 28 if self.radio_spacecraft is None else 20,
+            "axes.titlesize": 32,
+            "axes.labelsize": 28 if self.radio_spacecraft is None else 26,
+            "xtick.labelsize": 28 if self.radio_spacecraft is None else 26,
+            "ytick.labelsize": 20 if self.radio_spacecraft is None else 18,
+            "pcolor.shading": "auto"
         }
 
         tsa_options = {
-            "axes.linewidth" : 1.5,
-            "font.size" : 12}
+            "axes.linewidth": 1.5,
+            "font.size": 12}
 
         options_dict = {
-            "onset_tool" : onset_options,
-            "dynamic_spectrum" : dyn_spec_options,
-            "tsa" : tsa_options}
+            "onset_tool": onset_options,
+            "dynamic_spectrum": dyn_spec_options,
+            "tsa": tsa_options}
 
-        # Finally we update rcParams with the chosen plotting options 
+        # Finally we update rcParams with the chosen plotting options
         rcParams.update(options_dict[plotting_function])
 
         return original_rcparams
+
 
 def flux2series(flux, dates, cadence=None):
     """
