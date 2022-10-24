@@ -121,7 +121,7 @@ class Event:
     def update_viewing(self, viewing):
         self.viewing = viewing
 
-    # I suggest we at some point erase the arguments spacecraft and threshold due to them not being used.
+    # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
 
@@ -1298,16 +1298,17 @@ class Event:
         save : bool
                 Saves the image
         """
+        print("DEVELOPER VERSION")
 
         # Event attributes
-        spacecraft = self.spacecraft
-        instrument = self.sensor
+        spacecraft = self.spacecraft.lower()
+        instrument = self.sensor.lower()
         species = self.species
 
         self.choose_data(view)
 
         if self.spacecraft == "solo":
-            if species in ["electron", 'e']:
+            if species in ("electron", 'e'):
                 particle_data = self.current_df_e["Electron_Flux"]
                 s_identifier = "electrons"
             else:
@@ -1341,6 +1342,19 @@ class Event:
                 particle_data = self.current_df_e
                 s_identifier = "electrons"
                 warnings.warn('SOHO/EPHIN data is not fully implemented yet!')
+
+        if spacecraft == "psp":
+            if instrument.lower() == "isois-epihi":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+                if species in ("proton", "p"):
+                    particle_data = self.current_df_i
+                    s_identifier = "protons"
+            if instrument.lower() == "isois-epilo":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
 
         # These particle instruments will have keVs on their y-axis
         LOW_ENERGY_SENSORS = ("sept", "ept")
@@ -1813,6 +1827,11 @@ class Event:
                 # E150, E300, E1300 and E3000. The rest are unknown to me.
                 energy_ranges = [val for val in self.current_energies.values()][:4]
 
+        if self.spacecraft == "psp":
+            energy_dict = self.meta
+
+            energy_ranges = energy_dict
+
         # Check what to return before running calculations
         if returns == "str":
             return energy_ranges
@@ -1926,11 +1945,6 @@ class Event:
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
-
-        # print(f"{self.spacecraft}, {self.sensor}:\n")
-        # print("Channel number | Energy range")
-        # for i, energy_range in enumerate(energy_strs):
-        #     print(f" {channel_numbers[i]}  :  {energy_range}")
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
