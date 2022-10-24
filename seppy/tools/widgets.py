@@ -16,7 +16,7 @@ stereo_instr = ["SEPT", "HET"]  # ["LET", "SEPT", "HET"]
 solo_instr = ["EPT", "HET"]
 bepi_instr = ["SIXS-P"]
 soho_instr = ["ERNE-HED", "EPHIN"]
-psp_instr = ["isois-epihi", "isois-epilo"]
+psp_instr = ["isois-epihi"] # "isois-epilo"
 
 sensor_dict = {
     "STEREO-A": stereo_instr,
@@ -34,7 +34,7 @@ view_dict = {
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
     ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
     ("PSP", "isois-epihi") : ("A", "B"),
-    ("PSP", "isois-epilo") : (0, 1, 2, 3, 4, 5, 6, 7)
+    ("PSP", "isois-epilo") : ('0', '1', '2', '3', '4', '5', '6', '7')
 }
 
 species_dict = {
@@ -47,10 +47,10 @@ species_dict = {
     ("Solar Orbiter", "EPT"): ("ions", "electrons"),
     ("Solar Orbiter", "HET"): ("protons", "electrons"),
     ("Bepicolombo", "SIXS-P"): ("protons", "electrons"),
-    ("SOHO", "ERNE-HED"): ("protons"),
-    ("SOHO", "EPHIN"): ("electrons"),
+    ("SOHO", "ERNE-HED"): ("protons",),
+    ("SOHO", "EPHIN"): ("electrons",),
     ("PSP", "isois-epihi") : ("protons", "electrons"),
-    ("PSP", "isois-epilo") : ("electrons")
+    ("PSP", "isois-epilo") : ("electrons",)
 }
 
 radio_dict = {

@@ -1298,7 +1298,6 @@ class Event:
         save : bool
                 Saves the image
         """
-        print("DEVELOPER VERSION")
 
         # Event attributes
         spacecraft = self.spacecraft.lower()
@@ -1582,6 +1581,22 @@ class Event:
                 s_identifier = "electrons"
             sc_identifier = spacecraft.upper()
 
+        if self.spacecraft == "psp":
+            if instrument.lower() == "isois-epihi":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+                if species in ("proton", 'p'):
+                    particle_data = self.current_df_i
+                    s_identifier = "protons"
+            
+            # EPILO only has electrons
+            if instrument.lower == "isois-epilo":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+            sc_identifier = "Parker Solar Probe"
+
         # make a copy to make sure original data is not altered
         dataframe = particle_data.copy()
 
@@ -1829,8 +1844,14 @@ class Event:
 
         if self.spacecraft == "psp":
             energy_dict = self.meta
+            if self.species == 'e':
+                energy_ranges = energy_dict["Electrons_ENERGY_LABL"]
+            if self.species == 'p':
+                energy_ranges = energy_dict["H_ENERGY_LABL"]
 
-            energy_ranges = energy_dict
+            # In the case of PSP, each iterable object is a list with len=1 that contains
+            # the str
+            energy_ranges = [element[0] for element in energy_ranges]
 
         # Check what to return before running calculations
         if returns == "str":
@@ -1847,20 +1868,29 @@ class Event:
                 higher_bounds.append(np.nan)
                 continue
 
+            # Generalize a bit here, since temp.split(' ') may yield a variety of different lists
+            components = temp.split(' ')
             try:
-                higher_bound, energy_unit = temp.split(' ')
+
+                # PSP meta strings can have up to 4 spaces
+                if len(components) > 3:
+                    higher_bound, energy_unit = components[-2], components[-1]
+
+                # Normal meta strs have two components: bounds and the energy unit
+                else:
+                    higher_bound, energy_unit = components
 
             # It could be that the strings are not in a standard format, so check if
             # there is an empty space before the second energy value
             except ValueError:
 
                 try:
-                    _, higher_bound, energy_unit = temp.split(' ')
+                    _, higher_bound, energy_unit = components
 
                 # It could even be that for some godforsaken reason there are empty spaces
                 # between the numbers themselves, so take care of that too
                 except ValueError:
-                    higher_bound, energy_unit = temp.split(' ')[1], temp.split(' ')[2]
+                    higher_bound, energy_unit = components[1], components(' ')[2]
 
             lower_bounds.append(float(lower_bound))
             higher_bounds.append(float(higher_bound))
@@ -1916,7 +1946,12 @@ class Event:
         """
 
         # This has to be run first, otherwise self.current_df does not exist
-        self.choose_data(self.viewing)
+        # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes
+        if self.viewing != "all":
+            self.choose_data(self.viewing)
+        else:
+            # Just choose data with either ´A´ or ´B´. I'm not sure if there's a difference
+            self.choose_data("A")
 
         if self.species in ['e', "electron"]:
             channel_names = self.current_df_e.columns
@@ -1942,9 +1977,19 @@ class Event:
         if self.sensor == "ephin":
             channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
 
+        if self.sensor == "isois-epihi":
+            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
+        print(channel_names)
+        print(channel_numbers)
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
+
+        print(channel_numbers)
+        print(len(channel_numbers))
+        print(energy_strs)
+        print(len(energy_strs))
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
