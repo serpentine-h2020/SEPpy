@@ -121,6 +121,7 @@ class Event:
     def update_viewing(self, viewing):
         self.viewing = viewing
 
+    # I suggest we at some point erase the arguments spacecraft and threshold due to them not being used.
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
 
