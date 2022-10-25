@@ -1,8 +1,8 @@
 """
 A library to run the interactive user interface in SEP event onset determination notebooks.
 
-@ Author: Christian Palmroos <chospa@utu.fi>
-@Last updated: 2022-10-24
+@Author: Christian Palmroos <chospa@utu.fi>
+@Last updated: 2022-10-25
 """
 
 
@@ -16,7 +16,7 @@ stereo_instr = ["SEPT", "HET"]  # ["LET", "SEPT", "HET"]
 solo_instr = ["EPT", "HET"]
 bepi_instr = ["SIXS-P"]
 soho_instr = ["ERNE-HED", "EPHIN"]
-psp_instr = ["isois-epihi"] # "isois-epilo"
+psp_instr = ["isois-epihi", "isois-epilo"]
 
 sensor_dict = {
     "STEREO-A": stereo_instr,
@@ -33,8 +33,8 @@ view_dict = {
     ("Solar Orbiter", "EPT"): ("sun", "asun", "north", "south"),
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
     ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
-    ("PSP", "isois-epihi") : ("A", "B"),
-    ("PSP", "isois-epilo") : ('0', '1', '2', '3', '4', '5', '6', '7')
+    ("PSP", "isois-epihi") : ("A `sun`", "B `anti-sun`"),
+    ("PSP", "isois-epilo") : ('3', '7') # ('0', '1', '2', '3', '4', '5', '6', '7')
 }
 
 species_dict = {

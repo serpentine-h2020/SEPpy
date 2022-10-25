@@ -122,6 +122,8 @@ class Event:
         self.viewing = viewing
 
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
+    # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
+    # are class attributes, and should probably be cleaned up at some point 
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
 
@@ -1663,7 +1665,7 @@ class Event:
 
         # So far I'm not sure how to return the original rcParams back to what they were in the case of this function,
         # because it runs interactively and there is no clear "ending" point to the function.
-        # For now I'll attach the original prcparams to a class attribute, so that the user may manually return the parameters
+        # For now I'll attach the original rcparams to a class attribute, so that the user may manually return the parameters
         # after they are done with tsa.
         self.original_rcparams = self.save_and_update_rcparams("tsa")
 
@@ -1980,16 +1982,9 @@ class Event:
         if self.sensor == "isois-epihi":
             channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
-        print(channel_names)
-        print(channel_numbers)
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
-
-        print(channel_numbers)
-        print(len(channel_numbers))
-        print(energy_strs)
-        print(len(energy_strs))
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
