@@ -33,7 +33,7 @@ view_dict = {
     ("Solar Orbiter", "EPT"): ("sun", "asun", "north", "south"),
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
     ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
-    ("PSP", "isois-epihi") : ("A `sun`", "B `anti-sun`"),
+    ("PSP", "isois-epihi") : ("A", "B"),
     ("PSP", "isois-epilo") : ('3', '7') # ('0', '1', '2', '3', '4', '5', '6', '7')
 }
 

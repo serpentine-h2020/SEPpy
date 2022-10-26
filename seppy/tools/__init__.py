@@ -87,6 +87,10 @@ class Event:
                        "bg_mean": self.bg_mean
                        }
 
+        # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
+        # because now it has to be run inside self.print_energies() to make sure that either 
+        # self.current_df, self.current_df_i or self.current_df_e exists, because print_energies() needs column
+        # names from the dataframe.
         self.load_all_viewing()
 
         # Download radio cdf files ONLY if asked to
@@ -1593,7 +1597,7 @@ class Event:
                     s_identifier = "protons"
             
             # EPILO only has electrons
-            if instrument.lower == "isois-epilo":
+            if instrument.lower() == "isois-epilo":
                 if species in ("electron", 'e'):
                     particle_data = self.current_df_e
                     s_identifier = "electrons"
@@ -1629,7 +1633,10 @@ class Event:
         dataframe[dataframe[selected_channels] == 0] = np.nan
 
         # Get the channel numbers (not the indices!)
-        channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
+        if instrument != "isois-epilo":
+            channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
+        else:
+            channel_nums = [int(name.split('_E')[-1].split('_')[0]) for name in selected_channels]
 
         # Channel energy values as strings:
         channel_energy_strs = self.get_channel_energy_values("str")
@@ -1846,19 +1853,40 @@ class Event:
 
         if self.spacecraft == "psp":
             energy_dict = self.meta
-            if self.species == 'e':
-                energy_ranges = energy_dict["Electrons_ENERGY_LABL"]
-            if self.species == 'p':
-                energy_ranges = energy_dict["H_ENERGY_LABL"]
 
-            # In the case of PSP, each iterable object is a list with len=1 that contains
-            # the str
-            energy_ranges = [element[0] for element in energy_ranges]
+            if self.sensor == "isois-epihi":
+                if self.species == 'e':
+                    energy_ranges = energy_dict["Electrons_ENERGY_LABL"]
+                if self.species == 'p':
+                    energy_ranges = energy_dict["H_ENERGY_LABL"]
+
+                # In the case of ISOIS-EPIHI, each iterable object is a list with len=1 that contains
+                # the str
+                energy_ranges = [element[0] for element in energy_ranges]
+
+            if self.sensor == "isois-epilo":
+                # The metadata of ISOIS-EPILO comes in a bit of complex form, so some handling is required 
+                if self.species == 'e':
+                    chan = 'F'
+
+                    energies = self.meta[f"Electron_Chan{chan}_Energy"].filter(like=f"_P{self.viewing}").values
+
+                    # Calculate low and high boundaries from mean energy and energy deltas
+                    energies_low = energies - self.meta[f"Electron_Chan{chan}_Energy_DELTAMINUS"].filter(like=f"_P{self.viewing}").values
+                    energies_high = energies + self.meta[f"Electron_Chan{chan}_Energy_DELTAPLUS"].filter(like=f"_P{self.viewing}").values
+
+                    # Round the numbers to one decimal place
+                    energies_low_rounded = np.round(energies_low, 1)
+                    energies_high_rounded = np.round(energies_high, 1)
+
+                    # produce energy range strings from low and high boundaries
+                    energy_ranges = np.array([str(energies_low_rounded[i]) + ' - ' + str(energies_high_rounded[i]) + " keV" for i in range(len(energies))])
 
         # Check what to return before running calculations
         if returns == "str":
             return energy_ranges
 
+        # From this line onward we extract the numerical values from low and high boundaries, and return floats, not strings
         lower_bounds, higher_bounds = [], []
         for energy_str in energy_ranges:
 
@@ -1952,8 +1980,12 @@ class Event:
         if self.viewing != "all":
             self.choose_data(self.viewing)
         else:
-            # Just choose data with either ´A´ or ´B´. I'm not sure if there's a difference
-            self.choose_data("A")
+            if self.sensor == "isois-epihi":
+                # Just choose data with either ´A´ or ´B´. I'm not sure if there's a difference
+                self.choose_data('A')
+            if self.sensor == "isois-epilo":
+                # ...And here with ´3´ or ´7´. Again I don't know if it'll make a difference
+                self.choose_data('3')
 
         if self.species in ['e', "electron"]:
             channel_names = self.current_df_e.columns
@@ -1981,6 +2013,9 @@ class Event:
 
         if self.sensor == "isois-epihi":
             channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
+        if self.sensor == "isois-epilo":
+            channel_numbers = [int(name.split('_E')[-1].split('_')[0]) for name in channel_names]
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
