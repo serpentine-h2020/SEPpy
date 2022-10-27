@@ -123,7 +123,12 @@ class Event:
                        }
 
     def update_viewing(self, viewing):
-        self.viewing = viewing
+        if self.spacecraft != "wind":
+            self.viewing = viewing
+        else:
+            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n. 
+            # This catches the number or the word if omnidirectional
+            self.viewing = viewing.split(" ")[-1]
 
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
@@ -439,8 +444,8 @@ class Event:
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
-                col_list_i = [col for col in self.df_i.columns if col.endswith(str(viewing))]
-                col_list_e = [col for col in self.df_e.columns if col.endswith(str(viewing))]
+                col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing))]
+                col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing))]
                 self.current_df_i = self.df_i[col_list_i]
                 self.current_df_e = self.df_e[col_list_e]
 

@@ -2,7 +2,7 @@
 A library to run the interactive user interface in SEP event onset determination notebooks.
 
 @Author: Christian Palmroos <chospa@utu.fi>
-@Last updated: 2022-10-25
+@Last updated: 2022-10-27
 """
 
 
@@ -10,13 +10,14 @@ A library to run the interactive user interface in SEP event onset determination
 import ipywidgets as widgets
 
 # a list of available spacecraft:
-list_of_sc = ["STEREO-A", "STEREO-B", "Solar Orbiter", "SOHO", "PSP"]
+list_of_sc = ["STEREO-A", "STEREO-B", "Solar Orbiter", "SOHO", "PSP", "Wind"]
 
 stereo_instr = ["SEPT", "HET"]  # ["LET", "SEPT", "HET"]
 solo_instr = ["EPT", "HET"]
 bepi_instr = ["SIXS-P"]
 soho_instr = ["ERNE-HED", "EPHIN"]
 psp_instr = ["isois-epihi", "isois-epilo"]
+wind_instr = ["3DP"]
 
 sensor_dict = {
     "STEREO-A": stereo_instr,
@@ -24,7 +25,8 @@ sensor_dict = {
     "Solar Orbiter": solo_instr,
     "Bepicolombo": bepi_instr,
     "SOHO": soho_instr,
-    "PSP" : psp_instr
+    "PSP" : psp_instr,
+    "Wind" : wind_instr
 }
 
 view_dict = {
@@ -34,7 +36,8 @@ view_dict = {
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
     ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
     ("PSP", "isois-epihi") : ("A", "B"),
-    ("PSP", "isois-epilo") : ('3', '7') # ('0', '1', '2', '3', '4', '5', '6', '7')
+    ("PSP", "isois-epilo") : ('3', '7'), # ('0', '1', '2', '3', '4', '5', '6', '7')
+    ("Wind", "3DP") : ('omnidirectional', 'sector 0', 'sector 1', 'sector 2', 'sector 3', 'sector 4', 'sector 5', 'sector 6', 'sector 7')
 }
 
 species_dict = {
@@ -50,7 +53,8 @@ species_dict = {
     ("SOHO", "ERNE-HED"): ("protons",),
     ("SOHO", "EPHIN"): ("electrons",),
     ("PSP", "isois-epihi") : ("protons", "electrons"),
-    ("PSP", "isois-epilo") : ("electrons",)
+    ("PSP", "isois-epilo") : ("electrons",),
+    ("Wind", "3DP") : ("protons", "electrons")
 }
 
 radio_dict = {
