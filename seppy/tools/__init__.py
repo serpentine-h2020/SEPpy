@@ -1,6 +1,7 @@
 import copy
 import os
 import datetime
+from unicodedata import name
 import warnings
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -444,8 +445,8 @@ class Event:
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
-                col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing))]
-                col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing))]
+                col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing)) and "Flux" in col]
+                col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing)) and "Flux" in col]
                 self.current_df_i = self.df_i[col_list_i]
                 self.current_df_e = self.df_e[col_list_e]
 
@@ -1365,6 +1366,13 @@ class Event:
                 if species in ("electron", 'e'):
                     particle_data = self.current_df_e
                     s_identifier = "electrons"
+        
+        if spacecraft == "wind":
+            if instrument.lower() == "3dp":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                else:
+                    particle_data = self.current_df_i
 
         # These particle instruments will have keVs on their y-axis
         LOW_ENERGY_SENSORS = ("sept", "ept")
@@ -1887,6 +1895,13 @@ class Event:
                     # produce energy range strings from low and high boundaries
                     energy_ranges = np.array([str(energies_low_rounded[i]) + ' - ' + str(energies_high_rounded[i]) + " keV" for i in range(len(energies))])
 
+        if self.spacecraft == "wind":
+
+            if self.species == 'e':
+                energy_ranges = np.array(self.meta_e["channels_dict_df"]["Bins_Text"])
+            if self.species == 'p':
+                energy_ranges = np.array(self.meta_i["channels_dict_df"]["Bins_Text"])
+
         # Check what to return before running calculations
         if returns == "str":
             return energy_ranges
@@ -2021,6 +2036,9 @@ class Event:
 
         if self.sensor == "isois-epilo":
             channel_numbers = [int(name.split('_E')[-1].split('_')[0]) for name in channel_names]
+
+        if self.sensor == "3dp":
+            channel_numbers = [int(name.split('_')[1])[-1] for name in channel_names]
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
