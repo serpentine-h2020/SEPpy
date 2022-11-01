@@ -1,7 +1,6 @@
 import copy
 import os
 import datetime
-from unicodedata import name
 import warnings
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -38,7 +37,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class Event:
 
     def __init__(self, start_date, end_date, spacecraft, sensor,
-                 species, data_level, data_path, radio_spacecraft=None,
+                 species, data_level, data_path, viewing=None, radio_spacecraft=None,
                  threshold=None):
 
         if spacecraft == "Solar Orbiter":
@@ -65,7 +64,7 @@ class Event:
         self.data_path = data_path + os.sep
         self.threshold = threshold
         self.radio_spacecraft = radio_spacecraft  # this is a 2-tuple, e.g., ("ahead", "STEREO-A")
-        self.viewing = None
+        self.viewing = viewing
 
         self.radio_files = None
 
@@ -129,7 +128,12 @@ class Event:
         else:
             # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n. 
             # This catches the number or the word if omnidirectional
-            self.viewing = viewing.split(" ")[-1]
+            try:
+                self.viewing = viewing.split(" ")[-1]
+            
+            #AttributeError is cause by initializing Event with spacecraft='Wind' and viewing=None
+            except AttributeError:
+                self.viewing = '0' # A placeholder viewing that should not cause any trouble
 
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
@@ -218,22 +222,45 @@ class Event:
                 return df, meta
 
         if self.spacecraft.lower() == 'wind':
-            if self.sensor == '3dp':
-                df_i, meta_i = wind3dp_load(dataset="WI_SOPD_3DP",
-                                            startdate=self.start_date,
-                                            enddate=self.end_date,
-                                            resample=None,
-                                            multi_index=False,
-                                            path=self.data_path,
-                                            threshold=self.threshold)
 
-                df_e, meta_e = wind3dp_load(dataset="WI_SFPD_3DP",
-                                            startdate=self.start_date,
-                                            enddate=self.end_date,
-                                            resample=None,
-                                            multi_index=False,
-                                            path=self.data_path,
-                                            threshold=self.threshold)
+            # In Wind's case we have to retrieve the original viewing before updating, because
+            # otherwise viewing = 'None' will mess up everything down the road
+            viewing = self.viewing
+
+            if self.sensor == '3dp':
+                if viewing != "omnidirectional":
+                    df_i, meta_i = wind3dp_load(dataset="WI_SOPD_3DP",
+                                                startdate=self.start_date,
+                                                enddate=self.end_date,
+                                                resample=None,
+                                                multi_index=False,
+                                                path=self.data_path,
+                                                threshold=self.threshold)
+
+                    df_e, meta_e = wind3dp_load(dataset="WI_SFPD_3DP",
+                                                startdate=self.start_date,
+                                                enddate=self.end_date,
+                                                resample=None,
+                                                multi_index=False,
+                                                path=self.data_path,
+                                                threshold=self.threshold)
+                else:
+                    df_i, meta_i = wind3dp_load(dataset="WI_SOSP_3DP",
+                                                startdate=self.start_date,
+                                                enddate=self.end_date,
+                                                resample=None,
+                                                multi_index=False,
+                                                path=self.data_path,
+                                                threshold=self.threshold)
+
+                    df_e, meta_e = wind3dp_load(dataset="WI_SFSP_3DP",
+                                                startdate=self.start_date,
+                                                enddate=self.end_date,
+                                                resample=None,
+                                                multi_index=False,
+                                                path=self.data_path,
+                                                threshold=self.threshold)
+
 
                 self.update_viewing(viewing)
                 return df_i, df_e, meta_i, meta_e
@@ -444,11 +471,21 @@ class Event:
                     self.current_e_energies = self.energies_e_south
 
         if self.spacecraft.lower() == 'wind':
-            if self.sensor.lower() == '3dp':
-                col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing)) and "Flux" in col]
-                col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing)) and "Flux" in col]
-                self.current_df_i = self.df_i[col_list_i]
-                self.current_df_e = self.df_e[col_list_e]
+
+            # The sectored data has a little different column names
+            if self.viewing != "omnidirectional":
+                if self.sensor.lower() == '3dp':
+                    col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
+                    col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
+                    self.current_df_i = self.df_i[col_list_i]
+                    self.current_df_e = self.df_e[col_list_e]
+            else:
+                if self.sensor.lower() == '3dp':
+                    col_list_i = [col for col in self.df_i.columns if "FLUX" in col]
+                    col_list_e = [col for col in self.df_e.columns if "FLUX" in col]
+                    self.current_df_i = self.df_i[col_list_i]
+                    self.current_df_e = self.df_e[col_list_e]
+
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -1206,14 +1243,20 @@ class Event:
                     else:
                         print("No multi-channel support for Wind/3DP included yet! Select only one single channel.")
                 if self.species in ['p', 'i']:
-                    df_flux = self.current_df_i.filter(like=f'FLUX_E{channels}')
+                    if viewing != "omnidirectional":
+                        df_flux = self.current_df_i.filter(like=f'FLUX_E{channels}')
+                    else:
+                        df_flux = self.current_df_i.filter(like=f'FLUX_{channels}')
                     # extract pd.Series for further use:
                     df_flux = df_flux[df_flux.columns[0]]
                     # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
                     df_flux = df_flux*1e6
                     en_channel_string = self.current_i_energies['channels_dict_df']['Bins_Text'][f'ENERGY_{channels}']
                 elif self.species == 'e':
-                    df_flux = self.current_df_e.filter(like=f'FLUX_E{channels}')
+                    if viewing != "omnidirectional":
+                        df_flux = self.current_df_e.filter(like=f'FLUX_E{channels}')
+                    else:
+                        df_flux = self.current_df_e.filter(like=f'FLUX_{channels}')
                     # extract pd.Series for further use:
                     df_flux = df_flux[df_flux.columns[0]]
                     # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
@@ -1370,9 +1413,13 @@ class Event:
         if spacecraft == "wind":
             if instrument.lower() == "3dp":
                 if species in ("electron", 'e'):
-                    particle_data = self.current_df_e
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_e*1e6
+                    s_identifier = "electrons"
                 else:
-                    particle_data = self.current_df_i
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_i*1e6
+                    s_identifier = "protons"
 
         # These particle instruments will have keVs on their y-axis
         LOW_ENERGY_SENSORS = ("sept", "ept")
@@ -1615,6 +1662,17 @@ class Event:
                     particle_data = self.current_df_e
                     s_identifier = "electrons"
             sc_identifier = "Parker Solar Probe"
+
+        if spacecraft == "wind":
+            if instrument.lower() == "3dp":
+                if species in ("electron", 'e'):
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_e*1e6
+                    s_identifier = "electrons"
+                else:
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_i*1e6
+                    s_identifier = "protons"
 
         # make a copy to make sure original data is not altered
         dataframe = particle_data.copy()
@@ -2038,7 +2096,7 @@ class Event:
             channel_numbers = [int(name.split('_E')[-1].split('_')[0]) for name in channel_names]
 
         if self.sensor == "3dp":
-            channel_numbers = [int(name.split('_')[1])[-1] for name in channel_names]
+            channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
