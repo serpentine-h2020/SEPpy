@@ -228,42 +228,42 @@ class Event:
             viewing = self.viewing
 
             if self.sensor == '3dp':
-                if viewing != "omnidirectional":
-                    df_i, meta_i = wind3dp_load(dataset="WI_SOPD_3DP",
-                                                startdate=self.start_date,
-                                                enddate=self.end_date,
-                                                resample=None,
-                                                multi_index=False,
-                                                path=self.data_path,
-                                                threshold=self.threshold)
 
-                    df_e, meta_e = wind3dp_load(dataset="WI_SFPD_3DP",
-                                                startdate=self.start_date,
-                                                enddate=self.end_date,
-                                                resample=None,
-                                                multi_index=False,
-                                                path=self.data_path,
-                                                threshold=self.threshold)
-                else:
-                    df_i, meta_i = wind3dp_load(dataset="WI_SOSP_3DP",
-                                                startdate=self.start_date,
-                                                enddate=self.end_date,
-                                                resample=None,
-                                                multi_index=False,
-                                                path=self.data_path,
-                                                threshold=self.threshold)
+                df_i, meta_i = wind3dp_load(dataset="WI_SOPD_3DP",
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            resample=None,
+                                            multi_index=False,
+                                            path=self.data_path,
+                                            threshold=self.threshold)
 
-                    df_e, meta_e = wind3dp_load(dataset="WI_SFSP_3DP",
-                                                startdate=self.start_date,
-                                                enddate=self.end_date,
-                                                resample=None,
-                                                multi_index=False,
-                                                path=self.data_path,
-                                                threshold=self.threshold)
+                df_e, meta_e = wind3dp_load(dataset="WI_SFPD_3DP",
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            resample=None,
+                                            multi_index=False,
+                                            path=self.data_path,
+                                            threshold=self.threshold)
+
+                df_omni_i, meta_omni_i = wind3dp_load(dataset="WI_SOSP_3DP",
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            resample=None,
+                                            multi_index=False,
+                                            path=self.data_path,
+                                            threshold=self.threshold)
+
+                df_omni_e, meta_omni_e = wind3dp_load(dataset="WI_SFSP_3DP",
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            resample=None,
+                                            multi_index=False,
+                                            path=self.data_path,
+                                            threshold=self.threshold)
 
 
                 self.update_viewing(viewing)
-                return df_i, df_e, meta_i, meta_e
+                return df_omni_i, df_omni_e, df_i, df_e, meta_i, meta_e
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -374,7 +374,7 @@ class Event:
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
-                self.df_i, self.df_e, self.meta_i, self.meta_e = \
+                self.df_omni_i, self.df_omni_e, self.df_i, self.df_e, self.meta_i, self.meta_e = \
                     self.load_data(self.spacecraft, self.sensor, 'None', self.data_level, threshold=self.threshold)
                 # self.df_i = self.df_i.filter(like='FLUX')
                 # self.df_e = self.df_e.filter(like='FLUX')
@@ -472,17 +472,19 @@ class Event:
 
         if self.spacecraft.lower() == 'wind':
 
+            if self.sensor.lower() == '3dp':
             # The sectored data has a little different column names
-            if self.viewing != "omnidirectional":
-                if self.sensor.lower() == '3dp':
+                if self.viewing == "omnidirectional":
+
+                    col_list_i = [col for col in self.df_omni_i.columns if "FLUX" in col]
+                    col_list_e = [col for col in self.df_omni_e.columns if "FLUX" in col]
+                    self.current_df_i = self.df_omni_i[col_list_i]
+                    self.current_df_e = self.df_omni_e[col_list_e]
+
+                else:
+
                     col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
                     col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
-                    self.current_df_i = self.df_i[col_list_i]
-                    self.current_df_e = self.df_e[col_list_e]
-            else:
-                if self.sensor.lower() == '3dp':
-                    col_list_i = [col for col in self.df_i.columns if "FLUX" in col]
-                    col_list_e = [col for col in self.df_e.columns if "FLUX" in col]
                     self.current_df_i = self.df_i[col_list_i]
                     self.current_df_e = self.df_e[col_list_e]
 
