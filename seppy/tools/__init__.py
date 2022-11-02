@@ -1675,6 +1675,7 @@ class Event:
                     # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
                     particle_data = self.current_df_i*1e6
                     s_identifier = "protons"
+            sc_identifier = spacecraft.capitalize()
 
         # make a copy to make sure original data is not altered
         dataframe = particle_data.copy()
@@ -1707,7 +1708,12 @@ class Event:
 
         # Get the channel numbers (not the indices!)
         if instrument != "isois-epilo":
-            channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
+            try:
+                channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
+
+            # ValueError happens in the case of Wind/3DP, which has channel strings like: FLUX_E0_P0, E for energy channel and P for direction
+            except ValueError:
+                channel_nums = [int(name.split('_')[1][-1]) for name in selected_channels]
         else:
             channel_nums = [int(name.split('_E')[-1].split('_')[0]) for name in selected_channels]
 
