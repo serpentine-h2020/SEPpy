@@ -1711,9 +1711,15 @@ class Event:
             try:
                 channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
 
-            # ValueError happens in the case of Wind/3DP, which has channel strings like: FLUX_E0_P0, E for energy channel and P for direction
             except ValueError:
-                channel_nums = [int(name.split('_')[1][-1]) for name in selected_channels]
+
+                # In the case of Wind/3DP, channel strings are like: FLUX_E0_P0, E for energy channel and P for direction
+                if self.spacecraft == "wind":
+                    channel_nums = [int(name.split('_')[1][-1]) for name in selected_channels]
+                
+                # SOHO/EPHIN has channels such as E300 etc...
+                if self.spacecraft == "soho":
+                    channel_nums = [name for name in selected_channels]
         else:
             channel_nums = [int(name.split('_E')[-1].split('_')[0]) for name in selected_channels]
 
@@ -1928,7 +1934,8 @@ class Event:
             if self.sensor.lower() == "ephin":
                 # Choose only the 4 first channels / descriptions, since I only know of
                 # E150, E300, E1300 and E3000. The rest are unknown to me.
-                energy_ranges = [val for val in self.current_energies.values()][:4]
+                # Go up to index 5, because index 1 is 'deactivated bc. of failure mode D'
+                energy_ranges = [val for val in self.current_energies.values()][:5]
 
         if self.spacecraft == "psp":
             energy_dict = self.meta
@@ -1958,8 +1965,15 @@ class Event:
                     energies_low_rounded = np.round(energies_low, 1)
                     energies_high_rounded = np.round(energies_high, 1)
 
+                    # I think nan values should be removed at this point. However, if we were to do that, then print_energies()
+                    # will not work anymore since tha number of channels and channel energy ranges won't be the same. 
+                    # In the current state PSP/ISOIS-EPILO cannot be examined with dynamic_spectrum(), because there are nan values
+                    # in the channel energy ranges.
+                    # energies_low_rounded = np.array([val for val in energies_low_rounded if not np.isnan(val)])
+                    # energies_high_rounded = np.array([val for val in energies_high_rounded if not np.isnan(val)])
+
                     # produce energy range strings from low and high boundaries
-                    energy_ranges = np.array([str(energies_low_rounded[i]) + ' - ' + str(energies_high_rounded[i]) + " keV" for i in range(len(energies))])
+                    energy_ranges = np.array([str(energies_low_rounded[i]) + ' - ' + str(energies_high_rounded[i]) + " keV" for i in range(len(energies_low_rounded))])
 
         if self.spacecraft == "wind":
 
@@ -1980,8 +1994,6 @@ class Event:
             try:
                 lower_bound, temp = energy_str.split('-')
             except ValueError:
-                lower_bounds.append(np.nan)
-                higher_bounds.append(np.nan)
                 continue
 
             # Generalize a bit here, since temp.split(' ') may yield a variety of different lists
@@ -1989,8 +2001,12 @@ class Event:
             try:
 
                 # PSP meta strings can have up to 4 spaces
-                if len(components) > 3:
+                if self.spacecraft == "psp":
                     higher_bound, energy_unit = components[-2], components[-1]
+
+                # SOHO/ERNE meta string has space, high value, space, energy_str
+                elif self.spacecraft == "soho" and self.sensor == "erne":
+                    higher_bound, energy_unit = components[1], components[-1]
 
                 # Normal meta strs have two components: bounds and the energy unit
                 else:
@@ -2006,7 +2022,11 @@ class Event:
                 # It could even be that for some godforsaken reason there are empty spaces
                 # between the numbers themselves, so take care of that too
                 except ValueError:
-                    higher_bound, energy_unit = components[1], components(' ')[2]
+
+                    if components[-1] not in ["keV", "MeV"]:
+                        higher_bound, energy_unit = components[1], components[2]
+                    else:
+                        higher_bound, energy_unit = components[1]+components[2], components[-1]
 
             lower_bounds.append(float(lower_bound))
             higher_bounds.append(float(higher_bound))
@@ -2109,6 +2129,10 @@ class Event:
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
+
+        # SOHO/EPHIN returns one too many energy strs, because one of them is 'deactivated bc. or  failure mode D'
+        if self.sensor == "ephin":
+            energy_strs = energy_strs[:-1]
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
