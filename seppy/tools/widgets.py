@@ -2,7 +2,7 @@
 A library to run the interactive user interface in SEP event onset determination notebooks.
 
 @Author: Christian Palmroos <chospa@utu.fi>
-@Last updated: 2022-10-27
+@Last updated: 2022-11-03
 """
 
 
@@ -10,7 +10,7 @@ A library to run the interactive user interface in SEP event onset determination
 import ipywidgets as widgets
 
 # a list of available spacecraft:
-list_of_sc = ["STEREO-A", "STEREO-B", "Solar Orbiter", "SOHO", "PSP", "Wind"]
+list_of_sc = ["PSP", "SOHO", "Solar Orbiter", "STEREO-A", "STEREO-B", "Wind"]
 
 stereo_instr = ["SEPT", "HET"]  # ["LET", "SEPT", "HET"]
 solo_instr = ["EPT", "HET"]
