@@ -497,6 +497,12 @@ class Event:
             if self.sensor.lower() == 'isois-epilo':
                 # viewing = '0' to '7'
                 self.current_df_e = self.df_e[self.df_e.columns[self.df_e.columns.str.endswith(viewing)]]
+
+                # Probably just a temporary thing, but cut all channels without a corresponding energy range string in them to avoid problems with
+                # dynamic spectrum. Magic number 12 is the amount of channels that have a corresponding energy description.
+                col_list = [col for col in self.current_df_e.columns if int(col.split('_')[3][1:])<12]
+                self.current_df_e = self.current_df_e[col_list]
+
                 # protons not yet included in PSP/ISOIS-EPILO dataset
                 # self.current_df_i = self.df_i[self.df_i.columns[self.df_i.columns.str.endswith(viewing)]]
 
@@ -1974,6 +1980,10 @@ class Event:
 
                     # produce energy range strings from low and high boundaries
                     energy_ranges = np.array([str(energies_low_rounded[i]) + ' - ' + str(energies_high_rounded[i]) + " keV" for i in range(len(energies_low_rounded))])
+
+                    # Probably just a temporary thing, but cut all the range strings containing ´nan´ in them to avoid problems with
+                    # dynamic spectrum
+                    energy_ranges = np.array([s for s in energy_ranges if "nan" not in s])
 
         if self.spacecraft == "wind":
 
