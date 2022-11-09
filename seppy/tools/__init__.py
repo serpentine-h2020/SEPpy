@@ -37,7 +37,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class Event:
 
     def __init__(self, start_date, end_date, spacecraft, sensor,
-                 species, data_level, data_path, radio_spacecraft=None,
+                 species, data_level, data_path, viewing=None, radio_spacecraft=None,
                  threshold=None):
 
         if spacecraft == "Solar Orbiter":
@@ -64,7 +64,7 @@ class Event:
         self.data_path = data_path + os.sep
         self.threshold = threshold
         self.radio_spacecraft = radio_spacecraft  # this is a 2-tuple, e.g., ("ahead", "STEREO-A")
-        self.viewing = None
+        self.viewing = viewing
 
         self.radio_files = None
 
@@ -87,6 +87,10 @@ class Event:
                        "bg_mean": self.bg_mean
                        }
 
+        # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
+        # because now it has to be run inside self.print_energies() to make sure that either 
+        # self.current_df, self.current_df_i or self.current_df_e exists, because print_energies() needs column
+        # names from the dataframe.
         self.load_all_viewing()
 
         # Download radio cdf files ONLY if asked to
@@ -119,8 +123,21 @@ class Event:
                        }
 
     def update_viewing(self, viewing):
-        self.viewing = viewing
+        if self.spacecraft != "wind":
+            self.viewing = viewing
+        else:
+            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n. 
+            # This catches the number or the word if omnidirectional
+            try:
+                self.viewing = viewing.split(" ")[-1]
+            
+            #AttributeError is cause by initializing Event with spacecraft='Wind' and viewing=None
+            except AttributeError:
+                self.viewing = '0' # A placeholder viewing that should not cause any trouble
 
+    # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
+    # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
+    # are class attributes, and should probably be cleaned up at some point 
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
 
@@ -205,7 +222,13 @@ class Event:
                 return df, meta
 
         if self.spacecraft.lower() == 'wind':
+
+            # In Wind's case we have to retrieve the original viewing before updating, because
+            # otherwise viewing = 'None' will mess up everything down the road
+            viewing = self.viewing
+
             if self.sensor == '3dp':
+
                 df_i, meta_i = wind3dp_load(dataset="WI_SOPD_3DP",
                                             startdate=self.start_date,
                                             enddate=self.end_date,
@@ -222,8 +245,25 @@ class Event:
                                             path=self.data_path,
                                             threshold=self.threshold)
 
+                df_omni_i, meta_omni_i = wind3dp_load(dataset="WI_SOSP_3DP",
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            resample=None,
+                                            multi_index=False,
+                                            path=self.data_path,
+                                            threshold=self.threshold)
+
+                df_omni_e, meta_omni_e = wind3dp_load(dataset="WI_SFSP_3DP",
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            resample=None,
+                                            multi_index=False,
+                                            path=self.data_path,
+                                            threshold=self.threshold)
+
+
                 self.update_viewing(viewing)
-                return df_i, df_e, meta_i, meta_e
+                return df_omni_i, df_omni_e, df_i, df_e, meta_i, meta_e
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -334,7 +374,7 @@ class Event:
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
-                self.df_i, self.df_e, self.meta_i, self.meta_e = \
+                self.df_omni_i, self.df_omni_e, self.df_i, self.df_e, self.meta_i, self.meta_e = \
                     self.load_data(self.spacecraft, self.sensor, 'None', self.data_level, threshold=self.threshold)
                 # self.df_i = self.df_i.filter(like='FLUX')
                 # self.df_e = self.df_e.filter(like='FLUX')
@@ -431,11 +471,23 @@ class Event:
                     self.current_e_energies = self.energies_e_south
 
         if self.spacecraft.lower() == 'wind':
+
             if self.sensor.lower() == '3dp':
-                col_list_i = [col for col in self.df_i.columns if col.endswith(str(viewing))]
-                col_list_e = [col for col in self.df_e.columns if col.endswith(str(viewing))]
-                self.current_df_i = self.df_i[col_list_i]
-                self.current_df_e = self.df_e[col_list_e]
+            # The sectored data has a little different column names
+                if self.viewing == "omnidirectional":
+
+                    col_list_i = [col for col in self.df_omni_i.columns if "FLUX" in col]
+                    col_list_e = [col for col in self.df_omni_e.columns if "FLUX" in col]
+                    self.current_df_i = self.df_omni_i[col_list_i]
+                    self.current_df_e = self.df_omni_e[col_list_e]
+
+                else:
+
+                    col_list_i = [col for col in self.df_i.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
+                    col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
+                    self.current_df_i = self.df_i[col_list_i]
+                    self.current_df_e = self.df_e[col_list_e]
+
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -445,6 +497,12 @@ class Event:
             if self.sensor.lower() == 'isois-epilo':
                 # viewing = '0' to '7'
                 self.current_df_e = self.df_e[self.df_e.columns[self.df_e.columns.str.endswith(viewing)]]
+
+                # Probably just a temporary thing, but cut all channels without a corresponding energy range string in them to avoid problems with
+                # dynamic spectrum. Magic number 12 is the amount of channels that have a corresponding energy description.
+                col_list = [col for col in self.current_df_e.columns if int(col.split('_')[3][1:])<12]
+                self.current_df_e = self.current_df_e[col_list]
+
                 # protons not yet included in PSP/ISOIS-EPILO dataset
                 # self.current_df_i = self.df_i[self.df_i.columns[self.df_i.columns.str.endswith(viewing)]]
 
@@ -1193,14 +1251,20 @@ class Event:
                     else:
                         print("No multi-channel support for Wind/3DP included yet! Select only one single channel.")
                 if self.species in ['p', 'i']:
-                    df_flux = self.current_df_i.filter(like=f'FLUX_E{channels}')
+                    if viewing != "omnidirectional":
+                        df_flux = self.current_df_i.filter(like=f'FLUX_E{channels}')
+                    else:
+                        df_flux = self.current_df_i.filter(like=f'FLUX_{channels}')
                     # extract pd.Series for further use:
                     df_flux = df_flux[df_flux.columns[0]]
                     # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
                     df_flux = df_flux*1e6
                     en_channel_string = self.current_i_energies['channels_dict_df']['Bins_Text'][f'ENERGY_{channels}']
                 elif self.species == 'e':
-                    df_flux = self.current_df_e.filter(like=f'FLUX_E{channels}')
+                    if viewing != "omnidirectional":
+                        df_flux = self.current_df_e.filter(like=f'FLUX_E{channels}')
+                    else:
+                        df_flux = self.current_df_e.filter(like=f'FLUX_{channels}')
                     # extract pd.Series for further use:
                     df_flux = df_flux[df_flux.columns[0]]
                     # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
@@ -1299,14 +1363,14 @@ class Event:
         """
 
         # Event attributes
-        spacecraft = self.spacecraft
-        instrument = self.sensor
+        spacecraft = self.spacecraft.lower()
+        instrument = self.sensor.lower()
         species = self.species
 
         self.choose_data(view)
 
         if self.spacecraft == "solo":
-            if species in ["electron", 'e']:
+            if species in ("electron", 'e'):
                 particle_data = self.current_df_e["Electron_Flux"]
                 s_identifier = "electrons"
             else:
@@ -1340,6 +1404,30 @@ class Event:
                 particle_data = self.current_df_e
                 s_identifier = "electrons"
                 warnings.warn('SOHO/EPHIN data is not fully implemented yet!')
+
+        if spacecraft == "psp":
+            if instrument.lower() == "isois-epihi":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+                if species in ("proton", "p"):
+                    particle_data = self.current_df_i
+                    s_identifier = "protons"
+            if instrument.lower() == "isois-epilo":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+        
+        if spacecraft == "wind":
+            if instrument.lower() == "3dp":
+                if species in ("electron", 'e'):
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_e*1e6
+                    s_identifier = "electrons"
+                else:
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_i*1e6
+                    s_identifier = "protons"
 
         # These particle instruments will have keVs on their y-axis
         LOW_ENERGY_SENSORS = ("sept", "ept")
@@ -1567,6 +1655,34 @@ class Event:
                 s_identifier = "electrons"
             sc_identifier = spacecraft.upper()
 
+        if self.spacecraft == "psp":
+            if instrument.lower() == "isois-epihi":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+                if species in ("proton", 'p'):
+                    particle_data = self.current_df_i
+                    s_identifier = "protons"
+            
+            # EPILO only has electrons
+            if instrument.lower() == "isois-epilo":
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+            sc_identifier = "Parker Solar Probe"
+
+        if spacecraft == "wind":
+            if instrument.lower() == "3dp":
+                if species in ("electron", 'e'):
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_e*1e6
+                    s_identifier = "electrons"
+                else:
+                    # change flux units from '#/cm2-ster-eV-sec' to '#/cm2-ster-MeV-sec'
+                    particle_data = self.current_df_i*1e6
+                    s_identifier = "protons"
+            sc_identifier = spacecraft.capitalize()
+
         # make a copy to make sure original data is not altered
         dataframe = particle_data.copy()
 
@@ -1597,7 +1713,21 @@ class Event:
         dataframe[dataframe[selected_channels] == 0] = np.nan
 
         # Get the channel numbers (not the indices!)
-        channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
+        if instrument != "isois-epilo":
+            try:
+                channel_nums = [int(name.split('_')[-1]) for name in selected_channels]
+
+            except ValueError:
+
+                # In the case of Wind/3DP, channel strings are like: FLUX_E0_P0, E for energy channel and P for direction
+                if self.spacecraft == "wind":
+                    channel_nums = [int(name.split('_')[1][-1]) for name in selected_channels]
+                
+                # SOHO/EPHIN has channels such as E300 etc...
+                if self.spacecraft == "soho":
+                    channel_nums = [name for name in selected_channels]
+        else:
+            channel_nums = [int(name.split('_E')[-1].split('_')[0]) for name in selected_channels]
 
         # Channel energy values as strings:
         channel_energy_strs = self.get_channel_energy_values("str")
@@ -1633,7 +1763,7 @@ class Event:
 
         # So far I'm not sure how to return the original rcParams back to what they were in the case of this function,
         # because it runs interactively and there is no clear "ending" point to the function.
-        # For now I'll attach the original prcparams to a class attribute, so that the user may manually return the parameters
+        # For now I'll attach the original rcparams to a class attribute, so that the user may manually return the parameters
         # after they are done with tsa.
         self.original_rcparams = self.save_and_update_rcparams("tsa")
 
@@ -1810,12 +1940,63 @@ class Event:
             if self.sensor.lower() == "ephin":
                 # Choose only the 4 first channels / descriptions, since I only know of
                 # E150, E300, E1300 and E3000. The rest are unknown to me.
-                energy_ranges = [val for val in self.current_energies.values()][:4]
+                # Go up to index 5, because index 1 is 'deactivated bc. of failure mode D'
+                energy_ranges = [val for val in self.current_energies.values()][:5]
+
+        if self.spacecraft == "psp":
+            energy_dict = self.meta
+
+            if self.sensor == "isois-epihi":
+                if self.species == 'e':
+                    energy_ranges = energy_dict["Electrons_ENERGY_LABL"]
+                if self.species == 'p':
+                    energy_ranges = energy_dict["H_ENERGY_LABL"]
+
+                # In the case of ISOIS-EPIHI, each iterable object is a list with len=1 that contains
+                # the str
+                energy_ranges = [element[0] for element in energy_ranges]
+
+            if self.sensor == "isois-epilo":
+                # The metadata of ISOIS-EPILO comes in a bit of complex form, so some handling is required 
+                if self.species == 'e':
+                    chan = 'F'
+
+                    energies = self.meta[f"Electron_Chan{chan}_Energy"].filter(like=f"_P{self.viewing}").values
+
+                    # Calculate low and high boundaries from mean energy and energy deltas
+                    energies_low = energies - self.meta[f"Electron_Chan{chan}_Energy_DELTAMINUS"].filter(like=f"_P{self.viewing}").values
+                    energies_high = energies + self.meta[f"Electron_Chan{chan}_Energy_DELTAPLUS"].filter(like=f"_P{self.viewing}").values
+
+                    # Round the numbers to one decimal place
+                    energies_low_rounded = np.round(energies_low, 1)
+                    energies_high_rounded = np.round(energies_high, 1)
+
+                    # I think nan values should be removed at this point. However, if we were to do that, then print_energies()
+                    # will not work anymore since tha number of channels and channel energy ranges won't be the same. 
+                    # In the current state PSP/ISOIS-EPILO cannot be examined with dynamic_spectrum(), because there are nan values
+                    # in the channel energy ranges.
+                    # energies_low_rounded = np.array([val for val in energies_low_rounded if not np.isnan(val)])
+                    # energies_high_rounded = np.array([val for val in energies_high_rounded if not np.isnan(val)])
+
+                    # produce energy range strings from low and high boundaries
+                    energy_ranges = np.array([str(energies_low_rounded[i]) + ' - ' + str(energies_high_rounded[i]) + " keV" for i in range(len(energies_low_rounded))])
+
+                    # Probably just a temporary thing, but cut all the range strings containing ´nan´ in them to avoid problems with
+                    # dynamic spectrum
+                    energy_ranges = np.array([s for s in energy_ranges if "nan" not in s])
+
+        if self.spacecraft == "wind":
+
+            if self.species == 'e':
+                energy_ranges = np.array(self.meta_e["channels_dict_df"]["Bins_Text"])
+            if self.species == 'p':
+                energy_ranges = np.array(self.meta_i["channels_dict_df"]["Bins_Text"])
 
         # Check what to return before running calculations
         if returns == "str":
             return energy_ranges
 
+        # From this line onward we extract the numerical values from low and high boundaries, and return floats, not strings
         lower_bounds, higher_bounds = [], []
         for energy_str in energy_ranges:
 
@@ -1823,24 +2004,39 @@ class Event:
             try:
                 lower_bound, temp = energy_str.split('-')
             except ValueError:
-                lower_bounds.append(np.nan)
-                higher_bounds.append(np.nan)
                 continue
 
+            # Generalize a bit here, since temp.split(' ') may yield a variety of different lists
+            components = temp.split(' ')
             try:
-                higher_bound, energy_unit = temp.split(' ')
+
+                # PSP meta strings can have up to 4 spaces
+                if self.spacecraft == "psp":
+                    higher_bound, energy_unit = components[-2], components[-1]
+
+                # SOHO/ERNE meta string has space, high value, space, energy_str
+                elif self.spacecraft == "soho" and self.sensor == "erne":
+                    higher_bound, energy_unit = components[1], components[-1]
+
+                # Normal meta strs have two components: bounds and the energy unit
+                else:
+                    higher_bound, energy_unit = components
 
             # It could be that the strings are not in a standard format, so check if
             # there is an empty space before the second energy value
             except ValueError:
 
                 try:
-                    _, higher_bound, energy_unit = temp.split(' ')
+                    _, higher_bound, energy_unit = components
 
                 # It could even be that for some godforsaken reason there are empty spaces
                 # between the numbers themselves, so take care of that too
                 except ValueError:
-                    higher_bound, energy_unit = temp.split(' ')[1], temp.split(' ')[2]
+
+                    if components[-1] not in ["keV", "MeV"]:
+                        higher_bound, energy_unit = components[1], components[2]
+                    else:
+                        higher_bound, energy_unit = components[1]+components[2], components[-1]
 
             lower_bounds.append(float(lower_bound))
             higher_bounds.append(float(higher_bound))
@@ -1896,7 +2092,16 @@ class Event:
         """
 
         # This has to be run first, otherwise self.current_df does not exist
-        self.choose_data(self.viewing)
+        # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes
+        if self.viewing != "all":
+            self.choose_data(self.viewing)
+        else:
+            if self.sensor == "isois-epihi":
+                # Just choose data with either ´A´ or ´B´. I'm not sure if there's a difference
+                self.choose_data('A')
+            if self.sensor == "isois-epilo":
+                # ...And here with ´3´ or ´7´. Again I don't know if it'll make a difference
+                self.choose_data('3')
 
         if self.species in ['e', "electron"]:
             channel_names = self.current_df_e.columns
@@ -1922,14 +2127,22 @@ class Event:
         if self.sensor == "ephin":
             channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
 
+        if self.sensor == "isois-epihi":
+            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
+        if self.sensor == "isois-epilo":
+            channel_numbers = [int(name.split('_E')[-1].split('_')[0]) for name in channel_names]
+
+        if self.sensor == "3dp":
+            channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
+
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
 
-        # print(f"{self.spacecraft}, {self.sensor}:\n")
-        # print("Channel number | Energy range")
-        # for i, energy_range in enumerate(energy_strs):
-        #     print(f" {channel_numbers[i]}  :  {energy_range}")
+        # SOHO/EPHIN returns one too many energy strs, because one of them is 'deactivated bc. or  failure mode D'
+        if self.sensor == "ephin":
+            energy_strs = energy_strs[:-1]
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")

@@ -1,8 +1,8 @@
 """
 A library to run the interactive user interface in SEP event onset determination notebooks.
 
-@ Author: Christian Palmroos <chospa@utu.fi>
-@Last updated: 2022-09-30
+@Author: Christian Palmroos <chospa@utu.fi>
+@Last updated: 2022-11-03
 """
 
 
@@ -10,42 +10,51 @@ A library to run the interactive user interface in SEP event onset determination
 import ipywidgets as widgets
 
 # a list of available spacecraft:
-# list_of_sc = ["STEREO-A", "STEREO-B", "Solar Orbiter", "Bepicolombo", "SOHO"]
-list_of_sc = ["STEREO-A", "STEREO-B", "Solar Orbiter", "SOHO"]
+list_of_sc = ["PSP", "SOHO", "Solar Orbiter", "STEREO-A", "STEREO-B", "Wind"]
 
 stereo_instr = ["SEPT", "HET"]  # ["LET", "SEPT", "HET"]
 solo_instr = ["EPT", "HET"]
 bepi_instr = ["SIXS-P"]
 soho_instr = ["ERNE-HED", "EPHIN"]
+psp_instr = ["isois-epihi", "isois-epilo"]
+wind_instr = ["3DP"]
 
 sensor_dict = {
     "STEREO-A": stereo_instr,
     "STEREO-B": stereo_instr,
     "Solar Orbiter": solo_instr,
     "Bepicolombo": bepi_instr,
-    "SOHO": soho_instr
+    "SOHO": soho_instr,
+    "PSP" : psp_instr,
+    "Wind" : wind_instr
 }
 
 view_dict = {
-    ("STEREO-A", "SEPT"): ["sun", "asun", "north", "south"],
-    ("STEREO-B", "SEPT"): ["sun", "asun", "north", "south"],
-    ("Solar Orbiter", "EPT"): ["sun", "asun", "north", "south"],
-    ("Solar Orbiter", "HET"): ["sun", "asun", "north", "south"],
-    ("Bepicolombo", "SIXS-P"): [0, 1, 2, 3, 4]
+    ("STEREO-A", "SEPT"): ("sun", "asun", "north", "south"),
+    ("STEREO-B", "SEPT"): ("sun", "asun", "north", "south"),
+    ("Solar Orbiter", "EPT"): ("sun", "asun", "north", "south"),
+    ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
+    ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
+    ("PSP", "isois-epihi") : ("A", "B"),
+    ("PSP", "isois-epilo") : ('3', '7'), # ('0', '1', '2', '3', '4', '5', '6', '7')
+    ("Wind", "3DP") : ('omnidirectional', 'sector 0', 'sector 1', 'sector 2', 'sector 3', 'sector 4', 'sector 5', 'sector 6', 'sector 7')
 }
 
 species_dict = {
-    ("STEREO-A", "LET"): ['protons', 'electrons'],
-    ("STEREO-A", "SEPT"): ['ions', 'electrons'],
-    ("STEREO-A", "HET"): ['protons', 'electrons'],
-    ("STEREO-B", "LET"): ['protons', 'electrons'],
-    ("STEREO-B", "SEPT"): ['ions', 'electrons'],
-    ("STEREO-B", "HET"): ['protons', 'electrons'],
-    ("Solar Orbiter", "EPT"): ['ions', 'electrons'],
-    ("Solar Orbiter", "HET"): ['protons', 'electrons'],
-    ("Bepicolombo", "SIXS-P"): ['protons', 'electrons'],
-    ("SOHO", "ERNE-HED"): ['protons'],
-    ("SOHO", "EPHIN"): ['electrons']
+    ("STEREO-A", "LET"): ("protons", "electrons"),
+    ("STEREO-A", "SEPT"):("ions", "electrons"),
+    ("STEREO-A", "HET"): ("protons", "electrons"),
+    ("STEREO-B", "LET"): ("protons", "electrons"),
+    ("STEREO-B", "SEPT"): ("ions", "electrons"),
+    ("STEREO-B", "HET"): ("protons", "electrons"),
+    ("Solar Orbiter", "EPT"): ("ions", "electrons"),
+    ("Solar Orbiter", "HET"): ("protons", "electrons"),
+    ("Bepicolombo", "SIXS-P"): ("protons", "electrons"),
+    ("SOHO", "ERNE-HED"): ("protons",),
+    ("SOHO", "EPHIN"): ("electrons",),
+    ("PSP", "isois-epihi") : ("protons", "electrons"),
+    ("PSP", "isois-epilo") : ("electrons",),
+    ("Wind", "3DP") : ("protons", "electrons")
 }
 
 radio_dict = {
