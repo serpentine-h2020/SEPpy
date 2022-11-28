@@ -25,8 +25,8 @@ sensor_dict = {
     "Solar Orbiter": solo_instr,
     "Bepicolombo": bepi_instr,
     "SOHO": soho_instr,
-    "PSP" : psp_instr,
-    "Wind" : wind_instr
+    "PSP": psp_instr,
+    "Wind": wind_instr
 }
 
 view_dict = {
@@ -35,14 +35,14 @@ view_dict = {
     ("Solar Orbiter", "EPT"): ("sun", "asun", "north", "south"),
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
     ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
-    ("PSP", "isois-epihi") : ("A", "B"),
-    ("PSP", "isois-epilo") : ('3', '7'), # ('0', '1', '2', '3', '4', '5', '6', '7')
-    ("Wind", "3DP") : ('omnidirectional', 'sector 0', 'sector 1', 'sector 2', 'sector 3', 'sector 4', 'sector 5', 'sector 6', 'sector 7')
+    ("PSP", "isois-epihi"): ("A", "B"),
+    ("PSP", "isois-epilo"): ('3', '7'),  # ('0', '1', '2', '3', '4', '5', '6', '7')
+    ("Wind", "3DP"): ('omnidirectional', 'sector 0', 'sector 1', 'sector 2', 'sector 3', 'sector 4', 'sector 5', 'sector 6', 'sector 7')
 }
 
 species_dict = {
     ("STEREO-A", "LET"): ("protons", "electrons"),
-    ("STEREO-A", "SEPT"):("ions", "electrons"),
+    ("STEREO-A", "SEPT"): ("ions", "electrons"),
     ("STEREO-A", "HET"): ("protons", "electrons"),
     ("STEREO-B", "LET"): ("protons", "electrons"),
     ("STEREO-B", "SEPT"): ("ions", "electrons"),
@@ -52,9 +52,9 @@ species_dict = {
     ("Bepicolombo", "SIXS-P"): ("protons", "electrons"),
     ("SOHO", "ERNE-HED"): ("protons",),
     ("SOHO", "EPHIN"): ("electrons",),
-    ("PSP", "isois-epihi") : ("protons", "electrons"),
-    ("PSP", "isois-epilo") : ("electrons",),
-    ("Wind", "3DP") : ("protons", "electrons")
+    ("PSP", "isois-epihi"): ("protons", "electrons"),
+    ("PSP", "isois-epilo"): ("electrons",),
+    ("Wind", "3DP"): ("protons", "electrons")
 }
 
 radio_dict = {
