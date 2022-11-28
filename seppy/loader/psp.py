@@ -388,13 +388,11 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
         if species.lower() in ['p', 'protons', 'i', 'ions', 'h']:
             species_str = 'H'
             flux_key = 'H_Flux'
+    en_str = energies[f'{species_str}_ENERGY_LABL']
     if type(en_channel) == list:
-        en_str = energies[f'{species_str}_ENERGY_LABL']
         energy_low = en_str[en_channel[0]][0].split('-')[0]
         energy_up = en_str[en_channel[-1]][0].split('-')[-1]
         en_channel_string = energy_low + '-' + energy_up
-        # replace multiple whitespaces with single ones
-        en_channel_string = ' '.join(en_channel_string.split())
 
         DE = energies[f'{species_str}_ENERGY_DELTAPLUS']+energies[f'{species_str}_ENERGY_DELTAMINUS']
 
@@ -417,7 +415,9 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
             flux_out = pd.DataFrame({'flux': df[f'{viewing.upper()}_{flux_key}_{en_channel}']}, index=df.index)
     else:
         flux_out = pd.DataFrame({'flux': df[f'{viewing.upper()}_{flux_key}_{en_channel}']}, index=df.index)
-        en_channel_string = en_str[en_channel]
+        en_channel_string = en_str[en_channel][0]
+    # replace multiple whitespaces with single ones
+    en_channel_string = ' '.join(en_channel_string.split())
     return flux_out, en_channel_string
 
 
