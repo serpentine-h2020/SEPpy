@@ -88,7 +88,7 @@ class Event:
                        }
 
         # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
-        # because now it has to be run inside self.print_energies() to make sure that either 
+        # because now it has to be run inside self.print_energies() to make sure that either
         # self.current_df, self.current_df_i or self.current_df_e exists, because print_energies() needs column
         # names from the dataframe.
         self.load_all_viewing()
@@ -126,18 +126,18 @@ class Event:
         if self.spacecraft != "wind":
             self.viewing = viewing
         else:
-            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n. 
+            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n.
             # This catches the number or the word if omnidirectional
             try:
                 self.viewing = viewing.split(" ")[-1]
-            
-            #AttributeError is cause by initializing Event with spacecraft='Wind' and viewing=None
+
+            # AttributeError is cause by initializing Event with spacecraft='Wind' and viewing=None
             except AttributeError:
-                self.viewing = '0' # A placeholder viewing that should not cause any trouble
+                self.viewing = '0'  # A placeholder viewing that should not cause any trouble
 
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
-    # are class attributes, and should probably be cleaned up at some point 
+    # are class attributes, and should probably be cleaned up at some point
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
 
@@ -246,21 +246,20 @@ class Event:
                                             threshold=self.threshold)
 
                 df_omni_i, meta_omni_i = wind3dp_load(dataset="WI_SOSP_3DP",
-                                            startdate=self.start_date,
-                                            enddate=self.end_date,
-                                            resample=None,
-                                            multi_index=False,
-                                            path=self.data_path,
-                                            threshold=self.threshold)
+                                                      startdate=self.start_date,
+                                                      enddate=self.end_date,
+                                                      resample=None,
+                                                      multi_index=False,
+                                                      path=self.data_path,
+                                                      threshold=self.threshold)
 
                 df_omni_e, meta_omni_e = wind3dp_load(dataset="WI_SFSP_3DP",
-                                            startdate=self.start_date,
-                                            enddate=self.end_date,
-                                            resample=None,
-                                            multi_index=False,
-                                            path=self.data_path,
-                                            threshold=self.threshold)
-
+                                                      startdate=self.start_date,
+                                                      enddate=self.end_date,
+                                                      resample=None,
+                                                      multi_index=False,
+                                                      path=self.data_path,
+                                                      threshold=self.threshold)
 
                 self.update_viewing(viewing)
                 return df_omni_i, df_omni_e, df_i, df_e, meta_i, meta_e
@@ -473,7 +472,7 @@ class Event:
         if self.spacecraft.lower() == 'wind':
 
             if self.sensor.lower() == '3dp':
-            # The sectored data has a little different column names
+                # The sectored data has a little different column names
                 if self.viewing == "omnidirectional":
 
                     col_list_i = [col for col in self.df_omni_i.columns if "FLUX" in col]
@@ -487,7 +486,6 @@ class Event:
                     col_list_e = [col for col in self.df_e.columns if col.endswith(str(self.viewing)) and "FLUX" in col]
                     self.current_df_i = self.df_i[col_list_i]
                     self.current_df_e = self.df_e[col_list_e]
-
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -1417,7 +1415,7 @@ class Event:
                 if species in ("electron", 'e'):
                     particle_data = self.current_df_e
                     s_identifier = "electrons"
-        
+
         if spacecraft == "wind":
             if instrument.lower() == "3dp":
                 if species in ("electron", 'e'):
@@ -1663,7 +1661,7 @@ class Event:
                 if species in ("proton", 'p'):
                     particle_data = self.current_df_i
                     s_identifier = "protons"
-            
+
             # EPILO only has electrons
             if instrument.lower() == "isois-epilo":
                 if species in ("electron", 'e'):
@@ -1722,7 +1720,7 @@ class Event:
                 # In the case of Wind/3DP, channel strings are like: FLUX_E0_P0, E for energy channel and P for direction
                 if self.spacecraft == "wind":
                     channel_nums = [int(name.split('_')[1][-1]) for name in selected_channels]
-                
+
                 # SOHO/EPHIN has channels such as E300 etc...
                 if self.spacecraft == "soho":
                     channel_nums = [name for name in selected_channels]
@@ -1957,7 +1955,7 @@ class Event:
                 energy_ranges = [element[0] for element in energy_ranges]
 
             if self.sensor == "isois-epilo":
-                # The metadata of ISOIS-EPILO comes in a bit of complex form, so some handling is required 
+                # The metadata of ISOIS-EPILO comes in a bit of complex form, so some handling is required
                 if self.species == 'e':
                     chan = 'F'
 
@@ -1972,7 +1970,7 @@ class Event:
                     energies_high_rounded = np.round(energies_high, 1)
 
                     # I think nan values should be removed at this point. However, if we were to do that, then print_energies()
-                    # will not work anymore since tha number of channels and channel energy ranges won't be the same. 
+                    # will not work anymore since tha number of channels and channel energy ranges won't be the same.
                     # In the current state PSP/ISOIS-EPILO cannot be examined with dynamic_spectrum(), because there are nan values
                     # in the channel energy ranges.
                     # energies_low_rounded = np.array([val for val in energies_low_rounded if not np.isnan(val)])
