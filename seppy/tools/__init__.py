@@ -226,8 +226,11 @@ class Event:
                 dataset = "ephin_flux_2020-2022.csv"
                 datacols = ["date", "E5", "E15"]
 
-                df = pd.read_csv(f"{self.data_path}{os.sep}{dataset}", usecols=datacols,
-                                 index_col="date", parse_dates=True)
+                if os.path.isfile(f"{self.data_path}{dataset}"):
+                    df = pd.read_csv(f"{self.data_path}{dataset}", usecols=datacols,
+                                     index_col="date", parse_dates=True)
+                else:
+                    raise Warning(f"File {dataset} not found at {self.data_path}! Please verify that 'data_path' is correct.")
                 meta = {"E5": "0.45 - 0.50 MeV",
                         "E15": "0.70 - 1.10 MeV"}
 
