@@ -220,6 +220,19 @@ class Event:
 
                 self.update_viewing(viewing)
                 return df, meta
+            
+            if self.sensor in ("ephin-5", "ephin-15"):
+
+                dataset = "ephin_flux_2020-2022.csv"
+                datacols = ["date", "E5", "E15"]
+
+                df = pd.read_csv(f"{self.data_path}{os.sep}{dataset}", usecols=datacols,
+                                    index_col="date", parse_dates=True)
+                meta = {"E5": "0.45 - 050 MeV",
+                        "E15": "0.70 - 1.10 MeV"}
+
+                self.update_viewing(viewing)
+                return df, meta
 
         if self.spacecraft.lower() == 'wind':
 
@@ -368,9 +381,16 @@ class Event:
                 self.df, self.meta =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
                                    self.data_level)
-                # self.current_df_i = self.df.filter(like='PH_')
                 self.current_df_e = self.df.filter(like='E')
                 self.current_energies = self.meta
+
+            if self.sensor.lower() in ("ephin-5", "ephin-15"):
+                self.df, self.meta =\
+                    self.load_data(self.spacecraft, self.sensor, 'None',
+                                   self.data_level)
+                self.current_df_e = self.df
+                self.current_energies = self.meta
+
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
@@ -1129,7 +1149,7 @@ class Event:
             self.viewing_used = ''
         elif (self.spacecraft.lower() == 'soho' and self.sensor == 'erne'):
             self.viewing_used = ''
-        elif (self.spacecraft.lower() == 'soho' and self.sensor == 'ephin'):
+        elif (self.spacecraft.lower() == 'soho' and self.sensor in ["ephin", "ephin-5", "ephin-15"]):
             self.viewing_used = ''
 
         self.averaging_used = resample_period
@@ -1238,6 +1258,16 @@ class Event:
                     if self.species == 'e':
                         df_flux = self.current_df_e[f'E{channels}']
                         en_channel_string = self.current_energies[f'E{channels}']
+
+                if self.sensor in ("ephin-5", "ephin-15"):
+                    if isinstance(channels, list):
+                        if len(channels) == 1:
+                            channels = channels[0]
+                        else:
+                            raise Exception("No multi-channel support for SOHO/EPHIN included yet! Select only one single channel.")
+                    if self.species == 'e':
+                        df_flux = self.current_df_e[f"E{channels}"]
+                        en_channel_string = self.current_energies[f"E{channels}"]
 
             except KeyError:
                 raise Exception(f"{channels} is an invalid channel or a combination of channels!")
@@ -1942,6 +1972,8 @@ class Event:
                 # E150, E300, E1300 and E3000. The rest are unknown to me.
                 # Go up to index 5, because index 1 is 'deactivated bc. of failure mode D'
                 energy_ranges = [val for val in self.current_energies.values()][:5]
+            if self.sensor.lower() in ("ephin-5", "ephin-15"):
+                energy_ranges = [value for key, value in self.current_energies.items()]
 
         if self.spacecraft == "psp":
             energy_dict = self.meta
@@ -2126,6 +2158,9 @@ class Event:
 
         if self.sensor == "ephin":
             channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
+        
+        if self.sensor in ["ephin-5", "ephin-15"]:
+            channel_numbers = [5, 15]
 
         if self.sensor == "isois-epihi":
             channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
