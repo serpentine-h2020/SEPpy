@@ -220,14 +220,17 @@ class Event:
 
                 self.update_viewing(viewing)
                 return df, meta
-            
+
             if self.sensor in ("ephin-5", "ephin-15"):
 
                 dataset = "ephin_flux_2020-2022.csv"
                 datacols = ["date", "E5", "E15"]
 
-                df = pd.read_csv(f"{self.data_path}{os.sep}{dataset}", usecols=datacols,
-                                    index_col="date", parse_dates=True)
+                if os.path.isfile(f"{self.data_path}{dataset}"):
+                    df = pd.read_csv(f"{self.data_path}{dataset}", usecols=datacols,
+                                     index_col="date", parse_dates=True)
+                else:
+                    raise Warning(f"File {dataset} not found at {self.data_path}! Please verify that 'data_path' is correct.")
                 meta = {"E5": "0.45 - 0.50 MeV",
                         "E15": "0.70 - 1.10 MeV"}
 
@@ -389,7 +392,6 @@ class Event:
                                    self.data_level)
                 self.current_df_e = self.df
                 self.current_energies = self.meta
-
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
@@ -2156,7 +2158,7 @@ class Event:
 
         if self.sensor == "ephin":
             channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
-        
+
         if self.sensor in ["ephin-5", "ephin-15"]:
             channel_numbers = [5, 15]
 
