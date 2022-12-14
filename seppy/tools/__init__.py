@@ -228,7 +228,7 @@ class Event:
 
                 df = pd.read_csv(f"{self.data_path}{os.sep}{dataset}", usecols=datacols,
                                     index_col="date", parse_dates=True)
-                meta = {"E5": "0.45 - 050 MeV",
+                meta = {"E5": "0.45 - 0.50 MeV",
                         "E15": "0.70 - 1.10 MeV"}
 
                 self.update_viewing(viewing)
