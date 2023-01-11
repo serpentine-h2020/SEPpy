@@ -318,7 +318,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
         - 'MAGB': STEREO IMPACT/MAG Burst Mode (~0.03 sec) Magnetic Field Vectors (RTN or SC => mag_coord)
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_RTN
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_SC
-       - 'PLASTIC': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data
+       - 'MAGPLASMA': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L2_MAGPLASMA_1M
         - 'SEPT': STEREO IMPACT/SEPT Level 2 Data
     startdate, enddate : {datetime or str}
@@ -377,10 +377,12 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
         sc = 'ST' + spacecraft.upper()[0]
 
         # define dataset
-        if instrument.upper()[:3]=='MAG':
+        if (instrument.upper()[:3]=='MAG') & (instrument.upper()!='MAGPLASMA'):
             dataset = sc + '_L1_' + instrument.upper() + '_' + mag_coord.upper()
-        elif instrument.upper()=='PLASTIC':
+        elif instrument.upper()=='MAGPLASMA':
             dataset = sc + '_L2_MAGPLASMA_1M'
+        # elif instrument.upper()[:3]=='PLA':
+        #     dataset = sc + '_L2_PLA_1DMAX_1MIN'
         else:
             dataset = sc + '_L1_' + instrument.upper()
 
@@ -417,13 +419,13 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                 df = df.replace(-2147483648, np.nan)
             if instrument.upper() == 'MAG':
                 df = df.replace(-1e+31, np.nan)
-            if instrument.upper() == 'PLASTIC':
+            if instrument.upper() == 'MAGPLASMA':
                 df = df.replace(-1.0e+30, np.nan)
 
-            # Because PLASTIC datafiles are for full calendar years, select only
+            # Because MAGPLASMA datafiles are for full calendar years, select only
             # the requested time range from it. Using trange because startdate
-            # or enddate can be strings. 
-            if instrument.upper() == 'PLASTIC':
+            # or enddate can be strings.
+            if instrument.upper() == 'MAGPLASMA':
                 # df = df[(df.index>=trange.min.value) & (df.index < (trange.max+pd.Timedelta('1d')).value)]
                 df = df[(df.index>=trange.min.value) & (df.index < trange.max.value)]
 
@@ -437,7 +439,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
             if pos_timestamp == 'start':
                 if instrument.upper() == 'LET':
                     df.index = df.index-pd.Timedelta('30s')
-                if instrument.upper() == 'PLASTIC':
+                if instrument.upper() == 'MAGPLASMA':
                     df.index = df.index-pd.Timedelta('30s')
             
             if isinstance(resample, str):
