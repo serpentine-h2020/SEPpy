@@ -318,6 +318,8 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
         - 'MAGB': STEREO IMPACT/MAG Burst Mode (~0.03 sec) Magnetic Field Vectors (RTN or SC => mag_coord)
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_RTN
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_SC
+       - 'PLASTIC': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data
+            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L2_MAGPLASMA_1M
         - 'SEPT': STEREO IMPACT/SEPT Level 2 Data
     startdate, enddate : {datetime or str}
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
@@ -376,6 +378,8 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
         # define dataset
         if instrument.upper()[:3]=='MAG':
             dataset = sc + '_L1_' + instrument.upper() + '_' + mag_coord.upper()
+        elif instrument.upper()=='PLASTIC':
+            dataset = sc + '_L2_MAGPLASMA_1M'
         else:
             dataset = sc + '_L1_' + instrument.upper()
 
@@ -403,8 +407,8 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
 
             metadata = _get_metadata(dataset, downloaded_files[0])
 
-            # remove this (i.e. following two lines) when sunpy's read_cdf is updated,
-            # and FILLVAL will be replaced directly, see
+            # TODO: remove this (i.e. following two lines) when sunpy's
+            # read_cdf is updated, and FILLVAL will be replaced directly, see
             # https://github.com/sunpy/sunpy/issues/5908
             if instrument.upper() == 'HET':
                 df = df.replace(metadata['Electron_Flux_FILLVAL'], np.nan)
@@ -413,7 +417,10 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                 df = df.replace(-2147483648, np.nan)
             if instrument.upper() == 'MAG':
                 df = df.replace(-1e+31, np.nan)
+            if instrument.upper() == 'PLASTIC':
+                df = df.replace(-1.0e+30, np.nan)
 
+            # TODO: (as it's not really nicely done so far)
             # careful!
             # adjusting the position of the timestamp manually.
             # requires knowledge of the original time resolution and timestamp position!
@@ -423,7 +430,9 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
             if pos_timestamp == 'start':
                 if instrument.upper() == 'LET':
                     df.index = df.index-pd.Timedelta('30s')
-
+                if instrument.upper() == 'PLASTIC':
+                    df.index = df.index-pd.Timedelta('30s')
+            
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
         except RuntimeError:
