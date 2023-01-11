@@ -351,7 +351,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
     """
     trange = a.Time(startdate, enddate)
     if trange.min==trange.max:
-        print(f'"startdate" and "enddate" must be different!')
+        print(f'"startdate" and "enddate" might need to be different!')
     if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp is None):
         raise ValueError(f'"pos_timestamp" must be either None, "center", or "start"!')
 
@@ -422,10 +422,10 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
 
             # Because PLASTIC datafiles are for full calendar years, select only
             # the requested time range from it. Using trange because startdate
-            # or enddate can be strings. Adding 1 day to enddate so that it is
-            # included in the selection.
+            # or enddate can be strings. 
             if instrument.upper() == 'PLASTIC':
-                df = df[(df.index>=trange.min.value) & (df.index < (trange.max+pd.Timedelta('1d')).value)]
+                # df = df[(df.index>=trange.min.value) & (df.index < (trange.max+pd.Timedelta('1d')).value)]
+                df = df[(df.index>=trange.min.value) & (df.index < trange.max.value)]
 
             # TODO: (as it's not really nicely done so far)
             # careful!
