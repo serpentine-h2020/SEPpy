@@ -164,6 +164,7 @@ class Event:
                                                            sept_species='p',
                                                            sept_viewing=viewing,
                                                            resample=None,
+                                                           pos_timestamp="center",
                                                            path=self.data_path)
                     df_e, channels_dict_df_e = [], []
 
@@ -179,6 +180,7 @@ class Event:
                                                            sept_species='e',
                                                            sept_viewing=viewing,
                                                            resample=None,
+                                                           pos_timestamp="center",
                                                            path=self.data_path)
 
                     df_i, channels_dict_df_i = [], []
@@ -192,7 +194,7 @@ class Event:
                                        enddate=self.end_date,
                                        spacecraft=self.spacecraft,
                                        resample=None,
-                                       pos_timestamp='center',
+                                       pos_timestamp="center",
                                        path=self.data_path)
 
                 self.update_viewing(viewing)
@@ -205,7 +207,7 @@ class Event:
                                      enddate=self.end_date,
                                      path=self.data_path,
                                      resample=None,
-                                     pos_timestamp='center')
+                                     pos_timestamp="center")
 
                 self.update_viewing(viewing)
                 return df, meta
@@ -216,7 +218,7 @@ class Event:
                                      enddate=self.end_date,
                                      path=self.data_path,
                                      resample=None,
-                                     pos_timestamp='center')
+                                     pos_timestamp="center")
 
                 self.update_viewing(viewing)
                 return df, meta
