@@ -226,11 +226,12 @@ class Event:
             if self.sensor in ("ephin-5", "ephin-15"):
 
                 dataset = "ephin_flux_2020-2022.csv"
-                datacols = ["date", "E5", "E15"]
 
                 if os.path.isfile(f"{self.data_path}{dataset}"):
-                    df = pd.read_csv(f"{self.data_path}{dataset}", usecols=datacols,
-                                     index_col="date", parse_dates=True)
+                    df = pd.read_csv(f"{self.data_path}{dataset}", index_col="date", parse_dates=True)
+                    # set electron flux to nan if the ratio of proton-proxy counts to correspondning electron counts is >0.1
+                    df['E5'][df['p_proxy (1.80-2.00 MeV)']/df['0.45-0.50 MeV (E5)'] >= 0.1] = np.nan
+                    df['E15'][df['p_proxy (1.80-2.00 MeV)']/df['0.70-1.10 MeV (E15)'] >= 0.1] = np.nan
                 else:
                     raise Warning(f"File {dataset} not found at {self.data_path}! Please verify that 'data_path' is correct.")
                 meta = {"E5": "0.45 - 0.50 MeV",
