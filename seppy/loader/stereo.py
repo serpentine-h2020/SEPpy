@@ -204,6 +204,7 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
         # replace bad data with np.nan:
         df = df.replace(-9999.900, np.nan)
 
+        # TODO: (as it's not really nicely done so far)
         # careful!
         # adjusting the position of the timestamp manually.
         # requires knowledge of the original time resolution and timestamp position!
