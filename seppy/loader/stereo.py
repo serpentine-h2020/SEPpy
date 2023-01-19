@@ -16,26 +16,10 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
+from seppy.tools import resample_df
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
-
-
-def resample_df(df, resample, pos_timestamp='center'):
-    """
-    Resample Pandas Dataframe
-    """
-    try:
-        df = df.resample(resample).mean()
-        if pos_timestamp == 'start':
-            df.index = df.index
-        else:
-            df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample)/2)
-        # if pos_timestamp == 'stop' or pos_timestamp == 'end':
-        #     df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample))
-    except ValueError:
-        raise ValueError(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
-    return df
 
 
 def stereo_sept_download(date, spacecraft, species, viewing, path=None):

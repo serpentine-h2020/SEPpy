@@ -13,6 +13,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
+from seppy.tools import resample_df
 
 def _fillval_nan(data, fillval):
     try:
@@ -332,26 +333,14 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
                 energies_dict = ''
 
         if isinstance(resample, str):
-            df = resample_df(df, resample)
+            df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
+
     except RuntimeError:
         print(f'Unable to obtain "{dataset}" data!')
         downloaded_files = []
         df = pd.DataFrame()
         energies_dict = []
     return df, energies_dict
-
-
-def resample_df(df, resample):
-    """
-    Resample Pandas Dataframe
-    """
-    try:
-        # _ = pd.Timedelta(resample)  # test if resample is proper Pandas frequency
-        df = df.resample(resample).mean()
-        df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample)/2)
-    except ValueError:
-        raise Warning(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
-    return df
 
 
 def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, viewing):

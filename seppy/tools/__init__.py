@@ -765,13 +765,6 @@ class Event:
 
         return flux_out, en_channel_string
 
-    def resample(self, df_flux, resample_period):
-
-        df_flux_out = df_flux.resample(resample_period, label='left').mean()
-        df_flux_out.index = df_flux_out.index\
-            + to_offset(pd.Timedelta(resample_period)/2)
-
-        return df_flux_out
 
     def print_info(self, title, info):
 
@@ -1115,7 +1108,7 @@ class Event:
         background_range : tuple or list of datetimes with len=2, default None
                         The time range of background averaging. If defined, takes precedence over bg_start and bg_length.
         resample_period : str, default None
-                        Pandas-compatible time string to average data. e.g. '10s' for 10 seconds or '2min' for 1 minutes.
+                        Pandas-compatible time string to average data. e.g. '10s' for 10 seconds or '2min' for 2 minutes.
         channels : int or list of 2 ints, default [0,1]
                         Index or a combination of indices to plot a channel or combination of channels.
         yscale : str, default 'log'
@@ -1355,7 +1348,7 @@ class Event:
 
         if resample_period is not None:
 
-            df_averaged = self.resample(df_flux, resample_period)
+            df_averaged = resample_df(df=df, resample=resample_period)
 
         else:
 
@@ -1474,7 +1467,7 @@ class Event:
 
         # Resample only if requested
         if resample is not None:
-            particle_data = particle_data.resample(resample).mean()
+            particle_data = resample_df(df=particle_data, resample=resample)
 
         if xlim is None:
             df = particle_data[:]
@@ -2244,6 +2237,40 @@ class Event:
         return original_rcparams
 
 
+def resample_df(df, resample, pos_timestamp="center", origin="start"):
+    """
+    Resamples a Pandas Dataframe or Series to a new frequency.
+
+    Parameters:
+    -----------
+    df : pd.DataFrame or pd.Series
+            The dataframe or series to resample
+    resample : str
+            pandas-compatible time string, e.g., '1min', '2H' or '25s'
+    pos_timestamp : str, default 'center'
+            Controls if the timestamp is at the center of the time bin, or at the start of it
+    origin : str, default 'start'
+            Controls if the origin of resampling is at the start of the day (midnight) or at the first
+            entry of the input dataframe/series
+
+    Returns:
+    ----------
+    df : pd.DataFrame or Series, depending on the input
+    """
+    try:
+        df = df.resample(resample, origin=origin, label="left").mean()
+        if pos_timestamp == 'start':
+            df.index = df.index
+        else:
+            df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample)/2)
+        # if pos_timestamp == 'stop' or pos_timestamp == 'end':
+        #     df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample))
+    except ValueError:
+        raise ValueError(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
+
+    return df
+
+
 def flux2series(flux, dates, cadence=None):
     """
     Converts an array of observed particle flux + timestamps into a pandas series
@@ -2268,11 +2295,7 @@ def flux2series(flux, dates, cadence=None):
     # if no cadence given, then just return the series with the original
     # time resolution
     if cadence is not None:
-        try:
-            flux_series = flux_series.resample(cadence, origin='start').mean()
-            flux_series.index = flux_series.index + pd.tseries.frequencies.to_offset(pd.Timedelta(cadence)/2)
-        except ValueError:
-            raise Warning(f"Your 'resample' option of [{cadence}] doesn't seem to be a proper Pandas frequency!")
+        flux_series = resample_df(df=flux_series, resample=cadence, pos_timestamp="center", origin="start")
 
     return flux_series
 
