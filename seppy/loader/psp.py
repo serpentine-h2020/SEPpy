@@ -13,7 +13,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools import resample_df
+from seppy.tools.util import resample_df
 
 def _fillval_nan(data, fillval):
     try:
