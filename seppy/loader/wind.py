@@ -14,6 +14,7 @@ import warnings
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 
+from seppy.tools.util import resample_df
 
 def _date2str(date):
     year = str(date)[0:4]
@@ -383,8 +384,8 @@ def _wind3dp_load(files, resample="1min", threshold=None):
         df = pd.concat([df2, df], axis=1)
 
     if isinstance(resample, str):
-        df = df.resample(resample).mean()
-        df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample)/2)
+        df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
+
     return df
     # except:
     #     raise Exception(f"Problem while loading CDF file! Delete downloaded file(s) {files} and try again. Sometimes this is enough to solve the problem.")
