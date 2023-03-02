@@ -429,7 +429,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
             
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
-        except RuntimeError:
+        except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
             downloaded_files = []
             df = []
