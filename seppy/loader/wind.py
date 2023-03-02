@@ -250,7 +250,7 @@ def wind3dp_download_fido(dataset, startdate, enddate, path=None, max_conn=5):
                 downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
         # downloaded_files = Fido.fetch(result, path=path, max_conn=max_conn)
         # downloaded_files.sort()
-    except RuntimeError:
+    except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
         downloaded_files = []
     return downloaded_files
@@ -344,7 +344,7 @@ def wind3dp_download(dataset, startdate, enddate, path=None, **kwargs):
                 # downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
                 downloaded_file = wind3dp_single_download(files[i], path=path)
 
-    except RuntimeError:
+    except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
         downloaded_files = []
     return downloaded_files
