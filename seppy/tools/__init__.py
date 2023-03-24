@@ -140,16 +140,29 @@ class Event:
                   autodownload=True, threshold=None):
 
         if self.spacecraft == 'solo':
-            df_i, df_e, energs = epd_load(sensor=sensor,
-                                          viewing=viewing,
-                                          level=data_level,
-                                          startdate=self.start_date,
-                                          enddate=self.end_date,
-                                          path=self.data_path,
-                                          autodownload=autodownload)
 
-            self.update_viewing(viewing)
-            return df_i, df_e, energs
+            if self.sensor in ("ept", "het"):
+                df_i, df_e, meta = epd_load(sensor=sensor,
+                                            viewing=viewing,
+                                            level=data_level,
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            path=self.data_path,
+                                            autodownload=autodownload)
+                self.update_viewing(viewing)
+                return df_i, df_e, meta
+
+            elif self.sensor == "step":
+                df, meta = epd_load(sensor=sensor,
+                                            viewing=viewing,
+                                            level=data_level,
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            path=self.data_path,
+                                            autodownload=autodownload)
+
+                self.update_viewing(viewing)
+                return df, meta
 
         if self.spacecraft[:2].lower() == 'st':
             if self.sensor == 'sept':
