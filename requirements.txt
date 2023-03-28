@@ -4,6 +4,7 @@ cdflib
 datetime
 drms
 h5netcdf
+ipywidgets
 lxml
 matplotlib
 numpy
