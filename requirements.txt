@@ -10,5 +10,6 @@ numpy
 pandas
 pooch
 requests
+solo-epd-loader
 sunpy>=4.0.0
 zeep
