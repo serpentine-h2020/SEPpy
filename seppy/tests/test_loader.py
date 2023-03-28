@@ -2,9 +2,32 @@ import numpy as np
 import pandas as pd
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
+from seppy.loader.psp import psp_isois_load
 from seppy.loader.soho import soho_load
 from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
+
+
+def test_psp_load_online():
+    df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
+                              enddate="2021/06/01", path=None, resample="1min")
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (48, 136)
+    assert meta['H_ENERGY_LABL'][0][0] == '  6.7 -   8.0 MeV'
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df['B_H_Uncertainty_14'])) == 48
+
+
+def test_psp_load_offline():
+    fullpath = get_pkg_data_filename('data/test/psp_isois-epihi_l2-het-rates60_20210531_v15.cdf', package='seppy')
+    path = Path(fullpath).parent.as_posix()
+    df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
+                              enddate="2021/06/01", path=path, resample="1min")
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (48, 136)
+    assert meta['H_ENERGY_LABL'][0][0] == '  6.7 -   8.0 MeV'
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df['B_H_Uncertainty_14'])) == 48
 
 
 def test_soho_ephin_load_online():
