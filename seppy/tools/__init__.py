@@ -19,11 +19,10 @@ from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_HET as calc_av_en_flux_ST_HET
 from seppy.loader.stereo import calc_av_en_flux_SEPT, stereo_load
 from seppy.loader.wind import wind3dp_load
+from seppy.util import *
 
-from seppy.tools.util import *
 
-from IPython.core.display import display
-
+# TODO: This should be handled better, don't ignore all UserWarnings!
 # This is to get rid of this specific warning:
 # /home/user/xyz/serpentine/notebooks/sep_analysis_tools/read_swaves.py:96: UserWarning: The input coordinates to pcolormesh are interpreted as
 # cell centers, but are not monotonically increasing or decreasing. This may lead to incorrectly calculated cell edges, in which
@@ -762,7 +761,6 @@ class Event:
             en_channel_string = en_str[en_channel]
 
         return flux_out, en_channel_string
-
 
     def print_info(self, title, info):
 
@@ -1614,6 +1612,7 @@ class Event:
         """
 
         import ipywidgets as widgets
+        from IPython.core.display import display
 
         # inits
         spacecraft = self.spacecraft
@@ -2116,6 +2115,8 @@ class Event:
         """
         Prints out the channel name / energy range pairs
         """
+
+        from IPython.core.display import display
 
         # This has to be run first, otherwise self.current_df does not exist
         # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes

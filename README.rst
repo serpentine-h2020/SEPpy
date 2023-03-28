@@ -34,7 +34,7 @@ This software is provided "as is", with no guarantee. It is no official data sou
 Installation
 ------------
 
-SEPpy requires python >= 3.6.
+SEPpy requires python >= 3.8.
 
 It can be installed from `PyPI <https://pypi.org/project/seppy/>`_ using:
 

@@ -16,7 +16,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -426,10 +426,10 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                     df.index = df.index-pd.Timedelta('30s')
                 if instrument.upper() == 'MAGPLASMA':
                     df.index = df.index-pd.Timedelta('30s')
-            
+
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
-        except RuntimeError:
+        except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
             downloaded_files = []
             df = []

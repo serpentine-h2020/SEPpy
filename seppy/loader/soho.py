@@ -15,7 +15,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
 
 
 def _get_metadata(dataset, path_to_cdf):
@@ -156,7 +156,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
 
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
-        except RuntimeError:
+        except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data!')
             downloaded_files = []
             df = []

@@ -13,7 +13,8 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
+
 
 def _fillval_nan(data, fillval):
     try:
@@ -335,7 +336,7 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
         if isinstance(resample, str):
             df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
 
-    except RuntimeError:
+    except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data!')
         downloaded_files = []
         df = pd.DataFrame()
