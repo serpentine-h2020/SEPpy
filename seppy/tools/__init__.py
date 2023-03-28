@@ -763,7 +763,6 @@ class Event:
 
         return flux_out, en_channel_string
 
-
     def print_info(self, title, info):
 
         title_string = "##### >" + title + "< #####"

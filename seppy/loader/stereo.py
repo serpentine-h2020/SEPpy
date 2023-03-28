@@ -426,7 +426,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                     df.index = df.index-pd.Timedelta('30s')
                 if instrument.upper() == 'MAGPLASMA':
                     df.index = df.index-pd.Timedelta('30s')
-            
+
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
         except (RuntimeError, IndexError):

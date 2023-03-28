@@ -15,6 +15,7 @@ from sunpy.timeseries import TimeSeries
 
 from seppy.tools.util import resample_df
 
+
 def _fillval_nan(data, fillval):
     try:
         data[data == fillval] = np.nan

@@ -16,6 +16,7 @@ from sunpy.net import attrs as a
 
 from seppy.tools.util import resample_df
 
+
 def _date2str(date):
     year = str(date)[0:4]
     month = str(date)[4:6]
