@@ -4,8 +4,26 @@ from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.psp import psp_isois_load
 from seppy.loader.soho import soho_load
+from seppy.loader.solo import mag_load
 from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
+
+
+def test_solo_mag_load_online():
+    df = mag_load("2021/07/11", "2021/07/12", level='l2', data_type='normal-1-minute', frame='rtn', path=None)
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1440, 7)
+    assert np.sum(np.isnan(df['B_RTN_0'])) == 0
+
+
+def test_solo_mag_load_offline():
+    # offline data files need to be replaced if data "version" is updated!
+    fullpath = get_pkg_data_filename('data/test/solo_l2_mag-rtn-normal-1-minute_20210711_v01.cdf', package='seppy')
+    path = Path(fullpath).parent.as_posix()
+    df = mag_load("2021/07/11", "2021/07/12", level='l2', data_type='normal-1-minute', frame='rtn', path=None)
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1440, 7)
+    assert np.sum(np.isnan(df['B_RTN_0'])) == 0
 
 
 def test_psp_load_online():
@@ -19,6 +37,7 @@ def test_psp_load_online():
 
 
 def test_psp_load_offline():
+    # offline data files need to be replaced if data "version" is updated!
     fullpath = get_pkg_data_filename('data/test/psp_isois-epihi_l2-het-rates60_20210531_v15.cdf', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
@@ -62,6 +81,7 @@ def test_stereo_het_load_online():
 
 
 def test_stereo_het_load_offline():
+    # offline data files need to be replaced if data "version" is updated!
     fullpath = get_pkg_data_filename('data/test/sta_l1_het_20211028_v01.cdf', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = stereo_load(instrument="HET", startdate="2021/10/28", enddate="2021/10/29",
@@ -83,6 +103,7 @@ def test_stereo_sept_load_online():
 
 
 def test_stereo_sept_load_offline():
+    # offline data files need to be replaced if data "version" is updated!
     fullpath = get_pkg_data_filename('data/test/sept_ahead_ele_sun_2006_318_1min_l2_v03.dat', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = stereo_load(instrument="SEPT", startdate="2006/11/14", enddate="2006/11/14",
@@ -109,6 +130,7 @@ def test_wind3dp_load_online():
 
 
 def test_wind3dp_load_offline():
+    # offline data files need to be replaced if data "version" is updated!
     fullpath = get_pkg_data_filename('data/test/wi_sfsp_3dp_20200213_v01.cdf', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = wind3dp_load(dataset="WI_SFSP_3DP",
