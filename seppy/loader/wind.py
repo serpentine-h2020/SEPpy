@@ -14,7 +14,7 @@ import warnings
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
 
 
 def _date2str(date):

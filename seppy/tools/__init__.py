@@ -20,7 +20,7 @@ from seppy.loader.stereo import calc_av_en_flux_HET as calc_av_en_flux_ST_HET
 from seppy.loader.stereo import calc_av_en_flux_SEPT, stereo_load
 from seppy.loader.wind import wind3dp_load
 
-from seppy.tools.util import *
+from seppy.util import *
 
 from IPython.core.display import display
 
