@@ -2,8 +2,31 @@ import numpy as np
 import pandas as pd
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
+from seppy.loader.soho import soho_load
 from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
+
+
+def test_soho_ephin_load_online():
+    df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
+                           path=None, resample="1min", pos_timestamp=None)
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1145, 14)
+    assert meta['E1300'] == '0.67 - 10.4 MeV'
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df['E1300'])) == 444
+
+
+def test_soho_ephin_load_offline():
+    fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
+    path = Path(fullpath).parent.as_posix()
+    df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
+                           path=path, resample="1min", pos_timestamp=None)
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1145, 14)
+    assert meta['E1300'] == '0.67 - 10.4 MeV'
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df['E1300'])) == 444
 
 
 def test_stereo_het_load_online():
