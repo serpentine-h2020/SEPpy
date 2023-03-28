@@ -9,23 +9,6 @@ from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
 
 
-def test_solo_mag_load_online():
-    df = mag_load("2021/07/11", "2021/07/12", level='l2', data_type='normal-1-minute', frame='rtn', path=None)
-    assert isinstance(df, pd.DataFrame)
-    assert df.shape == (1440, 7)
-    assert np.sum(np.isnan(df['B_RTN_0'])) == 0
-
-
-def test_solo_mag_load_offline():
-    # offline data files need to be replaced if data "version" is updated!
-    fullpath = get_pkg_data_filename('data/test/solo_l2_mag-rtn-normal-1-minute_20210711_v01.cdf', package='seppy')
-    path = Path(fullpath).parent.as_posix()
-    df = mag_load("2021/07/11", "2021/07/12", level='l2', data_type='normal-1-minute', frame='rtn', path=None)
-    assert isinstance(df, pd.DataFrame)
-    assert df.shape == (1440, 7)
-    assert np.sum(np.isnan(df['B_RTN_0'])) == 0
-
-
 def test_psp_load_online():
     df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
                               enddate="2021/06/01", path=None, resample="1min")
@@ -51,7 +34,7 @@ def test_psp_load_offline():
 
 def test_soho_ephin_load_online():
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                           path=None, resample="1min", pos_timestamp=None)
+                         path=None, resample="1min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1145, 14)
     assert meta['E1300'] == '0.67 - 10.4 MeV'
@@ -63,12 +46,29 @@ def test_soho_ephin_load_offline():
     fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                           path=path, resample="1min", pos_timestamp=None)
+                         path=path, resample="1min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1145, 14)
     assert meta['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['E1300'])) == 444
+
+
+def test_solo_mag_load_online():
+    df = mag_load("2021/07/12", "2021/07/13", level='l2', data_type='normal-1-minute', frame='rtn', path=None)
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1437, 7)
+    assert np.sum(np.isnan(df['B_RTN_0'])) == 64
+
+
+def test_solo_mag_load_offline():
+    # offline data files need to be replaced if data "version" is updated!
+    fullpath = get_pkg_data_filename('data/test/solo_l2_mag-rtn-normal-1-minute_20210712_v01.cdf', package='seppy')
+    path = Path(fullpath).parent.as_posix()
+    df = mag_load("2021/07/12", "2021/07/13", level='l2', data_type='normal-1-minute', frame='rtn', path=path)
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1437, 7)
+    assert np.sum(np.isnan(df['B_RTN_0'])) == 64
 
 
 def test_stereo_het_load_online():
