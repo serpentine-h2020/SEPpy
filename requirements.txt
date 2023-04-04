@@ -13,5 +13,5 @@ pandas
 pooch
 requests
 solo-epd-loader
-sunpy>=4.0.0
+sunpy>=4.1.0
 zeep
