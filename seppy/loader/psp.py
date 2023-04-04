@@ -261,7 +261,11 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
             # remove this (i.e. following line) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
             # https://github.com/sunpy/sunpy/issues/5908
-            df = df.replace(cdf.varattsget('A_H_Flux')['FILLVAL'], np.nan)
+            # df = df.replace(cdf.varattsget('A_H_Flux')['FILLVAL'], np.nan)
+            # 4 Apr 2023: previous 1 lines removed because they are taken care of with sunpy
+            # 4.1.0:
+            # https://docs.sunpy.org/en/stable/whatsnew/changelog.html#id7
+            # https://github.com/sunpy/sunpy/pull/5956
 
             # get info on energies and units
             energies_dict = {"H_ENERGY":
