@@ -473,6 +473,23 @@ class Event:
                 self.current_df_i = self.df_i_south
                 self.current_df_e = self.df_e_south
                 self.current_energies = self.energies_south
+            
+            elif "Pixel" in viewing:
+
+                # All viewings are contained in the same dataframe, choose the pixel (viewing) here
+                pixel = self.viewing.split(' ')[1]
+
+                # Pixel info is in format NN in the dataframe, 1 -> 01 while 12 -> 12
+                if len(pixel) == 1:
+                    pixel = f"0{pixel}"
+
+                # Pixel length more than 2 means "averaged" -> called "Avg" in the dataframe
+                elif len(pixel) > 2:
+                    pixel = "Avg"
+
+                self.current_df_i = self.df_step[[ col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
+                self.current_df_e = self.df_step[[ col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
+                self.current_energies = self.energies_step
 
         if self.spacecraft[:2].lower() == 'st':
             if self.sensor == 'sept':
@@ -1402,10 +1419,35 @@ class Event:
         instrument = self.sensor.lower()
         species = self.species
 
+        # This method has to be run before doing anything else to make sure that the viewing is correct
         self.choose_data(view)
 
         if self.spacecraft == "solo":
-            if species in ("electron", 'e'):
+
+            if instrument == "step":
+
+                # All viewings are contained in the same dataframe, choose the pixel (viewing) here
+                pixel = self.viewing.split(' ')[1]
+
+                # Pixel info is in format NN in the dataframe, 1 -> 01 while 12 -> 12
+                if len(pixel) == 1:
+                    pixel = f"0{pixel}"
+
+                # Pixel length more than 2 means "averaged" -> called "Avg" in the dataframe
+                elif len(pixel) > 2:
+                    pixel = "Avg"
+
+                if species in ("electron", 'e'):
+                    particle_data = self.df_step[[ col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
+                    s_identifier = "electrons"
+
+                # Step's "Magnet" channel deflects electrons -> measures all positive ions
+                else:
+                    particle_data = self.df_step[[ col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
+                    s_identifier = "ions"
+
+            # EPT and HET data come in almost identical containers, they need not be differentiated
+            elif species in ("electron", 'e'):
                 particle_data = self.current_df_e["Electron_Flux"]
                 s_identifier = "electrons"
             else:
@@ -1465,7 +1507,7 @@ class Event:
                     s_identifier = "protons"
 
         # These particle instruments will have keVs on their y-axis
-        LOW_ENERGY_SENSORS = ("sept", "ept")
+        LOW_ENERGY_SENSORS = ("sept", "step", "ept")
 
         if instrument in LOW_ENERGY_SENSORS:
             y_multiplier = 1e-3  # keV
@@ -1482,11 +1524,11 @@ class Event:
             df = particle_data[:]
             t_start, t_end = df.index[0], df.index[-1]
         else:
-            # td is added to the end to avert white pixels at the end of the plot
+            # td is added to the start and the end to avert white pixels at the end of the plot
             td_str = resample if resample is not None else '0s'
             td = pd.Timedelta(value=td_str)
             t_start, t_end = pd.to_datetime(xlim[0]), pd.to_datetime(xlim[1])
-            df = particle_data.loc[(particle_data.index >= t_start) & (particle_data.index <= (t_end+td))]
+            df = particle_data.loc[(particle_data.index >= (t_start-td)) & (particle_data.index <= (t_end+td))]
 
         # In practice this seeks the date on which the highest flux is observed
         date_of_event = df.iloc[np.argmax(df[df.columns[0]])].name.date()
@@ -1933,16 +1975,15 @@ class Event:
         # First check by spacecraft, then by sensor
         if self.spacecraft == "solo":
 
-            # All solo energies are in the same object
+            # STEP, ETP and HET energies are in the same object
             energy_dict = self.current_energies
 
             if self.species == 'e':
                 energy_ranges = energy_dict["Electron_Bins_Text"]
+
             else:
-                try:
-                    energy_ranges = energy_dict["Ion_Bins_Text"]
-                except KeyError:
-                    energy_ranges = energy_dict["H_Bins_Text"]
+                p_identifier =  "Ion_Bins_Text" if self.sensor == "ept" else "H_Bins_Text" if self.sensor == "het" else "Bins_Text"
+                energy_ranges = energy_dict[p_identifier]
 
             # Each element in the list is also a list with len==1, so fix that
             energy_ranges = [element[0] for element in energy_ranges]
@@ -2010,7 +2051,7 @@ class Event:
                     energies_high_rounded = np.round(energies_high, 1)
 
                     # I think nan values should be removed at this point. However, if we were to do that, then print_energies()
-                    # will not work anymore since tha number of channels and channel energy ranges won't be the same.
+                    # will not work anymore since the number of channels and channel energy ranges won't be the same.
                     # In the current state PSP/ISOIS-EPILO cannot be examined with dynamic_spectrum(), because there are nan values
                     # in the channel energy ranges.
                     # energies_low_rounded = np.array([val for val in energies_low_rounded if not np.isnan(val)])
