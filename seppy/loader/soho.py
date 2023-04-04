@@ -15,7 +15,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
 
 
 def _get_metadata(dataset, path_to_cdf):
@@ -137,8 +137,12 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
             # remove this (i.e. following lines) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
             # https://github.com/sunpy/sunpy/issues/5908
-            df = df.replace(-1e+31, np.nan)  # for all fluxes
-            df = df.replace(-2147483648, np.nan)  # for ERNE count rates
+            # df = df.replace(-1e+31, np.nan)  # for all fluxes
+            # df = df.replace(-2147483648, np.nan)  # for ERNE count rates
+            # 4 Apr 2023: previous 2 lines removed because they are taken care of with sunpy
+            # 4.1.0:
+            # https://docs.sunpy.org/en/stable/whatsnew/changelog.html#id7
+            # https://github.com/sunpy/sunpy/pull/5956
 
             # careful!
             # adjusting the position of the timestamp manually.
@@ -156,7 +160,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
 
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
-        except RuntimeError:
+        except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data!')
             downloaded_files = []
             df = []

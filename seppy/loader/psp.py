@@ -13,7 +13,8 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
+
 
 def _fillval_nan(data, fillval):
     try:
@@ -260,7 +261,11 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
             # remove this (i.e. following line) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
             # https://github.com/sunpy/sunpy/issues/5908
-            df = df.replace(cdf.varattsget('A_H_Flux')['FILLVAL'], np.nan)
+            # df = df.replace(cdf.varattsget('A_H_Flux')['FILLVAL'], np.nan)
+            # 4 Apr 2023: previous 1 lines removed because they are taken care of with sunpy
+            # 4.1.0:
+            # https://docs.sunpy.org/en/stable/whatsnew/changelog.html#id7
+            # https://github.com/sunpy/sunpy/pull/5956
 
             # get info on energies and units
             energies_dict = {"H_ENERGY":
@@ -335,7 +340,7 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
         if isinstance(resample, str):
             df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
 
-    except RuntimeError:
+    except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data!')
         downloaded_files = []
         df = pd.DataFrame()

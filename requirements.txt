@@ -4,11 +4,14 @@ cdflib
 datetime
 drms
 h5netcdf
+ipykernel
+ipywidgets
 lxml
 matplotlib
 numpy
 pandas
 pooch
 requests
-sunpy>=4.0.0
+solo-epd-loader
+sunpy>=4.1.0
 zeep

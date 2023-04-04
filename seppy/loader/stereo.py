@@ -16,7 +16,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools.util import resample_df
+from seppy.util import resample_df
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -397,15 +397,19 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
             # TODO: remove this (i.e. following two lines) when sunpy's
             # read_cdf is updated, and FILLVAL will be replaced directly, see
             # https://github.com/sunpy/sunpy/issues/5908
-            if instrument.upper() == 'HET':
-                df = df.replace(metadata['Electron_Flux_FILLVAL'], np.nan)
-            if instrument.upper() == 'LET':
-                df = df.replace(-1e+31, np.nan)
-                df = df.replace(-2147483648, np.nan)
-            if instrument.upper() == 'MAG':
-                df = df.replace(-1e+31, np.nan)
-            if instrument.upper() == 'MAGPLASMA':
-                df = df.replace(-1.0e+30, np.nan)
+            # if instrument.upper() == 'HET':
+            #     df = df.replace(metadata['Electron_Flux_FILLVAL'], np.nan)
+            # if instrument.upper() == 'LET':
+            #     df = df.replace(-1e+31, np.nan)
+            #     df = df.replace(-2147483648, np.nan)
+            # if instrument.upper() == 'MAG':
+            #     df = df.replace(-1e+31, np.nan)
+            # if instrument.upper() == 'MAGPLASMA':
+            #     df = df.replace(-1.0e+30, np.nan)
+            # 4 Apr 2023: previous 9 lines removed because they are taken care of with sunpy
+            # 4.1.0:
+            # https://docs.sunpy.org/en/stable/whatsnew/changelog.html#id7
+            # https://github.com/sunpy/sunpy/pull/5956
 
             # Because MAGPLASMA datafiles are for full calendar years, select only
             # the requested time range from it. Using trange because startdate
@@ -426,10 +430,10 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                     df.index = df.index-pd.Timedelta('30s')
                 if instrument.upper() == 'MAGPLASMA':
                     df.index = df.index-pd.Timedelta('30s')
-            
+
             if isinstance(resample, str):
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp)
-        except RuntimeError:
+        except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
             downloaded_files = []
             df = []
