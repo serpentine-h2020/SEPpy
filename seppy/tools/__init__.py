@@ -153,7 +153,7 @@ class Event:
 
             elif self.sensor == "step":
                 df, meta = epd_load(sensor=sensor,
-                                            viewing=viewing,
+                                            viewing="None",
                                             level=data_level,
                                             startdate=self.start_date,
                                             enddate=self.end_date,
@@ -349,7 +349,7 @@ class Event:
             elif self.sensor == 'step':
 
                 self.df_step, self.energies_step =\
-                    self.load_data(self.spacecraft, self.sensor, 'None',
+                    self.load_data(self.spacecraft, self.sensor, self.viewing,
                                    self.data_level)
 
         if self.spacecraft[:2].lower() == 'st':
@@ -1161,6 +1161,7 @@ class Event:
 
         if (self.spacecraft[:2].lower() == 'st' and self.sensor == 'sept') \
                 or (self.spacecraft.lower() == 'psp' and self.sensor.startswith('isois')) \
+                or (self.spacecraft.lower() == 'solo' and self.sensor == 'step') \
                 or (self.spacecraft.lower() == 'solo' and self.sensor == 'ept') \
                 or (self.spacecraft.lower() == 'solo' and self.sensor == 'het') \
                 or (self.spacecraft.lower() == 'wind' and self.sensor == '3dp') \
@@ -1208,6 +1209,26 @@ class Event:
                         self.calc_av_en_flux_EPT(self.current_df_e,
                                                  self.current_energies,
                                                  channels)
+
+            elif self.sensor == "step":
+
+                if len(channels) > 1:
+                    not_implemented_msg = "Multiple channel averaging not yet supported for STEP! Please choose only one channel."
+                    raise Exception(not_implemented_msg)
+
+                en_channel_string = self.get_channel_energy_values("str")[channels[0]]
+
+                if self.species in ('p', 'i'):
+                    channel_id = self.current_df_i.columns[channels[0]]
+                    df_flux = pd.DataFrame(data={
+                        "flux" : self.current_df_i[channel_id]
+                    }, index = self.current_df_i.index)
+
+                elif self.species == 'e':
+                    channel_id = self.current_df_e.columns[channels[0]]
+                    df_flux = pd.DataFrame(data={
+                        "flux" : self.current_df_e[channel_id]
+                    }, index = self.current_df_e.index)
 
             else:
                 invalid_sensor_msg = "Invalid sensor!"
@@ -2195,9 +2216,15 @@ class Event:
 
         # Extract only the numbers from channel names
         if self.spacecraft == "solo":
+
+            if self.sensor == "step":
+                channel_names = list(channel_names)
+                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
             if self.sensor == "ept":
                 channel_names = [name[1] for name in channel_names[:SOLO_EPT_CHANNELS_AMOUNT]]
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
             if self.sensor == "het":
                 channel_names = [name[1] for name in channel_names[:SOLO_HET_CHANNELS_AMOUNT]]
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
