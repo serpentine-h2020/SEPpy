@@ -1716,20 +1716,32 @@ class Event:
         self.choose_data(view)
 
         if self.spacecraft == "solo":
-            if species in ["electron", 'e']:
-                particle_data = self.current_df_e["Electron_Flux"]
-                s_identifier = "electrons"
-            else:
-                try:
-                    particle_data = self.current_df_i["Ion_Flux"]
+            if self.sensor == "step":
+
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+                else:
+                    particle_data = self.current_df_i
                     s_identifier = "ions"
-                except KeyError:
-                    particle_data = self.current_df_i["H_Flux"]
-                    s_identifier = "protons"
+
+            else:
+
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e["Electron_Flux"]
+                    s_identifier = "electrons"
+                else:
+                    try:
+                        particle_data = self.current_df_i["Ion_Flux"]
+                        s_identifier = "ions"
+                    except KeyError:
+                        particle_data = self.current_df_i["H_Flux"]
+                        s_identifier = "protons"
+
             sc_identifier = "Solar Orbiter"
 
         if self.spacecraft[:2] == "st":
-            if species in ["electron", 'e']:
+            if species in ("electron", 'e'):
                 if instrument == "sept":
                     particle_data = self.current_df_e[[ch for ch in self.current_df_e.columns if ch[:2] == "ch"]]
                 else:
@@ -1946,7 +1958,7 @@ class Event:
                 line.set_xdata(line.get_xdata() - pd.Timedelta(seconds=timedelta_sec))
 
             # Update the path label artist
-            text.set_text(f"R={radial_distance_value:.2f} AU\nL = {slider.value} AU")
+            text.set_text(f"R={radial_distance_value:.2f} AU\nL = {np.round(slider.value,2)} AU")
 
             # Effectively this refreshes the figure
             fig.canvas.draw_idle()
