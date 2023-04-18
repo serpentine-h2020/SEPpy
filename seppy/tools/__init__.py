@@ -139,16 +139,29 @@ class Event:
                   autodownload=True, threshold=None):
 
         if self.spacecraft == 'solo':
-            df_i, df_e, energs = epd_load(sensor=sensor,
-                                          viewing=viewing,
-                                          level=data_level,
-                                          startdate=self.start_date,
-                                          enddate=self.end_date,
-                                          path=self.data_path,
-                                          autodownload=autodownload)
 
-            self.update_viewing(viewing)
-            return df_i, df_e, energs
+            if self.sensor in ("ept", "het"):
+                df_i, df_e, meta = epd_load(sensor=sensor,
+                                            viewing=viewing,
+                                            level=data_level,
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            path=self.data_path,
+                                            autodownload=autodownload)
+                self.update_viewing(viewing)
+                return df_i, df_e, meta
+
+            elif self.sensor == "step":
+                df, meta = epd_load(sensor=sensor,
+                                            viewing="None",
+                                            level=data_level,
+                                            startdate=self.start_date,
+                                            enddate=self.end_date,
+                                            path=self.data_path,
+                                            autodownload=autodownload)
+
+                self.update_viewing(viewing)
+                return df, meta
 
         if self.spacecraft[:2].lower() == 'st':
             if self.sensor == 'sept':
@@ -336,7 +349,7 @@ class Event:
             elif self.sensor == 'step':
 
                 self.df_step, self.energies_step =\
-                    self.load_data(self.spacecraft, self.sensor, 'None',
+                    self.load_data(self.spacecraft, self.sensor, self.viewing,
                                    self.data_level)
 
         if self.spacecraft[:2].lower() == 'st':
@@ -460,6 +473,23 @@ class Event:
                 self.current_df_i = self.df_i_south
                 self.current_df_e = self.df_e_south
                 self.current_energies = self.energies_south
+            
+            elif "Pixel" in viewing:
+
+                # All viewings are contained in the same dataframe, choose the pixel (viewing) here
+                pixel = self.viewing.split(' ')[1]
+
+                # Pixel info is in format NN in the dataframe, 1 -> 01 while 12 -> 12
+                if len(pixel) == 1:
+                    pixel = f"0{pixel}"
+
+                # Pixel length more than 2 means "averaged" -> called "Avg" in the dataframe
+                elif len(pixel) > 2:
+                    pixel = "Avg"
+
+                self.current_df_i = self.df_step[[ col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
+                self.current_df_e = self.df_step[[ col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
+                self.current_energies = self.energies_step
 
         if self.spacecraft[:2].lower() == 'st':
             if self.sensor == 'sept':
@@ -1131,6 +1161,7 @@ class Event:
 
         if (self.spacecraft[:2].lower() == 'st' and self.sensor == 'sept') \
                 or (self.spacecraft.lower() == 'psp' and self.sensor.startswith('isois')) \
+                or (self.spacecraft.lower() == 'solo' and self.sensor == 'step') \
                 or (self.spacecraft.lower() == 'solo' and self.sensor == 'ept') \
                 or (self.spacecraft.lower() == 'solo' and self.sensor == 'het') \
                 or (self.spacecraft.lower() == 'wind' and self.sensor == '3dp') \
@@ -1178,6 +1209,26 @@ class Event:
                         self.calc_av_en_flux_EPT(self.current_df_e,
                                                  self.current_energies,
                                                  channels)
+
+            elif self.sensor == "step":
+
+                if len(channels) > 1:
+                    not_implemented_msg = "Multiple channel averaging not yet supported for STEP! Please choose only one channel."
+                    raise Exception(not_implemented_msg)
+
+                en_channel_string = self.get_channel_energy_values("str")[channels[0]]
+
+                if self.species in ('p', 'i'):
+                    channel_id = self.current_df_i.columns[channels[0]]
+                    df_flux = pd.DataFrame(data={
+                        "flux" : self.current_df_i[channel_id]
+                    }, index = self.current_df_i.index)
+
+                elif self.species == 'e':
+                    channel_id = self.current_df_e.columns[channels[0]]
+                    df_flux = pd.DataFrame(data={
+                        "flux" : self.current_df_e[channel_id]
+                    }, index = self.current_df_e.index)
 
             else:
                 invalid_sensor_msg = "Invalid sensor!"
@@ -1389,10 +1440,35 @@ class Event:
         instrument = self.sensor.lower()
         species = self.species
 
+        # This method has to be run before doing anything else to make sure that the viewing is correct
         self.choose_data(view)
 
         if self.spacecraft == "solo":
-            if species in ("electron", 'e'):
+
+            if instrument == "step":
+
+                # All viewings are contained in the same dataframe, choose the pixel (viewing) here
+                pixel = self.viewing.split(' ')[1]
+
+                # Pixel info is in format NN in the dataframe, 1 -> 01 while 12 -> 12
+                if len(pixel) == 1:
+                    pixel = f"0{pixel}"
+
+                # Pixel length more than 2 means "averaged" -> called "Avg" in the dataframe
+                elif len(pixel) > 2:
+                    pixel = "Avg"
+
+                if species in ("electron", 'e'):
+                    particle_data = self.df_step[[ col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
+                    s_identifier = "electrons"
+
+                # Step's "Magnet" channel deflects electrons -> measures all positive ions
+                else:
+                    particle_data = self.df_step[[ col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
+                    s_identifier = "ions"
+
+            # EPT and HET data come in almost identical containers, they need not be differentiated
+            elif species in ("electron", 'e'):
                 particle_data = self.current_df_e["Electron_Flux"]
                 s_identifier = "electrons"
             else:
@@ -1452,7 +1528,7 @@ class Event:
                     s_identifier = "protons"
 
         # These particle instruments will have keVs on their y-axis
-        LOW_ENERGY_SENSORS = ("sept", "ept")
+        LOW_ENERGY_SENSORS = ("sept", "step", "ept")
 
         if instrument in LOW_ENERGY_SENSORS:
             y_multiplier = 1e-3  # keV
@@ -1469,11 +1545,11 @@ class Event:
             df = particle_data[:]
             t_start, t_end = df.index[0], df.index[-1]
         else:
-            # td is added to the end to avert white pixels at the end of the plot
+            # td is added to the start and the end to avert white pixels at the end of the plot
             td_str = resample if resample is not None else '0s'
             td = pd.Timedelta(value=td_str)
             t_start, t_end = pd.to_datetime(xlim[0]), pd.to_datetime(xlim[1])
-            df = particle_data.loc[(particle_data.index >= t_start) & (particle_data.index <= (t_end+td))]
+            df = particle_data.loc[(particle_data.index >= (t_start-td)) & (particle_data.index <= (t_end+td))]
 
         # In practice this seeks the date on which the highest flux is observed
         date_of_event = df.iloc[np.argmax(df[df.columns[0]])].name.date()
@@ -1640,20 +1716,32 @@ class Event:
         self.choose_data(view)
 
         if self.spacecraft == "solo":
-            if species in ["electron", 'e']:
-                particle_data = self.current_df_e["Electron_Flux"]
-                s_identifier = "electrons"
-            else:
-                try:
-                    particle_data = self.current_df_i["Ion_Flux"]
+            if self.sensor == "step":
+
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e
+                    s_identifier = "electrons"
+                else:
+                    particle_data = self.current_df_i
                     s_identifier = "ions"
-                except KeyError:
-                    particle_data = self.current_df_i["H_Flux"]
-                    s_identifier = "protons"
+
+            else:
+
+                if species in ("electron", 'e'):
+                    particle_data = self.current_df_e["Electron_Flux"]
+                    s_identifier = "electrons"
+                else:
+                    try:
+                        particle_data = self.current_df_i["Ion_Flux"]
+                        s_identifier = "ions"
+                    except KeyError:
+                        particle_data = self.current_df_i["H_Flux"]
+                        s_identifier = "protons"
+
             sc_identifier = "Solar Orbiter"
 
         if self.spacecraft[:2] == "st":
-            if species in ["electron", 'e']:
+            if species in ("electron", 'e'):
                 if instrument == "sept":
                     particle_data = self.current_df_e[[ch for ch in self.current_df_e.columns if ch[:2] == "ch"]]
                 else:
@@ -1870,7 +1958,7 @@ class Event:
                 line.set_xdata(line.get_xdata() - pd.Timedelta(seconds=timedelta_sec))
 
             # Update the path label artist
-            text.set_text(f"R={radial_distance_value:.2f} AU\nL = {slider.value} AU")
+            text.set_text(f"R={radial_distance_value:.2f} AU\nL = {np.round(slider.value,2)} AU")
 
             # Effectively this refreshes the figure
             fig.canvas.draw_idle()
@@ -1920,16 +2008,15 @@ class Event:
         # First check by spacecraft, then by sensor
         if self.spacecraft == "solo":
 
-            # All solo energies are in the same object
+            # STEP, ETP and HET energies are in the same object
             energy_dict = self.current_energies
 
             if self.species == 'e':
                 energy_ranges = energy_dict["Electron_Bins_Text"]
+
             else:
-                try:
-                    energy_ranges = energy_dict["Ion_Bins_Text"]
-                except KeyError:
-                    energy_ranges = energy_dict["H_Bins_Text"]
+                p_identifier =  "Ion_Bins_Text" if self.sensor == "ept" else "H_Bins_Text" if self.sensor == "het" else "Bins_Text"
+                energy_ranges = energy_dict[p_identifier]
 
             # Each element in the list is also a list with len==1, so fix that
             energy_ranges = [element[0] for element in energy_ranges]
@@ -1997,7 +2084,7 @@ class Event:
                     energies_high_rounded = np.round(energies_high, 1)
 
                     # I think nan values should be removed at this point. However, if we were to do that, then print_energies()
-                    # will not work anymore since tha number of channels and channel energy ranges won't be the same.
+                    # will not work anymore since the number of channels and channel energy ranges won't be the same.
                     # In the current state PSP/ISOIS-EPILO cannot be examined with dynamic_spectrum(), because there are nan values
                     # in the channel energy ranges.
                     # energies_low_rounded = np.array([val for val in energies_low_rounded if not np.isnan(val)])
@@ -2141,9 +2228,15 @@ class Event:
 
         # Extract only the numbers from channel names
         if self.spacecraft == "solo":
+
+            if self.sensor == "step":
+                channel_names = list(channel_names)
+                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
             if self.sensor == "ept":
                 channel_names = [name[1] for name in channel_names[:SOLO_EPT_CHANNELS_AMOUNT]]
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+
             if self.sensor == "het":
                 channel_names = [name[1] for name in channel_names[:SOLO_HET_CHANNELS_AMOUNT]]
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
