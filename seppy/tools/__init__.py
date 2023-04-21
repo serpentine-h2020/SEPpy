@@ -51,7 +51,7 @@ class Event:
 
         if species in ("protons", "ions"):
             species = 'p'
-        if species == "electrons":
+        if species in ("electrons", "electron"):
             species = 'e'
 
         self.start_date = start_date
@@ -1434,6 +1434,7 @@ class Event:
     # For backwards compatibility, make a copy of the `find_onset` function that is called `analyse` (which was its old name).
     analyse = copy.copy(find_onset)
 
+
     def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False,
                          other = None) -> None:
         """
@@ -1499,9 +1500,9 @@ class Event:
         def combine_grids_and_ybins(grid, grid1, y_arr, y_arr1):
 
                 # solo/het lowest electron channel partially overlaps with ept highest channel -> erase the "extra" bin where overlapping hapens
-                if self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species == 'e':
+                if self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species in ("electrons", "electron", 'e'):
 
-                    grid1 = np.append(grid, grid1, axis=0)
+                    grid1 = np.append(grid, grid1, axis=0)[:-1]
 
                     # This deletes the first entry of y_arr1
                     y_arr1 = np.delete(y_arr1, 0, axis=0)
@@ -1513,7 +1514,7 @@ class Event:
 
                     nans = np.array([[np.nan for i in range(len(grid[0]))]])
                     grid = np.append(grid, nans, axis=0)
-                    grid1 = np.append(grid, grid1, axis=0)
+                    grid1 = np.append(grid, grid1, axis=0)[:-2]
                     y_arr1 = np.append(y_arr, y_arr1)
 
                 else:
@@ -1814,8 +1815,7 @@ class Event:
             # Set image pixel height (length was already set before)
             # For solohet+ions we do not subtract 1 here, because there is an energy gap between EPT highest channel and 
             # HET lowest channel, hence requiring one "empty" bin in between
-            image_hei1 = len(y_arr1) if is_solohetions else len(y_arr1)-1
-            image_hei1 = len(y_arr1)+1
+            image_hei1 = len(y_arr1)+1 if is_solohetions else len(y_arr1)
 
             # Init the grid
             grid1 = np.zeros((image_len, image_hei1))
@@ -1847,7 +1847,7 @@ class Event:
             maskedgrid1 = np.where(grid1 == 0, 0, 1)
             maskedgrid1= np.ma.masked_where(maskedgrid1 == 1, maskedgrid1)
 
-            return time1, y_arr1, grid1
+            #return time1, y_arr1, grid1
             # Colormesh
             cplot1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, grid1, shading='auto', cmap=cmap, norm=normscale)
             greymesh1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, maskedgrid1, shading='auto', cmap='Greys', vmin=-1, vmax=1)
@@ -1862,11 +1862,12 @@ class Event:
             ax[DYN_SPEC_INDX].set_ylim(np.nanmin(y_arr), np.nanmax(y_arr1))
 
             # Set a rougher tickscale
-            energy_tick_powers = (-1,1,3) if species == 'e' else (-1,2,4)
-            #ax[DYN_SPEC_INDX].set_yticks([yval for yval in np.append(y_arr,y_arr1)])
-            ax[DYN_SPEC_INDX].set_yticks([yval for yval in np.logspace(start=energy_tick_powers[0], stop=energy_tick_powers[1], 
-                                                                       num=energy_tick_powers[2])], fontsize=18)
-            #ax[DYN_SPEC_INDX].yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+            energy_tick_powers = (-1,1,3) if species in ("electron", 'e') else (-1,2,4)
+            yticks = np.logspace(start=energy_tick_powers[0], stop=energy_tick_powers[1], num=energy_tick_powers[2])
+
+            # First one sets the ticks in place and the second one enlarges the tick labels (not the ticks, the numbers next to them)
+            ax[DYN_SPEC_INDX].set_yticks([yval for yval in yticks])
+            ax[DYN_SPEC_INDX].tick_params(axis='y', labelsize=32)
 
             ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
 
@@ -1899,6 +1900,7 @@ class Event:
 
         # Finally return plotting options to what they were before plotting
         rcParams.update(original_rcparams)
+
 
     def tsa_plot(self, view, selection=None, xlim=None, resample=None):
         """
@@ -2240,7 +2242,7 @@ class Event:
             # STEP, ETP and HET energies are in the same object
             energy_dict = self.current_energies
 
-            if self.species == 'e':
+            if self.species in ("electron", 'e'):
                 energy_ranges = energy_dict["Electron_Bins_Text"]
 
             else:
@@ -2254,7 +2256,7 @@ class Event:
 
             # STEREO/SEPT energies come in two different objects
             if self.sensor == "sept":
-                if self.species == 'e':
+                if self.species in ("electron", 'e'):
                     energy_df = self.current_e_energies
                 else:
                     energy_df = self.current_i_energies
@@ -2265,7 +2267,7 @@ class Event:
             else:
                 energy_dict = self.current_energies
 
-                if self.species == 'e':
+                if self.species in ("electron", 'e'):
                     energy_ranges = energy_dict["Electron_Bins_Text"]
                 else:
                     energy_ranges = energy_dict["Proton_Bins_Text"]
