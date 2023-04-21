@@ -1900,8 +1900,6 @@ class Event:
         # Finally return plotting options to what they were before plotting
         rcParams.update(original_rcparams)
 
-        return grid1, maskedgrid1, y_arr1
-
     def tsa_plot(self, view, selection=None, xlim=None, resample=None):
         """
         Makes an interactive time-shift plot
