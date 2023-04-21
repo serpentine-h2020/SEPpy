@@ -22,13 +22,15 @@ from seppy.loader.wind import wind3dp_load
 from seppy.util import *
 
 
-# TODO: This should be handled better, don't ignore all UserWarnings!
 # This is to get rid of this specific warning:
 # /home/user/xyz/serpentine/notebooks/sep_analysis_tools/read_swaves.py:96: UserWarning: The input coordinates to pcolormesh are interpreted as
 # cell centers, but are not monotonically increasing or decreasing. This may lead to incorrectly calculated cell edges, in which
 # case, please supply explicit cell edges to pcolormesh.
 # colormesh = ax.pcolormesh( time_arr, freq[::-1], data_arr[::-1], vmin = 0, vmax = 0.5*np.max(data_arr), cmap = 'inferno' )
-warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings(action = "ignore",
+                        message = "The input coordinates to pcolormesh are interpreted as cell centers, but are not monotonically increasing or \
+                        decreasing. This may lead to incorrectly calculated cell edges, in which case, please supply explicit cell edges to pcolormesh.",
+                        category = UserWarning)
 
 
 class Event:
@@ -49,7 +51,7 @@ class Event:
 
         if species in ("protons", "ions"):
             species = 'p'
-        if species == "electrons":
+        if species in ("electrons", "electron"):
             species = 'e'
 
         self.start_date = start_date
@@ -90,10 +92,24 @@ class Event:
         # names from the dataframe.
         self.load_all_viewing()
 
+        # Check that the data that was loaded is valid. If not, give a warning.
+        self.validate_data()
+
         # Download radio cdf files ONLY if asked to
         if self.radio_spacecraft is not None:
             from seppy.tools.swaves import get_swaves
             self.radio_files = get_swaves(start_date, end_date)
+
+
+    def validate_data(self):
+        """
+        Provide an error msg if this object is initialized with a combination that yields invalid data products.
+        """
+
+        # Data products for SolO/STEP before 22 Oct 2021 are no reliable for non-Pixel Averaged data
+        if self.spacecraft == "solo" and self.sensor == "step":
+            if self.start_date < pd.to_datetime("2021-10-22").date():
+                warnings.warn("WARNING! SolO/STEP particle data is not included yet for individual Pixels for dates preceding 2022-10-22.")
 
     def update_onset_attributes(self, flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean):
         """
@@ -132,6 +148,7 @@ class Event:
             except AttributeError:
                 self.viewing = '0'  # A placeholder viewing that should not cause any trouble
 
+
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
     # are class attributes, and should probably be cleaned up at some point
@@ -148,7 +165,7 @@ class Event:
                                             enddate=self.end_date,
                                             path=self.data_path,
                                             autodownload=autodownload)
-                self.update_viewing(viewing)
+                #self.update_viewing(viewing) Why is viewing updated here?
                 return df_i, df_e, meta
 
             elif self.sensor == "step":
@@ -160,7 +177,7 @@ class Event:
                                             path=self.data_path,
                                             autodownload=autodownload)
 
-                self.update_viewing(viewing)
+                #self.update_viewing(viewing) Why is viewing updated here?
                 return df, meta
 
         if self.spacecraft[:2].lower() == 'st':
@@ -1417,7 +1434,9 @@ class Event:
     # For backwards compatibility, make a copy of the `find_onset` function that is called `analyse` (which was its old name).
     analyse = copy.copy(find_onset)
 
-    def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False) -> None:
+
+    def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False,
+                         other = None) -> None:
         """
         Shows all the different energy channels in a single 2D plot, and color codes the corresponding intensity*energy^2 by a colormap.
 
@@ -1435,10 +1454,84 @@ class Event:
                 Saves the image
         """
 
+        def get_yaxis_bin_boundaries(e_lows, e_highs, y_multiplier, is_solohetions):
+            """
+            Helper function to produce the bin boundaries for dynamic spectrum y-axis.
+            """
+
+            # For any other sc+instrument combination than solo+HET in the current version, there is no need to complicate setting bin boundaries
+            if not is_solohetions:
+                return np.append(e_lows, e_highs[-1]) * y_multiplier
+
+
+            # Init the boundaries. For SolO/HET there are more boundaries than channels
+            yaxis_bin_boundaries = np.zeros(len(e_lows)+2)
+            yaxis_idx = 0
+            chooser_idx = yaxis_idx
+            while yaxis_idx < len(yaxis_bin_boundaries)-1: # this loop will not go to the final index of the array
+
+                # Set the first boundary as simply the first val of lower energy boundaries and continue
+                if yaxis_idx==0:
+                    yaxis_bin_boundaries[yaxis_idx] = e_lows[chooser_idx]
+                    yaxis_idx += 1
+                    chooser_idx += 1
+                    continue
+
+                # If the lower boundary now is the same as the last bins higher boundary, then set that as the boundary
+                if e_lows[chooser_idx] == e_highs[chooser_idx-1]:
+                    yaxis_bin_boundaries[yaxis_idx] = e_lows[chooser_idx]
+                    yaxis_idx += 1
+                    chooser_idx += 1
+
+                # ...if not, set the last higher boundary as the boundary, the next lower boundary as the next boundary and continue business as usual
+                else:
+                    yaxis_bin_boundaries[yaxis_idx] = e_highs[chooser_idx-1]
+                    yaxis_bin_boundaries[yaxis_idx+1] = e_lows[chooser_idx]
+
+                    yaxis_idx += 2
+                    chooser_idx += 1
+            
+            # Finally the last boundary is the final boundary of e_highs:
+            yaxis_bin_boundaries[-1] = e_highs[-1]
+
+            return yaxis_bin_boundaries * y_multiplier
+
+
+        def combine_grids_and_ybins(grid, grid1, y_arr, y_arr1):
+
+                # solo/het lowest electron channel partially overlaps with ept highest channel -> erase the "extra" bin where overlapping hapens
+                if self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species in ("electrons", "electron", 'e'):
+
+                    grid1 = np.append(grid, grid1, axis=0)[:-1]
+
+                    # This deletes the first entry of y_arr1
+                    y_arr1 = np.delete(y_arr1, 0, axis=0)
+                    y_arr1 = np.append(y_arr, y_arr1)
+
+                # There is a gap between the highest solo/ept proton channel and the lowest het ion channel -> add extra row to grid
+                # filled with nans to compensate
+                elif self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species == 'p':
+
+                    nans = np.array([[np.nan for i in range(len(grid[0]))]])
+                    grid = np.append(grid, nans, axis=0)
+                    grid1 = np.append(grid, grid1, axis=0)[:-2]
+                    y_arr1 = np.append(y_arr, y_arr1)
+
+                else:
+
+                    grid1 = np.append(grid,grid1, axis=0)
+                    y_arr1 = np.append(y_arr, y_arr1)
+                
+                return grid1, y_arr1
+
+
         # Event attributes
         spacecraft = self.spacecraft.lower()
         instrument = self.sensor.lower()
         species = self.species
+
+        # Boolean value for checking if y-axis requires a white stripe
+        is_solohetions = (spacecraft == "solo" and instrument == "het" and species == 'p')
 
         # This method has to be run before doing anything else to make sure that the viewing is correct
         self.choose_data(view)
@@ -1530,11 +1623,17 @@ class Event:
         # These particle instruments will have keVs on their y-axis
         LOW_ENERGY_SENSORS = ("sept", "step", "ept")
 
-        if instrument in LOW_ENERGY_SENSORS:
-            y_multiplier = 1e-3  # keV
-            y_unit = "keV"
+        # For a single instrument, check if low or high energy instrument, but for joint dynamic spectrum
+        # always use MeVs as the unit, because the y-axis is going to range over a large number of values
+        if not other:
+            if instrument in LOW_ENERGY_SENSORS:
+                y_multiplier = 1e-3  # keV
+                y_unit = "keV"
+            else:
+                y_multiplier = 1e-6  # MeV
+                y_unit = "MeV"
         else:
-            y_multiplier = 1e-6  # MeV
+            y_multiplier = 1e-6 # MeV
             y_unit = "MeV"
 
         # Resample only if requested
@@ -1563,8 +1662,8 @@ class Event:
         # The mean energy of each channel in eVs
         mean_energies = np.sqrt(np.multiply(e_lows, e_highs))
 
-        # Energy boundaries of plotted bins in keVs are the y-axis:
-        y_arr = np.append(e_lows, e_highs[-1]) * y_multiplier
+        # Boundaries of plotted bins in keVs are the y-axis:
+        y_arr = get_yaxis_bin_boundaries(e_lows, e_highs, y_multiplier, is_solohetions)
 
         # Set image pixel length and height
         image_len = len(time)
@@ -1574,12 +1673,24 @@ class Event:
         grid = np.zeros((image_len, image_hei))
 
         # Display energy in MeVs -> multiplier squared is 1e-6*1e-6 = 1e-12
-        energy_multiplier_squared = 1e-12
+        ENERGY_MULTIPLIER_SQUARED = 1e-12
 
         # Assign grid bins -> intensity * energy^2
-        for i, channel in enumerate(df):
+        if is_solohetions:
+            for i, channel in enumerate(df):
 
-            grid[:, i] = df[channel]*(mean_energies[i]*mean_energies[i]*energy_multiplier_squared)  # Intensity*Energy^2, and energy is in eV -> tranform to keV or MeV
+                if i<5:
+                    grid[:, i] = df[channel]*(mean_energies[i]*mean_energies[i]*ENERGY_MULTIPLIER_SQUARED)
+                elif i==5:
+                    grid[:, i] = np.nan
+                    grid[:, i+1] = df[channel]*(mean_energies[i]*mean_energies[i]*ENERGY_MULTIPLIER_SQUARED)
+                else:
+                    grid[:, i+1] = df[channel]*(mean_energies[i]*mean_energies[i]*ENERGY_MULTIPLIER_SQUARED)
+
+        else:
+            for i, channel in enumerate(df):
+
+                grid[:, i] = df[channel]*(mean_energies[i]*mean_energies[i]*ENERGY_MULTIPLIER_SQUARED)  # Intensity*Energy^2, and energy is in eV -> tranform to keV or MeV
 
         # Finally cut the last entry and transpose the grid so that it can be plotted correctly
         grid = grid[:-1, :]
@@ -1618,26 +1729,33 @@ class Event:
             clabel = "Intensity" + "\n" + "[dB]"
             cb.set_label(clabel)
 
-        # Colormesh
-        cplot = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, grid, shading='auto', cmap=cmap, norm=normscale)
-        greymesh = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, maskedgrid, shading='auto', cmap='Greys', vmin=-1, vmax=1)
+        ax[DYN_SPEC_INDX].set_yscale('log')
 
         # Colorbar
-        cb = fig.colorbar(cplot, orientation='vertical', ax=ax[DYN_SPEC_INDX])
-        clabel = r"Intensity $\cdot$ $E^{2}$" + "\n" + r"[MeV/(cm$^{2}$ sr s)]"
-        cb.set_label(clabel)
+        if not other:
 
-        # y-axis settings
-        ax[DYN_SPEC_INDX].set_yscale('log')
-        ax[DYN_SPEC_INDX].set_ylim(np.nanmin(y_arr), np.nanmax(y_arr))
-        ax[DYN_SPEC_INDX].set_yticks([yval for yval in y_arr])
-        ax[DYN_SPEC_INDX].yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+            # Colormesh
+            cplot = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, grid, shading='auto', cmap=cmap, norm=normscale)
+            greymesh = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, maskedgrid, shading='auto', cmap='Greys', vmin=-1, vmax=1)
+
+            cb = fig.colorbar(cplot, orientation='vertical', ax=ax[DYN_SPEC_INDX])
+            clabel = r"Intensity $\cdot$ $E^{2}$" + "\n" + r"[MeV/(cm$^{2}$ sr s)]"
+            cb.set_label(clabel)
+
+            # y-axis settings
+            ax[DYN_SPEC_INDX].set_ylim(np.nanmin(y_arr), np.nanmax(y_arr))
+            ax[DYN_SPEC_INDX].set_yticks([yval for yval in y_arr])
+            ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
+
+        # Format of y-axis: for single instrument use pretty numbers, for joint spectrum only powers of ten
+        if not other:
+            ax[DYN_SPEC_INDX].yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        else:
+            ax[DYN_SPEC_INDX].yaxis.set_major_formatter(ScalarFormatter(useMathText=False))
 
         # gets rid of minor ticks and labels
         ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=0, width=0, which='minor', labelsize=0.)
-        ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=9., width=1.5, which='major')
-
-        ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
+        ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=12., width=2.0, which='major')
 
         # x-axis settings
         # ax[DYN_SPEC_INDX].set_xlabel("Time [HH:MM \nm-d]")
@@ -1649,8 +1767,120 @@ class Event:
         ax[DYN_SPEC_INDX].xaxis.set_major_formatter(utc_dt_format1)
         # ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval = 5))
 
+
+        # Expand the spectrum to a second instrument (for now only for solo/ept + step or het)
+        if other and self.sensor == "ept" and other.sensor == "het":
+
+            is_solohetions = (other.sensor == "het" and species == 'p')
+
+            # This method has to be run before doing anything else to make sure that the viewing is correct
+            other.choose_data(other.viewing)
+
+            # EPT and HET data come in almost identical containers, they need not be differentiated
+            if species in ("electron", 'e'):
+                particle_data1 = other.current_df_e["Electron_Flux"]
+            else:
+                try:
+                    particle_data1 = other.current_df_i["Ion_Flux"]
+                except KeyError:
+                    particle_data1 = other.current_df_i["H_Flux"]
+
+
+            # Resample only if requested
+            if resample is not None:
+                particle_data1 = resample_df(df=particle_data1, resample=resample)
+
+            if xlim is None:
+                df1 = particle_data1[:]
+                #t_start, t_end = df.index[0], df.index[-1]
+            else:
+                # td is added to the start and the end to avert white pixels at the end of the plot
+                td_str = resample if resample is not None else '0s'
+                td = pd.Timedelta(value=td_str)
+                t_start, t_end = pd.to_datetime(xlim[0]), pd.to_datetime(xlim[1])
+                df1 = particle_data1.loc[(particle_data1.index >= (t_start-td)) & (particle_data1.index <= (t_end+td))]
+
+            # Assert time and channel bins
+            time1 = df.index
+
+            # The low and high ends of each energy channel
+            e_lows1, e_highs1 = other.get_channel_energy_values()  # this function return energy in eVs
+
+            # The mean energy of each channel in eVs
+            mean_energies1 = np.sqrt(np.multiply(e_lows1, e_highs1))
+
+            # Boundaries of plotted bins in keVs are the y-axis:
+            y_arr1 = get_yaxis_bin_boundaries(e_lows1, e_highs1, y_multiplier, is_solohetions)
+
+            # Set image pixel height (length was already set before)
+            # For solohet+ions we do not subtract 1 here, because there is an energy gap between EPT highest channel and 
+            # HET lowest channel, hence requiring one "empty" bin in between
+            image_hei1 = len(y_arr1)+1 if is_solohetions else len(y_arr1)
+
+            # Init the grid
+            grid1 = np.zeros((image_len, image_hei1))
+
+            # Assign grid bins -> intensity * energy^2
+            if is_solohetions:
+                for i, channel in enumerate(df1):
+
+                    if i<5:
+                        grid1[:, i] = df1[channel]*(mean_energies1[i]*mean_energies1[i]*ENERGY_MULTIPLIER_SQUARED)
+                    elif i==5:
+                        grid1[:, i] = np.nan
+                        grid1[:, i+1] = df1[channel]*(mean_energies1[i]*mean_energies1[i]*ENERGY_MULTIPLIER_SQUARED)
+                    else:
+                        grid1[:, i+1] = df1[channel]*(mean_energies1[i]*mean_energies1[i]*ENERGY_MULTIPLIER_SQUARED)
+
+            else:
+                for i, channel in enumerate(df1):
+
+                    grid1[:, i] = df1[channel]*(mean_energies1[i]*mean_energies1[i]*ENERGY_MULTIPLIER_SQUARED)  # Intensity*Energy^2, and energy is in eV -> transform to keV or MeV
+
+            # Finally cut the last entry and transpose the grid1 so that it can be plotted correctly
+            grid1 = grid1[:-1, :]
+            grid1 = grid1.T
+
+            # grids and y-axis has to be fused together so they can be plotted in the same colormesh
+            grid1, y_arr1 = combine_grids_and_ybins(grid, grid1, y_arr, y_arr1)
+
+            maskedgrid1 = np.where(grid1 == 0, 0, 1)
+            maskedgrid1= np.ma.masked_where(maskedgrid1 == 1, maskedgrid1)
+
+            #return time1, y_arr1, grid1
+            # Colormesh
+            cplot1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, grid1, shading='auto', cmap=cmap, norm=normscale)
+            greymesh1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, maskedgrid1, shading='auto', cmap='Greys', vmin=-1, vmax=1)
+
+            # Updating the colorbar
+            cb = fig.colorbar(cplot1, orientation='vertical', ax=ax[DYN_SPEC_INDX])
+            clabel = r"Intensity $\cdot$ $E^{2}$" + "\n" + r"[MeV/(cm$^{2}$ sr s)]"
+            cb.set_label(clabel)
+
+            # y-axis settings
+            ax[DYN_SPEC_INDX].set_yscale('log')
+            ax[DYN_SPEC_INDX].set_ylim(np.nanmin(y_arr), np.nanmax(y_arr1))
+
+            # Set a rougher tickscale
+            energy_tick_powers = (-1,1,3) if species in ("electron", 'e') else (-1,2,4)
+            yticks = np.logspace(start=energy_tick_powers[0], stop=energy_tick_powers[1], num=energy_tick_powers[2])
+
+            # First one sets the ticks in place and the second one enlarges the tick labels (not the ticks, the numbers next to them)
+            ax[DYN_SPEC_INDX].set_yticks([yval for yval in yticks])
+            ax[DYN_SPEC_INDX].tick_params(axis='y', labelsize=32)
+
+            ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
+
+            # Introduce minor ticks back
+            ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=8., width=1.2, which='minor', labelsize=0.)
+
+            fig.set_size_inches((27,18))   
+
+
         # Title
-        if view is not None:
+        if view is not None and other:
+            title = f"{spacecraft.upper()}/{instrument.upper()}+{other.sensor.upper()} ({view}) {s_identifier}, {date_of_event}"
+        elif view:
             title = f"{spacecraft.upper()}/{instrument.upper()} ({view}) {s_identifier}, {date_of_event}"
         else:
             title = f"{spacecraft.upper()}/{instrument.upper()} {s_identifier}, {date_of_event}"
@@ -1670,6 +1900,7 @@ class Event:
 
         # Finally return plotting options to what they were before plotting
         rcParams.update(original_rcparams)
+
 
     def tsa_plot(self, view, selection=None, xlim=None, resample=None):
         """
@@ -2011,7 +2242,7 @@ class Event:
             # STEP, ETP and HET energies are in the same object
             energy_dict = self.current_energies
 
-            if self.species == 'e':
+            if self.species in ("electron", 'e'):
                 energy_ranges = energy_dict["Electron_Bins_Text"]
 
             else:
@@ -2025,7 +2256,7 @@ class Event:
 
             # STEREO/SEPT energies come in two different objects
             if self.sensor == "sept":
-                if self.species == 'e':
+                if self.species in ("electron", 'e'):
                     energy_df = self.current_e_energies
                 else:
                     energy_df = self.current_i_energies
@@ -2036,7 +2267,7 @@ class Event:
             else:
                 energy_dict = self.current_energies
 
-                if self.species == 'e':
+                if self.species in ("electron", 'e'):
                     energy_ranges = energy_dict["Electron_Bins_Text"]
                 else:
                     energy_ranges = energy_dict["Proton_Bins_Text"]
