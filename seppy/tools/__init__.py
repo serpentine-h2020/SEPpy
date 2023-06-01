@@ -27,10 +27,10 @@ from seppy.util import *
 # cell centers, but are not monotonically increasing or decreasing. This may lead to incorrectly calculated cell edges, in which
 # case, please supply explicit cell edges to pcolormesh.
 # colormesh = ax.pcolormesh( time_arr, freq[::-1], data_arr[::-1], vmin = 0, vmax = 0.5*np.max(data_arr), cmap = 'inferno' )
-warnings.filterwarnings(action = "ignore",
-                        message = "The input coordinates to pcolormesh are interpreted as cell centers, but are not monotonically increasing or \
+warnings.filterwarnings(action="ignore",
+                        message="The input coordinates to pcolormesh are interpreted as cell centers, but are not monotonically increasing or \
                         decreasing. This may lead to incorrectly calculated cell edges, in which case, please supply explicit cell edges to pcolormesh.",
-                        category = UserWarning)
+                        category=UserWarning)
 
 
 class Event:
@@ -100,7 +100,6 @@ class Event:
             from seppy.tools.swaves import get_swaves
             self.radio_files = get_swaves(start_date, end_date)
 
-
     def validate_data(self):
         """
         Provide an error msg if this object is initialized with a combination that yields invalid data products.
@@ -148,7 +147,6 @@ class Event:
             except AttributeError:
                 self.viewing = '0'  # A placeholder viewing that should not cause any trouble
 
-
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
     # are class attributes, and should probably be cleaned up at some point
@@ -165,19 +163,19 @@ class Event:
                                             enddate=self.end_date,
                                             path=self.data_path,
                                             autodownload=autodownload)
-                #self.update_viewing(viewing) Why is viewing updated here?
+                # self.update_viewing(viewing) Why is viewing updated here?
                 return df_i, df_e, meta
 
             elif self.sensor == "step":
                 df, meta = epd_load(sensor=sensor,
-                                            viewing="None",
-                                            level=data_level,
-                                            startdate=self.start_date,
-                                            enddate=self.end_date,
-                                            path=self.data_path,
-                                            autodownload=autodownload)
+                                    viewing="None",
+                                    level=data_level,
+                                    startdate=self.start_date,
+                                    enddate=self.end_date,
+                                    path=self.data_path,
+                                    autodownload=autodownload)
 
-                #self.update_viewing(viewing) Why is viewing updated here?
+                # self.update_viewing(viewing) Why is viewing updated here?
                 return df, meta
 
         if self.spacecraft[:2].lower() == 'st':
@@ -490,7 +488,7 @@ class Event:
                 self.current_df_i = self.df_i_south
                 self.current_df_e = self.df_e_south
                 self.current_energies = self.energies_south
-            
+
             elif "Pixel" in viewing:
 
                 # All viewings are contained in the same dataframe, choose the pixel (viewing) here
@@ -504,8 +502,8 @@ class Event:
                 elif len(pixel) > 2:
                     pixel = "Avg"
 
-                self.current_df_i = self.df_step[[ col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
-                self.current_df_e = self.df_step[[ col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
+                self.current_df_i = self.df_step[[col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
+                self.current_df_e = self.df_step[[col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
                 self.current_energies = self.energies_step
 
         if self.spacecraft[:2].lower() == 'st':
@@ -1238,14 +1236,14 @@ class Event:
                 if self.species in ('p', 'i'):
                     channel_id = self.current_df_i.columns[channels[0]]
                     df_flux = pd.DataFrame(data={
-                        "flux" : self.current_df_i[channel_id]
-                    }, index = self.current_df_i.index)
+                        "flux": self.current_df_i[channel_id]
+                    }, index=self.current_df_i.index)
 
                 elif self.species == 'e':
                     channel_id = self.current_df_e.columns[channels[0]]
                     df_flux = pd.DataFrame(data={
-                        "flux" : self.current_df_e[channel_id]
-                    }, index = self.current_df_e.index)
+                        "flux": self.current_df_e[channel_id]
+                    }, index=self.current_df_e.index)
 
             else:
                 invalid_sensor_msg = "Invalid sensor!"
@@ -1434,9 +1432,8 @@ class Event:
     # For backwards compatibility, make a copy of the `find_onset` function that is called `analyse` (which was its old name).
     analyse = copy.copy(find_onset)
 
-
     def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False,
-                         other = None) -> None:
+                         other=None) -> None:
         """
         Shows all the different energy channels in a single 2D plot, and color codes the corresponding intensity*energy^2 by a colormap.
 
@@ -1463,12 +1460,11 @@ class Event:
             if not is_solohetions:
                 return np.append(e_lows, e_highs[-1]) * y_multiplier
 
-
             # Init the boundaries. For SolO/HET there are more boundaries than channels
             yaxis_bin_boundaries = np.zeros(len(e_lows)+2)
             yaxis_idx = 0
             chooser_idx = yaxis_idx
-            while yaxis_idx < len(yaxis_bin_boundaries)-1: # this loop will not go to the final index of the array
+            while yaxis_idx < len(yaxis_bin_boundaries)-1:  # this loop will not go to the final index of the array
 
                 # Set the first boundary as simply the first val of lower energy boundaries and continue
                 if yaxis_idx==0:
@@ -1490,40 +1486,37 @@ class Event:
 
                     yaxis_idx += 2
                     chooser_idx += 1
-            
+
             # Finally the last boundary is the final boundary of e_highs:
             yaxis_bin_boundaries[-1] = e_highs[-1]
 
             return yaxis_bin_boundaries * y_multiplier
 
-
         def combine_grids_and_ybins(grid, grid1, y_arr, y_arr1):
+            # solo/het lowest electron channel partially overlaps with ept highest channel -> erase the "extra" bin where overlapping hapens
+            if self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species in ("electrons", "electron", 'e'):
 
-                # solo/het lowest electron channel partially overlaps with ept highest channel -> erase the "extra" bin where overlapping hapens
-                if self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species in ("electrons", "electron", 'e'):
+                grid1 = np.append(grid, grid1, axis=0)[:-1]
 
-                    grid1 = np.append(grid, grid1, axis=0)[:-1]
+                # This deletes the first entry of y_arr1
+                y_arr1 = np.delete(y_arr1, 0, axis=0)
+                y_arr1 = np.append(y_arr, y_arr1)
 
-                    # This deletes the first entry of y_arr1
-                    y_arr1 = np.delete(y_arr1, 0, axis=0)
-                    y_arr1 = np.append(y_arr, y_arr1)
+            # There is a gap between the highest solo/ept proton channel and the lowest het ion channel -> add extra row to grid
+            # filled with nans to compensate
+            elif self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species == 'p':
 
-                # There is a gap between the highest solo/ept proton channel and the lowest het ion channel -> add extra row to grid
-                # filled with nans to compensate
-                elif self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species == 'p':
+                nans = np.array([[np.nan for i in range(len(grid[0]))]])
+                grid = np.append(grid, nans, axis=0)
+                grid1 = np.append(grid, grid1, axis=0)[:-2]
+                y_arr1 = np.append(y_arr, y_arr1)
 
-                    nans = np.array([[np.nan for i in range(len(grid[0]))]])
-                    grid = np.append(grid, nans, axis=0)
-                    grid1 = np.append(grid, grid1, axis=0)[:-2]
-                    y_arr1 = np.append(y_arr, y_arr1)
+            else:
 
-                else:
+                grid1 = np.append(grid, grid1, axis=0)
+                y_arr1 = np.append(y_arr, y_arr1)
 
-                    grid1 = np.append(grid,grid1, axis=0)
-                    y_arr1 = np.append(y_arr, y_arr1)
-                
-                return grid1, y_arr1
-
+            return grid1, y_arr1
 
         # Event attributes
         spacecraft = self.spacecraft.lower()
@@ -1552,12 +1545,12 @@ class Event:
                     pixel = "Avg"
 
                 if species in ("electron", 'e'):
-                    particle_data = self.df_step[[ col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
+                    particle_data = self.df_step[[col for col in self.df_step.columns if f"Electron_{pixel}_Flux" in col]]
                     s_identifier = "electrons"
 
                 # Step's "Magnet" channel deflects electrons -> measures all positive ions
                 else:
-                    particle_data = self.df_step[[ col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
+                    particle_data = self.df_step[[col for col in self.df_step.columns if f"Magnet_{pixel}_Flux" in col]]
                     s_identifier = "ions"
 
             # EPT and HET data come in almost identical containers, they need not be differentiated
@@ -1633,7 +1626,7 @@ class Event:
                 y_multiplier = 1e-6  # MeV
                 y_unit = "MeV"
         else:
-            y_multiplier = 1e-6 # MeV
+            y_multiplier = 1e-6  # MeV
             y_unit = "MeV"
 
         # Resample only if requested
@@ -1767,7 +1760,6 @@ class Event:
         ax[DYN_SPEC_INDX].xaxis.set_major_formatter(utc_dt_format1)
         # ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval = 5))
 
-
         # Expand the spectrum to a second instrument (for now only for solo/ept + step or het)
         if other and self.sensor == "ept" and other.sensor == "het":
 
@@ -1785,14 +1777,13 @@ class Event:
                 except KeyError:
                     particle_data1 = other.current_df_i["H_Flux"]
 
-
             # Resample only if requested
             if resample is not None:
                 particle_data1 = resample_df(df=particle_data1, resample=resample)
 
             if xlim is None:
                 df1 = particle_data1[:]
-                #t_start, t_end = df.index[0], df.index[-1]
+                # t_start, t_end = df.index[0], df.index[-1]
             else:
                 # td is added to the start and the end to avert white pixels at the end of the plot
                 td_str = resample if resample is not None else '0s'
@@ -1813,7 +1804,7 @@ class Event:
             y_arr1 = get_yaxis_bin_boundaries(e_lows1, e_highs1, y_multiplier, is_solohetions)
 
             # Set image pixel height (length was already set before)
-            # For solohet+ions we do not subtract 1 here, because there is an energy gap between EPT highest channel and 
+            # For solohet+ions we do not subtract 1 here, because there is an energy gap between EPT highest channel and
             # HET lowest channel, hence requiring one "empty" bin in between
             image_hei1 = len(y_arr1)+1 if is_solohetions else len(y_arr1)
 
@@ -1847,7 +1838,7 @@ class Event:
             maskedgrid1 = np.where(grid1 == 0, 0, 1)
             maskedgrid1= np.ma.masked_where(maskedgrid1 == 1, maskedgrid1)
 
-            #return time1, y_arr1, grid1
+            # return time1, y_arr1, grid1
             # Colormesh
             cplot1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, grid1, shading='auto', cmap=cmap, norm=normscale)
             greymesh1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, maskedgrid1, shading='auto', cmap='Greys', vmin=-1, vmax=1)
@@ -1862,7 +1853,7 @@ class Event:
             ax[DYN_SPEC_INDX].set_ylim(np.nanmin(y_arr), np.nanmax(y_arr1))
 
             # Set a rougher tickscale
-            energy_tick_powers = (-1,1,3) if species in ("electron", 'e') else (-1,2,4)
+            energy_tick_powers = (-1, 1, 3) if species in ("electron", 'e') else (-1, 2, 4)
             yticks = np.logspace(start=energy_tick_powers[0], stop=energy_tick_powers[1], num=energy_tick_powers[2])
 
             # First one sets the ticks in place and the second one enlarges the tick labels (not the ticks, the numbers next to them)
@@ -1874,8 +1865,7 @@ class Event:
             # Introduce minor ticks back
             ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=8., width=1.2, which='minor', labelsize=0.)
 
-            fig.set_size_inches((27,18))   
-
+            fig.set_size_inches((27, 18))
 
         # Title
         if view is not None and other:
@@ -1900,7 +1890,6 @@ class Event:
 
         # Finally return plotting options to what they were before plotting
         rcParams.update(original_rcparams)
-
 
     def tsa_plot(self, view, selection=None, xlim=None, resample=None):
         """
