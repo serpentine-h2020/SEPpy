@@ -277,3 +277,79 @@ def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
     travel_time = travel_time.to(u.s)
 
     return onset_time - datetime.timedelta(seconds=travel_time.value), spiral_length.to(u.AU)
+
+
+def energy2speed(species, kinetic_energy):
+    '''
+    Calculates the relativistic particle speed derived from kinetic energy.
+
+    Args:
+        species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
+        kinetic_energy (float/astropy units): kinetic energy of the particle using astropy units; if only float MeV is used
+
+    Returns:
+        astropy units: relativistic particle speed.
+    '''
+    if not type(kinetic_energy)==u.quantity.Quantity:
+        kinetic_energy = kinetic_energy * u.MeV
+    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    return calc_particle_speed(mass_dict[species], kinetic_energy)
+
+
+def speed2momentum(species, speed):
+    '''
+    Calculates the relativistic particle momentum derived from speed.
+
+    Args:
+        species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
+        speed (float/astropy units): kinetic energy of the particle using astropy units; if only float m/s is used
+
+    Returns:
+        astropy units: relativistic particle momentum
+    '''
+    if not type(speed)==u.quantity.Quantity:
+        speed = speed * u.m/u.s
+    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    return mass_dict[species] * speed
+
+
+def energy2momentum(species, kinetic_energy):
+    '''
+    Calculates the relativistic particle momentum derived from kinetic energy.
+
+    Args:
+        species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
+        kinetic_energy (float/astropy units): kinetic energy of the particle using astropy units; if only float MeV is used
+
+    Returns:
+        astropy units: relativistic particle momentum
+    '''
+    if not type(kinetic_energy)==u.quantity.Quantity:
+        kinetic_energy = kinetic_energy * u.MeV
+    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    return speed2momentum(species, energy2speed(species, kinetic_energy))
+
+
+def intensity2psd(species, kinetic_energy, intensity):
+    '''
+    Calculates the phase space density (distribution function) derived from kinetic energy and intensity.
+
+    Args:
+        species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
+        kinetic_energy (astropy units): kinetic energy of the particle using astropy units
+        intensity (astropy units): differential intensity using astropy units
+
+    Returns:
+        astropy units: phase space density
+
+    Example:
+        import astropy.units as u
+        f = intensity2psd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
+    '''
+    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+        print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
+        return
+    else:
+        p = energy2momentum(species, kinetic_energy)
+        f = intensity / (p**2)
+        return f
