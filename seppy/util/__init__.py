@@ -366,7 +366,7 @@ def intensity2vsd(species, kinetic_energy, intensity):
 
     Returns:
         astropy units: phase space density
-        
+
     Example:
         import astropy.units as u
         f = intensity2vsd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
