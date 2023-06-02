@@ -352,4 +352,30 @@ def intensity2psd(species, kinetic_energy, intensity):
     else:
         p = energy2momentum(species, kinetic_energy)
         f = intensity / (p**2)
-        return f
+        return f.to(u.s**3/(u.sr*u.kg**3*u.cm**6))
+
+
+def intensity2vsd(species, kinetic_energy, intensity):
+    '''
+    Calculates the velocity space density (distribution function) derived from kinetic energy and intensity.
+
+    Args:
+        species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
+        kinetic_energy (astropy units): kinetic energy of the particle using astropy units
+        intensity (astropy units): differential intensity using astropy units
+
+    Returns:
+        astropy units: phase space density
+        
+    Example:
+        import astropy.units as u
+        f = intensity2vsd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
+    '''
+    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+        print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
+        return
+    else:
+        mass_dict = {'p': const.m_p, 'e': const.m_e}
+        p = energy2momentum(species, kinetic_energy)
+        f = intensity / (p**2) * mass_dict[species]**3
+        return f.to(u.s**3/(u.sr*u.cm**6))
