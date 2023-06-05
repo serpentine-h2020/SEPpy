@@ -33,7 +33,7 @@ view_dict = {
     ("STEREO-A", "SEPT"): ("sun", "asun", "north", "south"),
     ("STEREO-B", "SEPT"): ("sun", "asun", "north", "south"),
     ("Solar Orbiter", "STEP"): ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 4", "Pixel 5", "Pixel 6", "Pixel 7", "Pixel 8", "Pixel 9", "Pixel 10",
-                                 "Pixel 11", "Pixel 12", "Pixel 13", "Pixel 14", "Pixel 15"),
+                                "Pixel 11", "Pixel 12", "Pixel 13", "Pixel 14", "Pixel 15"),
     ("Solar Orbiter", "EPT"): ("sun", "asun", "north", "south"),
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
     ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
