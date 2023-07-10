@@ -1,4 +1,4 @@
-SEPpy
+seppy
 =====
 
 |pypi Version| |python version| |zenodo doi|
