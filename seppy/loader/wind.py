@@ -17,174 +17,174 @@ from sunpy.net import attrs as a
 from seppy.util import resample_df
 
 
-def _date2str(date):
-    year = str(date)[0:4]
-    month = str(date)[4:6]
-    day = str(date)[6:8]
-    return year+'/'+month+'/'+day
+# def _date2str(date):
+#     year = str(date)[0:4]
+#     month = str(date)[4:6]
+#     day = str(date)[6:8]
+#     return year+'/'+month+'/'+day
 
 
-def _cdf2df_3d(cdf, index_key, dtimeindex=True, badvalues=None,
-               ignore=None, include=None):
-    """
-    Converts a cdf file to a pandas dataframe.
-    Note that this only works for 1 dimensional data, other data such as
-    distribution functions or pitch angles will not work properly.
-    Parameters
-    ----------
-    cdf : cdf
-        Opened CDF file.
-    index_key : str
-        The CDF key to use as the index in the output DataFrame.
-    dtimeindex : bool
-        If ``True``, the DataFrame index is parsed as a datetime.
-        Default is ``True``.
-    badvalues : dict, list
-        Deprecated.
-    ignore : list
-        In case a CDF file has columns that are unused / not required, then
-        the column names can be passed as a list into the function.
-    include : str, list
-        If only specific columns of a CDF file are desired, then the column
-        names can be passed as a list into the function. Should not be used
-        with ``ignore``.
-    Returns
-    -------
-    df : :class:`pandas.DataFrame`
-        Data frame with read in data.
-    """
-    if badvalues is not None:
-        warnings.warn('The badvalues argument is decprecated, as bad values '
-                      'are now automatically recognised using the FILLVAL CDF '
-                      'attribute.', DeprecationWarning)
-    if include is not None:
-        if ignore is not None:
-            raise ValueError('ignore and include are incompatible keywords')
-        if isinstance(include, str):
-            include = [include]
-        if index_key not in include:
-            include.append(index_key)
+# def _cdf2df_3d(cdf, index_key, dtimeindex=True, badvalues=None,
+#                ignore=None, include=None):
+#     """
+#     Converts a cdf file to a pandas dataframe.
+#     Note that this only works for 1 dimensional data, other data such as
+#     distribution functions or pitch angles will not work properly.
+#     Parameters
+#     ----------
+#     cdf : cdf
+#         Opened CDF file.
+#     index_key : str
+#         The CDF key to use as the index in the output DataFrame.
+#     dtimeindex : bool
+#         If ``True``, the DataFrame index is parsed as a datetime.
+#         Default is ``True``.
+#     badvalues : dict, list
+#         Deprecated.
+#     ignore : list
+#         In case a CDF file has columns that are unused / not required, then
+#         the column names can be passed as a list into the function.
+#     include : str, list
+#         If only specific columns of a CDF file are desired, then the column
+#         names can be passed as a list into the function. Should not be used
+#         with ``ignore``.
+#     Returns
+#     -------
+#     df : :class:`pandas.DataFrame`
+#         Data frame with read in data.
+#     """
+#     if badvalues is not None:
+#         warnings.warn('The badvalues argument is decprecated, as bad values '
+#                       'are now automatically recognised using the FILLVAL CDF '
+#                       'attribute.', DeprecationWarning)
+#     if include is not None:
+#         if ignore is not None:
+#             raise ValueError('ignore and include are incompatible keywords')
+#         if isinstance(include, str):
+#             include = [include]
+#         if index_key not in include:
+#             include.append(index_key)
 
-    # Extract index values
-    index_info = cdf.varinq(index_key)
-    if index_info['Last_Rec'] == -1:
-        warnings.warn('No records present in CDF file')
+#     # Extract index values
+#     index_info = cdf.varinq(index_key)
+#     if index_info['Last_Rec'] == -1:
+#         warnings.warn('No records present in CDF file')
 
-    index = cdf.varget(index_key)
-    try:
-        # If there are multiple indexes, take the first one
-        # TODO: this is just plain wrong, there should be a way to get all
-        # the indexes out
-        index = index[...][:, 0]
-    except IndexError:
-        pass
+#     index = cdf.varget(index_key)
+#     try:
+#         # If there are multiple indexes, take the first one
+#         # TODO: this is just plain wrong, there should be a way to get all
+#         # the indexes out
+#         index = index[...][:, 0]
+#     except IndexError:
+#         pass
 
-    if dtimeindex:
-        index = cdflib.epochs.CDFepoch.breakdown(index, to_np=True)
-        index_df = pd.DataFrame({'year': index[:, 0],
-                                 'month': index[:, 1],
-                                 'day': index[:, 2],
-                                 'hour': index[:, 3],
-                                 'minute': index[:, 4],
-                                 'second': index[:, 5],
-                                 'ms': index[:, 6],
-                                 })
-        # Not all CDFs store pass milliseconds
-        try:
-            index_df['us'] = index[:, 7]
-            index_df['ns'] = index[:, 8]
-        except IndexError:
-            pass
-        index = pd.DatetimeIndex(pd.to_datetime(index_df), name='Time')
-    data_dict = {}
-    npoints = len(index)
+#     if dtimeindex:
+#         index = cdflib.epochs.CDFepoch.breakdown(index, to_np=True)
+#         index_df = pd.DataFrame({'year': index[:, 0],
+#                                  'month': index[:, 1],
+#                                  'day': index[:, 2],
+#                                  'hour': index[:, 3],
+#                                  'minute': index[:, 4],
+#                                  'second': index[:, 5],
+#                                  'ms': index[:, 6],
+#                                  })
+#         # Not all CDFs store pass milliseconds
+#         try:
+#             index_df['us'] = index[:, 7]
+#             index_df['ns'] = index[:, 8]
+#         except IndexError:
+#             pass
+#         index = pd.DatetimeIndex(pd.to_datetime(index_df), name='Time')
+#     data_dict = {}
+#     npoints = len(index)
 
-    var_list = _get_cdf_vars(cdf)
-    keys = {}
-    # Get mapping from each attr to sub-variables
-    for cdf_key in var_list:
-        if ignore:
-            if cdf_key in ignore:
-                continue
-        elif include:
-            if cdf_key not in include:
-                continue
-        if cdf_key == 'Epoch':
-            keys[cdf_key] = 'Time'
-        else:
-            keys[cdf_key] = cdf_key
-    # Remove index key, as we have already used it to create the index
-    keys.pop(index_key)
-    # Remove keys for data that doesn't have the right shape to load in CDF
-    # Mapping of keys to variable data
-    vars = {cdf_key: cdf.varget(cdf_key) for cdf_key in keys.copy()}
-    for cdf_key in keys:
-        var = vars[cdf_key]
-        if type(var) is np.ndarray:
-            key_shape = var.shape
-            if len(key_shape) == 0 or key_shape[0] != npoints:
-                vars.pop(cdf_key)
-        else:
-            vars.pop(cdf_key)
+#     var_list = _get_cdf_vars(cdf)
+#     keys = {}
+#     # Get mapping from each attr to sub-variables
+#     for cdf_key in var_list:
+#         if ignore:
+#             if cdf_key in ignore:
+#                 continue
+#         elif include:
+#             if cdf_key not in include:
+#                 continue
+#         if cdf_key == 'Epoch':
+#             keys[cdf_key] = 'Time'
+#         else:
+#             keys[cdf_key] = cdf_key
+#     # Remove index key, as we have already used it to create the index
+#     keys.pop(index_key)
+#     # Remove keys for data that doesn't have the right shape to load in CDF
+#     # Mapping of keys to variable data
+#     vars = {cdf_key: cdf.varget(cdf_key) for cdf_key in keys.copy()}
+#     for cdf_key in keys:
+#         var = vars[cdf_key]
+#         if type(var) is np.ndarray:
+#             key_shape = var.shape
+#             if len(key_shape) == 0 or key_shape[0] != npoints:
+#                 vars.pop(cdf_key)
+#         else:
+#             vars.pop(cdf_key)
 
-    # Loop through each key and put data into the dataframe
-    for cdf_key in vars:
-        df_key = keys[cdf_key]
-        # Get fill value for this key
-        try:
-            fillval = float(cdf.varattsget(cdf_key)['FILLVAL'])
-        except KeyError:
-            fillval = np.nan
+#     # Loop through each key and put data into the dataframe
+#     for cdf_key in vars:
+#         df_key = keys[cdf_key]
+#         # Get fill value for this key
+#         try:
+#             fillval = float(cdf.varattsget(cdf_key)['FILLVAL'])
+#         except KeyError:
+#             fillval = np.nan
 
-        if isinstance(df_key, list):
-            for i, subkey in enumerate(df_key):
-                data = vars[cdf_key][...][:, i]
-                data = _fillval_nan(data, fillval)
-                data_dict[subkey] = data
-        else:
-            # If ndims is 1, we just have a single column of data
-            # If ndims is 2, have multiple columns of data under same key
-            # If ndims is 3, have multiple columns of data under same key, with 2 sub_keys (e.g., energy and pitch-angle)
-            key_shape = vars[cdf_key].shape
-            ndims = len(key_shape)
-            if ndims == 1:
-                data = vars[cdf_key][...]
-                data = _fillval_nan(data, fillval)
-                data_dict[df_key] = data
-            elif ndims == 2:
-                for i in range(key_shape[1]):
-                    data = vars[cdf_key][...][:, i]
-                    data = _fillval_nan(data, fillval)
-                    data_dict[f'{df_key}_{i}'] = data
-            elif ndims == 3:
-                for i in range(key_shape[2]):
-                    for j in range(key_shape[1]):
-                        data = vars[cdf_key][...][:, j, i]
-                        data = _fillval_nan(data, fillval)
-                        data_dict[f'{df_key}_E{i}_P{j}'] = data
+#         if isinstance(df_key, list):
+#             for i, subkey in enumerate(df_key):
+#                 data = vars[cdf_key][...][:, i]
+#                 data = _fillval_nan(data, fillval)
+#                 data_dict[subkey] = data
+#         else:
+#             # If ndims is 1, we just have a single column of data
+#             # If ndims is 2, have multiple columns of data under same key
+#             # If ndims is 3, have multiple columns of data under same key, with 2 sub_keys (e.g., energy and pitch-angle)
+#             key_shape = vars[cdf_key].shape
+#             ndims = len(key_shape)
+#             if ndims == 1:
+#                 data = vars[cdf_key][...]
+#                 data = _fillval_nan(data, fillval)
+#                 data_dict[df_key] = data
+#             elif ndims == 2:
+#                 for i in range(key_shape[1]):
+#                     data = vars[cdf_key][...][:, i]
+#                     data = _fillval_nan(data, fillval)
+#                     data_dict[f'{df_key}_{i}'] = data
+#             elif ndims == 3:
+#                 for i in range(key_shape[2]):
+#                     for j in range(key_shape[1]):
+#                         data = vars[cdf_key][...][:, j, i]
+#                         data = _fillval_nan(data, fillval)
+#                         data_dict[f'{df_key}_E{i}_P{j}'] = data
 
-    return pd.DataFrame(index=index, data=data_dict)
-
-
-def _get_cdf_vars(cdf):
-    # Get list of all the variables in an open CDF file
-    var_list = []
-    cdf_info = cdf.cdf_info()
-    for attr in list(cdf_info.keys()):
-        if 'variable' in attr.lower() and len(cdf_info[attr]) > 0:
-            for var in cdf_info[attr]:
-                var_list += [var]
-
-    return var_list
+#     return pd.DataFrame(index=index, data=data_dict)
 
 
-def _fillval_nan(data, fillval):
-    try:
-        data[data == fillval] = np.nan
-    except ValueError:
-        # This happens if we try and assign a NaN to an int type
-        pass
-    return data
+# def _get_cdf_vars(cdf):
+#     # Get list of all the variables in an open CDF file
+#     var_list = []
+#     cdf_info = cdf.cdf_info()
+#     for attr in list(cdf_info.keys()):
+#         if 'variable' in attr.lower() and len(cdf_info[attr]) > 0:
+#             for var in cdf_info[attr]:
+#                 var_list += [var]
+
+#     return var_list
+
+
+# def _fillval_nan(data, fillval):
+#     try:
+#         data[data == fillval] = np.nan
+#     except ValueError:
+#         # This happens if we try and assign a NaN to an int type
+#         pass
+#     return data
 
 
 def _download_metafile(dataset, path=None):
@@ -359,14 +359,16 @@ def _wind3dp_load(files, resample="1min", threshold=None):
             raise Warning(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
     # try:
     # read 0th cdf file
-    cdf = cdflib.CDF(files[0])
-    df = _cdf2df_3d(cdf, "Epoch")
+    # cdf = cdflib.CDF(files[0])
+    # df = _cdf2df_3d(cdf, "Epoch")
+    df =_read_cdf_wind3dp(files[0])
 
     # read additional cdf files
     if len(files) > 1:
         for f in files[1:]:
-            cdf = cdflib.CDF(f)
-            t_df = _cdf2df_3d(cdf, "Epoch")
+            # cdf = cdflib.CDF(f)
+            # t_df = _cdf2df_3d(cdf, "Epoch")
+            t_df =_read_cdf_wind3dp(f)
             df = pd.concat([df, t_df])
 
     # replace bad data with np.nan:
@@ -479,3 +481,144 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
 
 
 wind_load = copy.copy(wind3dp_load)
+
+
+"""
+Modification of sunpy's read_cdf function to allow loading of 3-dimensional variables from a cdf file. Adjusted only for Wind/3DP cdf files. Skipping units.
+This function is copied from sunpy under the terms of the BSD 2-Clause licence. See licenses/SUNPY_LICENSE.rst
+"""
+
+
+def _read_cdf_wind3dp(fname, ignore_vars=[]):
+    """
+    Read a CDF file that follows the ISTP/IACG guidelines.
+
+    Parameters
+    ----------
+    fname : path-like
+        Location of single CDF file to read.
+
+    Returns
+    -------
+    list[GenericTimeSeries]
+        A list of time series objects, one for each unique time index within
+        the CDF file.
+
+    References
+    ----------
+    Space Physics Guidelines for CDF https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html
+    """
+    import astropy.units as u
+    from cdflib.epochs import CDFepoch
+    from packaging.version import Version
+    from sunpy import log
+    from sunpy.timeseries import GenericTimeSeries
+    from sunpy.util.exceptions import warn_user
+    cdf = cdflib.CDF(str(fname))
+    # Extract the time varying variables
+    cdf_info = cdf.cdf_info()
+    meta = cdf.globalattsget()
+    if hasattr(cdflib, "__version__") and Version(cdflib.__version__) >= Version("1.0.0"):
+        all_var_keys = cdf_info.rVariables + cdf_info.zVariables
+    else:
+        all_var_keys = cdf_info['rVariables'] + cdf_info['zVariables']
+    var_attrs = {key: cdf.varattsget(key) for key in all_var_keys}
+
+    # Get keys that depend on time
+    # var_keys = [var for var in var_attrs if 'DEPEND_0' in var_attrs[var] and var_attrs[var]['DEPEND_0'] is not None]
+    # Manually define keys that depend on time for Wind/3DP cdf files, as they don't follow the standard
+    var_keys = all_var_keys
+
+    # Get unique time index keys
+    # time_index_keys = sorted(set([var_attrs[var]['DEPEND_0'] for var in var_keys]))
+    # Manually define time index key for Wind/3DP cdf files, as they don't follow the standard
+    time_index_keys = [var_keys.pop(var_keys.index('Epoch'))]
+
+    all_ts = []
+    # For each time index, construct a GenericTimeSeries
+    for index_key in time_index_keys:
+        try:
+            index = cdf.varget(index_key)
+        except ValueError:
+            # Empty index for cdflib >= 0.3.20
+            continue
+        # TODO: use to_astropy_time() instead here when we drop pandas in timeseries
+        index = CDFepoch.to_datetime(index)
+        df = pd.DataFrame(index=pd.DatetimeIndex(name=index_key, data=index))
+        # units = {}
+
+        # for var_key in sorted(var_keys):
+        for var_key in var_keys:
+            if var_key in ignore_vars:
+                continue  # leave for-loop, skipping var_key
+
+            attrs = var_attrs[var_key]
+            # Skip the following check for Wind/3DP cdf files, as they don't follow the standard
+            # # If this variable doesn't depend on this index, continue
+            # if attrs['DEPEND_0'] != index_key:
+            #     continue
+
+            # Get data
+            if hasattr(cdflib, "__version__") and Version(cdflib.__version__) >= Version("1.0.0"):
+                var_last_rec = cdf.varinq(var_key).Last_Rec
+            else:
+                var_last_rec = cdf.varinq(var_key)['Last_Rec']
+            if var_last_rec == -1:
+                log.debug(f'Skipping {var_key} in {fname} as it has zero elements')
+                continue
+
+            data = cdf.varget(var_key)
+
+            # Skip the following code block for Wind/3DP cdf files, as they don't follow the standard
+            # # Set fillval values to NaN
+            # # It would be nice to properley mask these values to work with
+            # # non-floating point (ie. int) dtypes, but this is not possible with pandas
+            # if np.issubdtype(data.dtype, np.floating):
+            #     data[data == attrs['FILLVAL']] = np.nan
+
+            # Skip the following code block for Wind/3DP cdf files, as they don't follow the standard
+            # # Get units
+            # if 'UNITS' in attrs:
+            #     unit_str = attrs['UNITS']
+            #     try:
+            #         unit = u.Unit(unit_str)
+            #     except ValueError:
+            #         if unit_str in _known_units:
+            #             unit = _known_units[unit_str]
+            #         else:
+            #             warn_user(f'astropy did not recognize units of "{unit_str}". '
+            #                       'Assigning dimensionless units. '
+            #                       'If you think this unit should not be dimensionless, '
+            #                       'please raise an issue at https://github.com/sunpy/sunpy/issues')
+            #             unit = u.dimensionless_unscaled
+            # else:
+            #     warn_user(f'No units provided for variable "{var_key}". '
+            #               'Assigning dimensionless units.')
+            #     unit = u.dimensionless_unscaled
+
+            if data.ndim > 3:
+                # Skip data with dimensions >= 3 and give user warning
+                warn_user(f'The variable "{var_key}" has been skipped because it has more than 3 dimensions, which is unsupported.')
+            elif data.ndim == 3:
+                # Multiple columns, give each column a unique label.
+                # Numbering hard-corded to Wind/3DP data!
+                for j in range(data.T.shape[0]):
+                    for i, col in enumerate(data.T[j, :, :]):
+                        var_key_mod = var_key + f'_E{j}'
+                        df[var_key_mod + f'_P{i}'] = col
+                        # units[var_key_mod + f'_{i}'] = unit
+            elif data.ndim == 2:
+                # Multiple columns, give each column a unique label
+                for i, col in enumerate(data.T):
+                    df[var_key + f'_{i}'] = col
+                    # units[var_key + f'_{i}'] = unit
+            else:
+                # Single column
+                df[var_key] = data
+                # units[var_key] = unit
+
+        # all_ts.append(GenericTimeSeries(data=df, units=units, meta=meta))
+
+    # if not len(all_ts):
+    #     log.debug(f'No data found in file {fname}')
+    return df  # all_ts[0].to_dataframe()
