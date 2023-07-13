@@ -1,4 +1,4 @@
-SEPpy
+seppy
 =====
 
 |pypi Version| |python version| |zenodo doi|
@@ -34,7 +34,7 @@ This software is provided "as is", with no guarantee. It is no official data sou
 Installation
 ------------
 
-SEPpy requires python >= 3.8.
+seppy requires python >= 3.8.
 
 It can be installed from `PyPI <https://pypi.org/project/seppy/>`_ using:
 
@@ -69,7 +69,7 @@ Note that the syntax is different for each loader! Please refer to the independe
 Citation
 --------
 
-Please cite the following paper if you use **SEPpy** in your publication:
+Please cite the following paper if you use **seppy** in your publication:
 
 Palmroos, C., Gieseler, J., Dresing, N., Morosan, D.E., Asvestari, E., Yli-Laurila, A., Price, D.J., Valkila, S., Vainio, R. (2022).
 Solar Energetic Particle Time Series Analysis with Python. *Front. Astronomy Space Sci.* 9. `doi:10.3389/fspas.2022.1073578 <https://doi.org/10.3389/fspas.2022.1073578>`_ 
