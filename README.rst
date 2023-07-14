@@ -13,19 +13,16 @@ seppy
 
 **A compendium of Python data loaders and analysis tools for in-situ measurements of Solar Energetic Particles (SEP)**
 
-So far combines the following loaders into one PyPI package:
+So far combines loaders for the following instruments into one PyPI package:
 
-- `psp-isois-loader <https://github.com/jgieseler/psp-isois-loader>`_
-- `soho-loader <https://github.com/jgieseler/soho-loader>`_
-- `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ *
-- `stereo-loader <https://github.com/jgieseler/stereo-loader>`_
-- `wind-3dp-loader <https://github.com/jgieseler/wind-3dp-loader>`_
+- Parker Solar Probe: ISOIS
+- SOHO: CELIAS, COSTEP-EPHIN, ERNE
+- Solar Orbiter: EPD (STEP, EPT, HET)*, MAG
+- STEREO: HET, LET, SEPT, MAG
+- Wind: 3DP
 
 (* Note that `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ is a `PyPI package itself <https://pypi.org/project/solo-epd-loader/>`_ that just is loaded here for completeness.)
 
-Additional loaders:
-
-- `solo-mag-loader <https://github.com/jgieseler/solo-mag-loader>`_
 
 Disclaimer
 ----------
@@ -56,14 +53,9 @@ The standard usecase is to utilize the ``***_load`` function, which returns Pand
                         startdate="2021/04/16",
                         enddate="2021/04/20")
 
-Note that the syntax is different for each loader! Please refer to the independent packages for more details and the correct useage:
+Note that the syntax is different for each loader! `Please refer to this Notebook for more info and examples for the different data sets! <https://github.com/jgieseler/serpentine/blob/main/notebooks/sep_analysis_tools/data_loader.ipynb>`_
 
-- `psp-isois-loader <https://github.com/jgieseler/psp-isois-loader>`_
-- `soho-loader <https://github.com/jgieseler/soho-loader>`_
-- `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_
-- `solo-mag-loader <https://github.com/jgieseler/solo-mag-loader>`_
-- `stereo-loader <https://github.com/jgieseler/stereo-loader>`_
-- `wind-3dp-loader <https://github.com/jgieseler/wind-3dp-loader>`_
+
 
 
 Citation
