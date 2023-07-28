@@ -1,7 +1,7 @@
 seppy
 =====
 
-|pypi Version| |python version| |pytest| |zenodo doi|
+|pypi Version| |python version| |pytest| |codecov| |zenodo doi|
 
 .. |pypi Version| image:: https://img.shields.io/pypi/v/seppy?style=flat&logo=pypi
    :target: https://pypi.org/project/seppy/
@@ -9,6 +9,8 @@ seppy
 .. |zenodo doi| image:: https://zenodo.org/badge/451799504.svg
    :target: https://zenodo.org/badge/latestdoi/451799504
 .. |pytest| image:: https://github.com/serpentine-h2020/SEPpy/workflows/pytest/badge.svg
+.. |codecov| image:: https://codecov.io/gh/serpentine-h2020/SEPpy/branch/main/graph/badge.svg?token=FYELM4Y7DF 
+   :target: https://codecov.io/gh/serpentine-h2020/SEPpy
 
 *This package is in development status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
 
