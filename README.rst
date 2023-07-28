@@ -1,13 +1,14 @@
 seppy
 =====
 
-|pypi Version| |python version| |zenodo doi|
+|pypi Version| |python version| |pytest| |zenodo doi|
 
 .. |pypi Version| image:: https://img.shields.io/pypi/v/seppy?style=flat&logo=pypi
    :target: https://pypi.org/project/seppy/
 .. |python version| image:: https://img.shields.io/pypi/pyversions/seppy?style=flat&logo=python
 .. |zenodo doi| image:: https://zenodo.org/badge/451799504.svg
    :target: https://zenodo.org/badge/latestdoi/451799504
+.. |pytest| image:: https://github.com/serpentine-h2020/SEPpy/workflows/pytest/badge.svg
 
 *This package is in development status! Intended for internal use only, as the syntax is in a floating state and the documentation is incomplete.*
 

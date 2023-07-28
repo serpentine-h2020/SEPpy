@@ -22,10 +22,11 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     resample : str
             pandas-compatible time string, e.g., '1min', '2H' or '25s'
     pos_timestamp : str, default 'center'
-            Controls if the timestamp is at the center of the time bin, or at the start of it
+            Controls if the timestamp is at the center of the time bin, or at
+            the start of it
     origin : str, default 'start'
-            Controls if the origin of resampling is at the start of the day (midnight) or at the first
-            entry of the input dataframe/series
+            Controls if the origin of resampling is at the start of the day
+            (midnight) or at the first entry of the input dataframe/series
 
     Returns:
     ----------
