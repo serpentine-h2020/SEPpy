@@ -286,7 +286,7 @@ def energy2speed(species, kinetic_energy):
 
     Args:
         species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
-        kinetic_energy (float/astropy units): kinetic energy of the particle using astropy units; if only float MeV is used
+        kinetic_energy (astropy units/float): kinetic energy of the particle using astropy units; if only float, MeV is used
 
     Returns:
         astropy units: relativistic particle speed.
@@ -295,6 +295,25 @@ def energy2speed(species, kinetic_energy):
         kinetic_energy = kinetic_energy * u.MeV
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return calc_particle_speed(mass_dict[species], kinetic_energy)
+
+
+def speed2energy(species, speed):
+    '''
+    Calculates the relativistic kinetic energy derived from particle speed.
+
+    Args:
+        species (string): particle species (electrons 'e' or protons 'p') used to determine the particle mass
+        speed (astropy units/float): relativistic particle speed of the particle using astropy units; if only float, m/s is used
+
+    Returns:
+        astropy units: kinetic energy
+    '''
+    if not type(speed)==u.quantity.Quantity:
+        speed = speed * u.m/u.s
+    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    gamma = 1/np.sqrt(1-speed**2/const.c**2)
+    K = (gamma-1)*mass_dict[species]*const.c**2
+    return K.to(u.MeV) 
 
 
 def speed2momentum(species, speed):
