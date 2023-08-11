@@ -1,6 +1,6 @@
 astropy
 bs4
-cdflib
+cdflib>=0.4.9
 datetime
 drms
 h5netcdf
