@@ -436,7 +436,7 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
 
 def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, viewing):
     """
-    This function averages the flux of several energy channels into a combined energy channel
+    This function averages the flux of several energy channels (and viewing directions) into a combined energy channel.
     channel numbers counted from 0
 
     So far only works for EPILO PE chanF electrons
@@ -452,11 +452,13 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
     species : string
         'e', 'electrons'
     mode : string
-        'pe'. EPILO mode
+        'pe' or 'ic'. EPILO mode
     chan : string
-        'E', 'F', 'G'. EPILO chan
-    viewing : integer
-        EPILO viewing. 0 to 7 for 'E' & 'F'; 80 for 'G'
+        'E', 'F', 'G', 'P', 'T'. EPILO chan
+    viewing : int or list
+        EPILO viewing. 0 to 7 for electrons; 0 to 79 for ions 
+        (ions 70-79 correspond to electrons 7, i.e., the electron wedges are
+        split up into 10 viewings for ions)
 
     Returns
     -------
@@ -471,46 +473,69 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
         # if species.lower() in ['p', 'protons', 'i', 'ions', 'h']:
         #     species_str = 'H'
         #     flux_key = 'H_Flux'
-    # if mode.lower() == 'ic':
+    elif mode.lower() == 'ic':
         # if species.lower() in ['e', 'electrons']:
         #     species_str = 'Electrons'
         #     flux_key = 'Electrons_Rate'
-        # if species.lower() in ['p', 'protons', 'i', 'ions', 'h']:
-        #     species_str = 'H'
-        #     flux_key = 'H_Flux'
-        if type(en_channel) == int:
-            en_channel = [en_channel]
+        if species.lower() in ['p', 'protons', 'i', 'ions', 'h']:
+            species_str = 'H'
+            flux_key = 'H_Flux'
+    if type(en_channel) == int:
+        en_channel = [en_channel]
+    if type(viewing) == int:
+        viewing = [viewing]
+    
+    df_out = pd.DataFrame()
+    flux_out_all = {}
+    en_channel_string_all = []
+    for view in viewing:
         if type(en_channel) == list:
-            energy = en_dict[f'{species_str}_Chan{chan}_Energy'].filter(like=f'_P{viewing}').values
-            energy_low = energy - en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'].filter(like=f'_P{viewing}').values
-            energy_high = energy + en_dict[f'{species_str}_Chan{chan}_Energy_DELTAPLUS'].filter(like=f'_P{viewing}').values
-            DE = en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'].filter(like=f'_P{viewing}').values + en_dict[f'{species_str}_Chan{chan}_Energy_DELTAPLUS'].filter(like=f'_P{viewing}').values
+            # energy = en_dict[f'{species_str}_Chan{chan}_Energy'].filter(like=f'_P{view}').values
+            energy = en_dict[f'{species_str}_Chan{chan}_Energy'][en_dict[f'{species_str}_Chan{chan}_Energy'].keys().str.endswith(f'_P{view}')].values
+            # energy_low = energy - en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'].filter(like=f'_P{view}').values
+            energy_low = energy - en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'][en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'].keys().str.endswith(f'_P{view}')].values
+            # energy_high = energy + en_dict[f'{species_str}_Chan{chan}_Energy_DELTAPLUS'].filter(like=f'_P{view}').values
+            energy_high = energy + en_dict[f'{species_str}_Chan{chan}_Energy_DELTAPLUS'][en_dict[f'{species_str}_Chan{chan}_Energy_DELTAPLUS'].keys().str.endswith(f'_P{view}')].values
+            DE = en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'].filter(like=f'_P{view}').values + en_dict[f'{species_str}_Chan{chan}_Energy_DELTAPLUS'].filter(like=f'_P{view}').values
 
             # build energy string of combined channel
             en_channel_string = np.round(energy_low[en_channel[0]], 1).astype(str) + ' - ' + np.round(energy_high[en_channel[-1]], 1).astype(str) + ' keV'
 
-            # select viewing direction
-            # df = df.filter(like=f'_P{viewing}')
+            # select view direction
+            # df = df.filter(like=f'_P{view}')
 
             if len(en_channel) > 2:
                 raise Exception("en_channel must have length 2 or less! Define first and last channel to use (don't list all of them)")
             if len(en_channel) == 2:
                 # try:
-                #     df = df[df.columns[df.columns.str.startswith(f'{viewing.upper()}_{flux_key}')]]
+                #     df = df[df.columns[df.columns.str.startswith(f'{view.upper()}_{flux_key}')]]
                 #     # df = df[df.columns[df.columns.str.startswith(f'{flux_key}_Chan{chan}_')]]
                 # except (AttributeError, KeyError):
                 #     None
                 for bins in np.arange(en_channel[0], en_channel[-1]+1):
                     if bins == en_channel[0]:
-                        I_all = df[f"{flux_key}_Chan{chan}_E{bins}_P{viewing}"] * DE[bins]
+                        I_all = df[f"{flux_key}_Chan{chan}_E{bins}_P{view}"] * DE[bins]
                     else:
-                        I_all = I_all + df[f"{flux_key}_Chan{chan}_E{bins}_P{viewing}"] * DE[bins]
+                        I_all = I_all + df[f"{flux_key}_Chan{chan}_E{bins}_P{view}"] * DE[bins]
                 DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1]+1)])
-                flux_out = pd.DataFrame({'flux': I_all/DE_total}, index=df.index)
+                flux_out = pd.DataFrame({f'viewing_{view}': I_all/DE_total}, index=df.index)
             if len(en_channel) == 1:
                 en_channel = en_channel[0]
-                flux_out = pd.DataFrame({'flux': df[f"{flux_key}_Chan{chan}_E{en_channel}_P{viewing}"]}, index=df.index)
-    return flux_out, en_channel_string
+                flux_out = pd.DataFrame({f'viewing_{view}': df[f"{flux_key}_Chan{chan}_E{en_channel}_P{view}"]}, index=df.index)
+            
+            df_out = pd.concat([df_out, flux_out], axis=1)
+
+        # calculate mean of all viewings:
+        df_out2 = pd.DataFrame({'flux': df_out.mean(axis=1, skipna=True)}, index=df_out.index)
+        en_channel_string_all.append(en_channel_string)
+
+    # check if not all elements of en_channel_string_all are the same:
+    if len(en_channel_string_all) != en_channel_string_all.count(en_channel_string_all[0]):
+        print("You are combining viewing directions that have different energies. This is strongly advised against!")
+        print(en_channel_string_all)
+        return df_out2, en_channel_string_all[0]
+    else:
+        return df_out2, en_channel_string_all[0]
 
 
 psp_load = copy.copy(psp_isois_load)
