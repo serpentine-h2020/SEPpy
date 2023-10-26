@@ -17,6 +17,22 @@ def test_psp_load_online():
     assert meta['H_ENERGY_LABL'][0][0] == '  6.7 -   8.0 MeV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['B_H_Uncertainty_14'])) == 48
+    #
+    df2, meta2 = psp_isois_load(dataset='PSP_ISOIS-EPILO_L2-PE', startdate="2021/05/31",
+                                enddate="2021/06/01", epilo_channel='F', path=None, resample="1min")
+    assert isinstance(df2, pd.DataFrame)
+    assert df2.shape == (57, 410)
+    assert meta2['Electron_ChanF_Energy']['Electron_ChanF_Energy_E0_P0'] == np.float32(130.09998)
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df2['Electron_CountRate_ChanF_E47_P7'])) == 57
+    #
+    df3, meta3 = psp_isois_load(dataset='PSP_ISOIS-EPILO_L2-IC', startdate="2021/05/31",
+                                enddate="2021/06/01", epilo_channel='P', path=None, resample="1min")
+    assert isinstance(df3, pd.DataFrame)
+    assert df3.shape == (57, 11690)
+    assert meta3['H_ChanP_Energy']['H_ChanP_Energy_E0_P0'] == np.float32(49.82931)
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df3['H_Flux_ChanP_E46_P79'])) == 57
 
 
 def test_psp_load_offline():
