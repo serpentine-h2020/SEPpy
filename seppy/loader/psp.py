@@ -202,12 +202,13 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
             - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60' (not yet supported)
             - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60' (not yet supported)
             - 'PSP_ISOIS-EPILO_L2-PE'
-            - 'PSP_ISOIS-EPILO_L2-IC' (not yet supported)
+            - 'PSP_ISOIS-EPILO_L2-IC'
     startdate, enddate : {datetime or str}
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
     epilo_channel : string
-        'E', 'F', 'G'. EPILO chan, by default 'F'
+        'E', 'F', 'G' (for 'EPILO PE'), or 'C', 'D', 'P', 'R', 'T' (for 'EPILO IC').
+        EPILO chan, by default 'F'
     epilo_threshold : {int or float}, optional
         Replace ALL flux/countrate values above 'epilo_threshold' with np.nan, by default None.
         Only works for Electron count rates in 'PSP_ISOIS-EPILO_L2-PE' dataset
