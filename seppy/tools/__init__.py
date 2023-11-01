@@ -932,7 +932,7 @@ class Event:
 
         if ylim is None:
 
-            ylim = [np.nanmin(flux_series[flux_series > 0]),
+            ylim = [np.nanmin(flux_series[flux_series > 0]/2),
                     np.nanmax(flux_series) * 3]
 
         # windowrange is by default None, and then we define the start and stop with integer hours
@@ -1029,7 +1029,7 @@ class Event:
 
         # Background shaded area
         ax.axvspan(avg_start, avg_end, color=color_dict['bg'],
-                   label="Background")
+                   label="Background", alpha=0.5)
 
         # ax.set_xlabel("Time [HH:MM \nYYYY-mm-dd]", fontsize=16)
         ax.set_ylabel(r"Intensity [1/(cm$^{2}$ sr s MeV)]", fontsize=16)
