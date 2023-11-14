@@ -869,7 +869,7 @@ class Event:
         for i in range(1, len(cusum)):
 
             # normalize the observed flux
-            norm_channel[i] = (flux_series[i]-ma)/sigma
+            norm_channel[i] = (flux_series.iloc[i]-ma)/sigma
 
             # calculate the value for ith cusum entry
             cusum[i] = max(0, norm_channel[i] - k_round + cusum[i-1])
