@@ -25,17 +25,22 @@ def _get_metadata(dataset, path_to_cdf):
     """
     metadata = []
     cdf = cdflib.CDF(path_to_cdf)
-    if dataset=='SOHO_ERNE-HED_L2-1MIN' or dataset=='SOHO_ERNE-LED_L2-1MIN':
+    if dataset in ['SOHO_COSTEP-EPHIN_L3I-1MIN', 'SOHO_ERNE-HED_L2-1MIN', 'SOHO_ERNE-LED_L2-1MIN']:
+        if dataset=='SOHO_COSTEP-EPHIN_L3I-1MIN':
+            alpha = 'He'
+            m = '_int'
         if dataset=='SOHO_ERNE-HED_L2-1MIN':
+            alpha = 'A'
             m = 'H'
         if dataset=='SOHO_ERNE-LED_L2-1MIN':
+            alpha = 'A'
             m = 'L'
         metadata = {'He_E_label': cdf.varget('He_E_label')[0],
                     'He_energy': cdf.varget('He_energy'),
                     'He_energy_delta': cdf.varget('He_energy_delta'),
-                    f'A{m}_LABL': cdf.varattsget(f'A{m}')['LABLAXIS'],
-                    f'A{m}_UNITS': cdf.varattsget(f'A{m}')['UNITS'],
-                    f'A{m}_FILLVAL': cdf.varattsget(f'A{m}')['FILLVAL'],
+                    f'{alpha}{m}_LABL': cdf.varattsget(f'{alpha}{m}')['LABLAXIS'],
+                    f'{alpha}{m}_UNITS': cdf.varattsget(f'{alpha}{m}')['UNITS'],
+                    f'{alpha}{m}_FILLVAL': cdf.varattsget(f'{alpha}{m}')['FILLVAL'],
                     'P_E_label': cdf.varget('P_E_label')[0],
                     'P_energy': cdf.varget('P_energy'),
                     'P_energy_delta': cdf.varget('P_energy_delta'),
