@@ -81,10 +81,6 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
             http://ulysses.physik.uni-kiel.de/costep/level2/rl2/
         - 'SOHO_COSTEP-EPHIN_L3I-1MIN': SOHO COSTEP-EPHIN Level3 intensity 1 minute data
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_COSTEP-EPHIN_L3I-1MIN
-        - 'SOHO_CELIAS-PM_30S': SOHO CELIAS-PM 30 second data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_CELIAS-PM_30S
-        - 'SOHO_CELIAS-SEM_15S': SOHO CELIAS-SEM 15 second data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_CELIAS-SEM_15S
         - 'SOHO_ERNE-LED_L2-1MIN': SOHO ERNE-LED Level2 1 minute data - VERY OFTEN NO DATA!
             https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-LED_L2-1MIN
         - 'SOHO_ERNE-HED_L2-1MIN': SOHO ERNE-HED Level2 1 minute data
