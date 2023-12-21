@@ -1587,7 +1587,7 @@ class Event:
             if instrument.lower() == "ephin":
                 particle_data = self.current_df_e
                 s_identifier = "electrons"
-                warnings.warn('SOHO/EPHIN data is not fully implemented yet!')
+                raise Warning('SOHO/EPHIN is not implemented yet!')
 
         if spacecraft == "psp":
             if instrument.lower() == "isois-epihi":
@@ -2268,10 +2268,10 @@ class Event:
             if self.sensor.lower() == "erne":
                 energy_ranges = self.current_energies["channels_dict_df_p"]["ch_strings"].values
             if self.sensor.lower() == "ephin":
-                # Choose only the 4 first channels / descriptions, since I only know of
-                # E150, E300, E1300 and E3000. The rest are unknown to me.
-                # Go up to index 5, because index 1 is 'deactivated bc. of failure mode D'
-                energy_ranges = [val for val in self.current_energies.values()][:5]
+                # Choose only the first 4 channels (E150, E300, E1300 and E3000)
+                # This are the only electron channels (rest p and He), and we
+                # use only electron data here.
+                energy_ranges = [val for val in self.current_energies.values()][:4]
             if self.sensor.lower() in ("ephin-5", "ephin-15"):
                 energy_ranges = [value for key, value in self.current_energies.items()]
 
@@ -2483,9 +2483,11 @@ class Event:
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
 
-        # SOHO/EPHIN returns one too many energy strs, because one of them is 'deactivated bc. or  failure mode D'
-        if self.sensor == "ephin":
-            energy_strs = energy_strs[:-1]
+        # The following behaviour has been fixed upstream. Keeping this here for
+        # now in case someone is missing it.
+        # # SOHO/EPHIN returns one too many energy strs, because one of them is 'deactivated bc. or  failure mode D'
+        # # if self.sensor == "ephin":
+        # #     energy_strs = energy_strs[:-1]
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
