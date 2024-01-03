@@ -1908,7 +1908,7 @@ class Event:
         """
 
         import ipywidgets as widgets
-        from IPython.core.display import display
+        from IPython.display import display
 
         # inits
         spacecraft = self.spacecraft
@@ -2423,7 +2423,7 @@ class Event:
         Prints out the channel name / energy range pairs
         """
 
-        from IPython.core.display import display
+        from IPython.display import display
 
         # This has to be run first, otherwise self.current_df does not exist
         # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes
