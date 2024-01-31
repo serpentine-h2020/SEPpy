@@ -1587,7 +1587,7 @@ class Event:
             if instrument.lower() == "ephin":
                 particle_data = self.current_df_e
                 s_identifier = "electrons"
-                raise Warning('SOHO/EPHIN is not implemented yet!')
+                raise Warning('SOHO/EPHIN is not implemented yet in the dynamic spectrum tool!')
 
         if spacecraft == "psp":
             if instrument.lower() == "isois-epihi":
