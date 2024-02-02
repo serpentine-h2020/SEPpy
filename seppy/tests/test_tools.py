@@ -31,6 +31,7 @@ def test_onset_SOLO_STEP_ions_old_data_online():
     assert peak_time == pd.Timestamp('2020-09-21 17:57:32.010263')
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0060 - 0.0091 MeV/n protons\n5min averaging, viewing: PIXEL AVERAGED'
     # Pixel 8 - check that calculation is stopped bc. this data is not implemented correctly!
+    check = False
     try:
         flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel 8', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     except Warning:
