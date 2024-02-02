@@ -316,7 +316,7 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
                     ignore = [f'Epoch_Chan{epilo_channel}_DELTA', f'HCI_Chan{epilo_channel}', f'HCI_Lat_Chan{epilo_channel}', f'HCI_Lon_Chan{epilo_channel}',
                               f'HCI_R_Chan{epilo_channel}', f'HGC_Lat_Chan{epilo_channel}', f'HGC_Lon_Chan{epilo_channel}', f'HGC_R_Chan{epilo_channel}',
                               f'{species_str}_Chan{epilo_channel}_Energy_LABL', f'{species_str}_Counts_Chan{epilo_channel}', f'RTN_Chan{epilo_channel}']
-                    #ignore = ['Epoch_ChanP_DELTA', 'HCI_ChanP', 'HCI_Lat_ChanP', 'HCI_Lon_ChanP', 'HCI_R_ChanP', 'HGC_Lat_ChanP', 'HGC_Lon_ChanP', 'HGC_R_ChanP', 'H_ChanP_Energy', 'H_ChanP_Energy_DELTAMINUS', 'H_ChanP_Energy_DELTAPLUS', 'H_ChanP_Energy_LABL', 'H_CountRate_ChanP', 'H_Counts_ChanP', 'H_Flux_ChanP', 'H_Flux_ChanP_DELTA', 'PA_ChanP', 'Quality_Flag_ChanP', 'RTN_ChanP', 'SA_ChanP
+                    # ignore = ['Epoch_ChanP_DELTA', 'HCI_ChanP', 'HCI_Lat_ChanP', 'HCI_Lon_ChanP', 'HCI_R_ChanP', 'HGC_Lat_ChanP', 'HGC_Lon_ChanP', 'HGC_R_ChanP', 'H_ChanP_Energy', 'H_ChanP_Energy_DELTAMINUS', 'H_ChanP_Energy_DELTAPLUS', 'H_ChanP_Energy_LABL', 'H_CountRate_ChanP', 'H_Counts_ChanP', 'H_Flux_ChanP', 'H_Flux_ChanP_DELTA', 'PA_ChanP', 'Quality_Flag_ChanP', 'RTN_ChanP', 'SA_ChanP
 
                 # read 0th cdf file
                 # # cdf = cdflib.CDF(downloaded_files[0])
@@ -463,7 +463,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
     chan : string
         'E', 'F', 'G', 'P', 'T'. EPILO chan
     viewing : int or list
-        EPILO viewing. 0 to 7 for electrons; 0 to 79 for ions 
+        EPILO viewing. 0 to 7 for electrons; 0 to 79 for ions
         (ions 70-79 correspond to electrons 7, i.e., the electron wedges are
         split up into 10 viewings for ions)
 
@@ -491,7 +491,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
         en_channel = [en_channel]
     if type(viewing) == int:
         viewing = [viewing]
-    
+
     df_out = pd.DataFrame()
     flux_out_all = {}
     en_channel_string_all = []
@@ -529,7 +529,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
             if len(en_channel) == 1:
                 en_channel = en_channel[0]
                 flux_out = pd.DataFrame({f'viewing_{view}': df[f"{flux_key}_Chan{chan}_E{en_channel}_P{view}"]}, index=df.index)
-            
+
             df_out = pd.concat([df_out, flux_out], axis=1)
 
         # calculate mean of all viewings:
@@ -563,7 +563,7 @@ def _read_cdf_psp(fname, index_key, ignore_vars=[]):
     fname : path-like
         Location of single CDF file to read.
     index_key : str
-        The CDF key to use as the index in the output DataFrame. 
+        The CDF key to use as the index in the output DataFrame.
         For example, index_key='Epoch_ChanP'
     ignore_vars : list
         In case a CDF file has columns that are unused / not required, then

@@ -92,8 +92,10 @@ class Event:
         # names from the dataframe.
         self.load_all_viewing()
 
-        # Check that the data that was loaded is valid. If not, give a warning.
-        self.validate_data()
+        # JG: This is NOT enough to just check this at this position! This needs to be aborting the process if the specific combination is chosen!
+        # JG: Removed here and moved to appropriate positions.
+        # # Check that the data that was loaded is valid. If not, give a warning.
+        # self.validate_data()
 
         # Download radio cdf files ONLY if asked to
         if self.radio_spacecraft is not None:
@@ -108,7 +110,12 @@ class Event:
         # Data products for SolO/STEP before 22 Oct 2021 are no reliable for non-Pixel Averaged data
         if self.spacecraft == "solo" and self.sensor == "step":
             if self.start_date < pd.to_datetime("2021-10-22").date():
-                warnings.warn("WARNING! SolO/STEP particle data is not included yet for individual Pixels for dates preceding 2022-10-22.")
+                if not self.viewing == 'Pixel averaged':
+                    raise Warning("WARNING! SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021.")
+
+        # Electron data for SolO/STEP is removed for now (Feb 2024, JG)
+        if self.spacecraft == "solo" and self.sensor == "step" and self.species.lower()[0] == 'e':
+            raise Warning("WARNING! SolO/STEP electron data is not implemented yet!")
 
     def update_onset_attributes(self, flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean):
         """
@@ -869,7 +876,7 @@ class Event:
         for i in range(1, len(cusum)):
 
             # normalize the observed flux
-            norm_channel[i] = (flux_series[i]-ma)/sigma
+            norm_channel[i] = (flux_series.iloc[i]-ma)/sigma
 
             # calculate the value for ith cusum entry
             cusum[i] = max(0, norm_channel[i] - k_round + cusum[i-1])
@@ -1189,6 +1196,9 @@ class Event:
             self.viewing_used = ''
         elif (self.spacecraft.lower() == 'soho' and self.sensor in ["ephin", "ephin-5", "ephin-15"]):
             self.viewing_used = ''
+
+        # Check that the data that was loaded is valid. If not, abort with warning.
+        self.validate_data()
 
         self.averaging_used = resample_period
         self.x_sigma = x_sigma
@@ -1529,6 +1539,9 @@ class Event:
         # This method has to be run before doing anything else to make sure that the viewing is correct
         self.choose_data(view)
 
+        # Check that the data that was loaded is valid. If not, abort with warning.
+        self.validate_data()
+
         if self.spacecraft == "solo":
 
             if instrument == "step":
@@ -1587,7 +1600,7 @@ class Event:
             if instrument.lower() == "ephin":
                 particle_data = self.current_df_e
                 s_identifier = "electrons"
-                warnings.warn('SOHO/EPHIN data is not fully implemented yet!')
+                raise Warning('SOHO/EPHIN is not implemented yet in the dynamic spectrum tool!')
 
         if spacecraft == "psp":
             if instrument.lower() == "isois-epihi":
@@ -1908,7 +1921,7 @@ class Event:
         """
 
         import ipywidgets as widgets
-        from IPython.core.display import display
+        from IPython.display import display
 
         # inits
         spacecraft = self.spacecraft
@@ -1934,6 +1947,9 @@ class Event:
         METERS_PER_AU = 1 * u.AU.to(u.m)
 
         self.choose_data(view)
+
+        # Check that the data that was loaded is valid. If not, abort with warning.
+        self.validate_data()
 
         if self.spacecraft == "solo":
             if self.sensor == "step":
@@ -2268,10 +2284,10 @@ class Event:
             if self.sensor.lower() == "erne":
                 energy_ranges = self.current_energies["channels_dict_df_p"]["ch_strings"].values
             if self.sensor.lower() == "ephin":
-                # Choose only the 4 first channels / descriptions, since I only know of
-                # E150, E300, E1300 and E3000. The rest are unknown to me.
-                # Go up to index 5, because index 1 is 'deactivated bc. of failure mode D'
-                energy_ranges = [val for val in self.current_energies.values()][:5]
+                # Choose only the first 4 channels (E150, E300, E1300 and E3000)
+                # This are the only electron channels (rest p and He), and we
+                # use only electron data here.
+                energy_ranges = [val for val in self.current_energies.values()][:4]
             if self.sensor.lower() in ("ephin-5", "ephin-15"):
                 energy_ranges = [value for key, value in self.current_energies.items()]
 
@@ -2423,7 +2439,7 @@ class Event:
         Prints out the channel name / energy range pairs
         """
 
-        from IPython.core.display import display
+        from IPython.display import display
 
         # This has to be run first, otherwise self.current_df does not exist
         # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes
@@ -2483,9 +2499,11 @@ class Event:
         channel_numbers = np.unique(channel_numbers)
         energy_strs = self.get_channel_energy_values("str")
 
-        # SOHO/EPHIN returns one too many energy strs, because one of them is 'deactivated bc. or  failure mode D'
-        if self.sensor == "ephin":
-            energy_strs = energy_strs[:-1]
+        # The following behaviour has been fixed upstream. Keeping this here for
+        # now in case someone is missing it.
+        # # SOHO/EPHIN returns one too many energy strs, because one of them is 'deactivated bc. or  failure mode D'
+        # # if self.sensor == "ephin":
+        # #     energy_strs = energy_strs[:-1]
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")

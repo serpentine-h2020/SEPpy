@@ -2,20 +2,17 @@
 A library to run the interactive user interface in SEP event onset determination notebooks.
 
 @Author: Christian Palmroos <chospa@utu.fi>
-@Last updated: 2023-03-24
 """
 
-
-# from importlib.resources import path
 import ipywidgets as widgets
 
 # a list of available spacecraft:
 list_of_sc = ["PSP", "SOHO", "Solar Orbiter", "STEREO-A", "STEREO-B", "Wind"]
 
-stereo_instr = ["SEPT", "HET"]  # ["LET", "SEPT", "HET"]
-solo_instr = ["STEP", "EPT", "HET"]
+stereo_instr = ["HET", "SEPT"]  # ["LET", "SEPT", "HET"]
+solo_instr = ["EPT", "HET", "STEP"]
 bepi_instr = ["SIXS-P"]
-soho_instr = ["ERNE-HED", "EPHIN"]
+soho_instr = ["EPHIN", "ERNE-HED"]
 psp_instr = ["isois-epihi", "isois-epilo"]
 wind_instr = ["3DP"]
 
@@ -49,7 +46,7 @@ species_dict = {
     ("STEREO-B", "LET"): ("protons", "electrons"),
     ("STEREO-B", "SEPT"): ("ions", "electrons"),
     ("STEREO-B", "HET"): ("protons", "electrons"),
-    ("Solar Orbiter", "STEP"): ("ions", "electrons"),
+    ("Solar Orbiter", "STEP"): ("ions",),  # , "electrons"),
     ("Solar Orbiter", "EPT"): ("ions", "electrons"),
     ("Solar Orbiter", "HET"): ("protons", "electrons"),
     ("Bepicolombo", "SIXS-P"): ("protons", "electrons"),
