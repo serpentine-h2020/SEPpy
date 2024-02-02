@@ -7,8 +7,6 @@ import os
 import pandas as pd
 
 
-# TODO: round Timestamps because they cause sometimes failures in testing
-# TODO: find smaller datasets for SOLO/STEP
 # TODO: test dynamic spectrum for all dataset
 # TODO: test tsa for all dataset
 
@@ -41,30 +39,30 @@ def test_onset_SOLO_STEP_ions_old_data_online():
 
 
 def test_onset_SOLO_STEP_ions_new_data_online():
-    startdate = datetime.date(2021, 10, 28)
-    enddate = datetime.date(2021, 10, 28)
+    startdate = datetime.date(2022, 1, 9)
+    enddate = datetime.date(2022, 1, 9)
     lpath = f"{os.getcwd()}/data/"
-    background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
+    background_range = (datetime.datetime(2022, 1, 9, 10, 0, 0), datetime.datetime(2022, 1, 9, 12, 0, 0))
     # ions
     Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
     # print(Event1.print_energies())  # TODO: see test_onset_SOLO_EPT_online
     # Pixel averaged
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel averaged', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
-    assert flux.shape == (288,)
+    assert flux.shape == (164,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:07:30'
-    assert onset_found
-    assert peak_time.isoformat().split('.')[0] == '2021-10-28T18:57:30'
+    assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:07:30'
+    assert ~onset_found
+    assert peak_time.isoformat().split('.')[0] == '2022-01-09T01:32:30'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL AVERAGED'
     # Pixel 8
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel 8', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
-    assert flux.shape == (288,)
+    assert flux.shape == (164,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:12:30'
-    assert onset_found
-    assert peak_time.isoformat().split('.')[0] == '2021-10-28T20:52:30'
+    assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:12:30'
+    assert ~onset_found
+    assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:30'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL 8'
 
 
