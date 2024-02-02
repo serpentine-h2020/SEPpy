@@ -46,7 +46,7 @@ species_dict = {
     ("STEREO-B", "LET"): ("protons", "electrons"),
     ("STEREO-B", "SEPT"): ("ions", "electrons"),
     ("STEREO-B", "HET"): ("protons", "electrons"),
-    ("Solar Orbiter", "STEP"): ("ions", "electrons"),
+    ("Solar Orbiter", "STEP"): ("ions",),  # , "electrons"),
     ("Solar Orbiter", "EPT"): ("ions", "electrons"),
     ("Solar Orbiter", "HET"): ("protons", "electrons"),
     ("Bepicolombo", "SIXS-P"): ("protons", "electrons"),
