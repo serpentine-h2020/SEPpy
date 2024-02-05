@@ -6,9 +6,10 @@ import datetime
 import os
 import pandas as pd
 
-
-# TODO: test dynamic spectrum for all dataset
-# TODO: test tsa for all dataset
+# TODO:
+# - test dynamic spectrum for all dataset
+# - test tsa for all dataset
+# - test print(Event1.print_energies()) after it has been fixed
 
 
 def test_onset_SOLO_STEP_ions_old_data_online():
