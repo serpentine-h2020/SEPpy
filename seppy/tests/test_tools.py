@@ -141,8 +141,9 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     # test dynamic spectrum:
     Event1.dynamic_spectrum(view='sun')
     assert Event1.fig.get_axes()[0].get_title() == 'SOLO/EPT (sun) electrons, 2022-06-06'
-
+    
     # test tsa plot:
+    plt.close('all')  # in order to pick the right figure, make sure all previous are closed
     Event1.tsa_plot('sun', selection=(0, 4, 1), resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Solar Orbiter EPT, electrons'
 
