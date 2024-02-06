@@ -61,7 +61,7 @@ radio_dict = {
     "None": None,
     "STEREO-A": ("ahead", "STEREO-A"),
     "STEREO-B": ("behind", "STEREO-B"),
-    "WIND (Coming soon!)": ("wind", "WIND")
+    # "WIND (Coming soon!)": ("wind", "WIND")  # TODO: re-add when supported!
 }
 
 # Drop-downs for dynamic particle spectrum:
