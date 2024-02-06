@@ -1,4 +1,5 @@
 astropy
+astroquery
 bs4
 cdflib>=0.4.9
 datetime
