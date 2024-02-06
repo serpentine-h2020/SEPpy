@@ -4,11 +4,12 @@ from pathlib import Path
 from seppy.tools import Event
 import datetime
 import os
+import matplotlib.pyplot as plt
 import pandas as pd
 
 # TODO:
-# - test dynamic spectrum for all dataset
-# - test tsa for all dataset
+# -dynamic spextrum for wind, psp, solo
+# - test tsa for all dataset?
 # - test print(Event1.print_energies()) after it has been fixed
 
 
@@ -96,7 +97,7 @@ def test_onset_SOLO_HET_online():
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 0.4533 - 18.8300 MeV electrons\n5min averaging, viewing: NORTH'
 
 
-def test_onset_SOLO_EPT_online():
+def test_onset_spectrum_tsa_SOLO_EPT_online():
     startdate = datetime.date(2022, 6, 6)
     enddate = datetime.date(2022, 6, 6)
     lpath = f"{os.getcwd()}/data/"
@@ -123,6 +124,14 @@ def test_onset_SOLO_EPT_online():
     assert ~onset_found
     assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:30'
     assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0334 - 0.0439 MeV electrons\n5min averaging, viewing: NORTH'
+
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='sun')
+    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/EPT (sun) electrons, 2022-06-06'
+
+    # test tsa plot:
+    Event1.tsa_plot('sun', selection=(0, 4, 1), resample='1min')
+    assert plt.figure(1).get_axes()[0].get_title() == 'Solar Orbiter EPT, electrons'
 
 
 def test_onset_PSP_ISOIS_EPIHI_online():
@@ -213,7 +222,7 @@ def test_onset_Wind_3DP_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)  # TODO: radio_spacecraft=('wind', 'WIND')
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     #
@@ -236,8 +245,12 @@ def test_onset_Wind_3DP_e_online():
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 127.06 - 235.96 keV electrons\n5min averaging, viewing: OMNIDIRECTIONAL'
     # no channel combination inlcuded for Wind/3DP, yet
 
+    # TODO: test dynamic spectrum:
+    # Event1.dynamic_spectrum(view='omnidirectional')
+    # assert Event1.fig.get_axes()[0].get_title() == ''
 
-def test_onset_STEREOB_HET_p_online():
+
+def test_onset_spectrum_STEREOB_HET_p_online():
     startdate = datetime.date(2006, 12, 13)
     enddate = datetime.date(2006, 12, 14)
     lpath = f"{os.getcwd()}/data/"
@@ -254,12 +267,16 @@ def test_onset_STEREOB_HET_p_online():
     assert peak_time.isoformat().split('.')[0] == '2006-12-13T09:53:04'
     assert fig.get_axes()[0].get_title() == 'STB/HET 26.3 - 40.5 MeV protons\n5min averaging'
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view=None)
+    assert Event1.fig.get_axes()[0].get_title() == 'STB/HET protons, 2006-12-13'
 
-def test_onset_STEREOB_HET_e_online():
+
+def test_onset_spectrum_STEREOB_HET_e_online():
     startdate = datetime.date(2006, 12, 13)
     enddate = datetime.date(2006, 12, 14)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='STEREO-B', sensor='HET', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='STEREO-B', sensor='HET', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('behind', 'STEREO-B'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2006, 12, 13, 0, 0, 0), datetime.datetime(2006, 12, 13, 2, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=[1], resample_period="5min", yscale='log', cusum_window=30)
@@ -272,8 +289,12 @@ def test_onset_STEREOB_HET_e_online():
     assert peak_time.isoformat().split('.')[0] == '2006-12-13T04:53:04'
     assert fig.get_axes()[0].get_title() == 'STB/HET 1.4 - 2.8 MeV electrons\n5min averaging'
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view=None)
+    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, STB/HET electrons, 2006-12-13'
 
-def test_onset_STEREOA_SEPT_p_online():
+
+def test_onset_spectrum_STEREOA_SEPT_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
     lpath = f"{os.getcwd()}/data/"
@@ -290,12 +311,16 @@ def test_onset_STEREOA_SEPT_p_online():
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T17:18:27'
     assert fig.get_axes()[0].get_title() == 'STA/SEPT 110-174.6 keV protons\n5min averaging, viewing: NORTH'
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view=None)
+    assert Event1.fig.get_axes()[0].get_title() == 'STA/SEPT protons, 2021-10-28'
 
-def test_onset_STEREOA_SEPT_e_online():
+
+def test_onset_spectrum_STEREOA_SEPT_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='asun', background_range=background_range, channels=[8], resample_period="5min", yscale='log', cusum_window=30)
@@ -308,8 +333,12 @@ def test_onset_STEREOA_SEPT_e_online():
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T18:58:27'
     assert fig.get_axes()[0].get_title() == 'STA/SEPT 125-145 keV electrons\n5min averaging, viewing: ASUN'
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view=None)
+    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, STA/SEPT electrons, 2021-10-28'
 
-def test_onset_SOHO_EPHIN_online():
+
+def test_onset_spectrum_SOHO_EPHIN_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
     lpath = f"{os.getcwd()}/data/"
@@ -327,12 +356,20 @@ def test_onset_SOHO_EPHIN_online():
     assert fig.get_axes()[0].get_title() == 'SOHO/EPHIN 0.25 - 0.7 MeV electrons\n5min averaging'
     # no channel combination inlcuded for SOHO/EPHIN electrons, yet
 
+    # test dynamic spectrum:
+    check = False
+    try:
+        Event1.dynamic_spectrum(view=None)
+    except Warning:
+        check = True
+    assert check
 
-def test_onset_SOHO_ERNE_online():
+
+def test_onset_spectrum_SOHO_ERNE_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=3, resample_period="5min", yscale='log', cusum_window=30)
@@ -344,6 +381,11 @@ def test_onset_SOHO_ERNE_online():
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T22:53:05'
     assert fig.get_axes()[0].get_title() == 'SOHO/ERNE 25.0 - 32.0 MeV protons\n5min averaging'
+
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view=None)
+
+    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, SOHO/ERNE protons, 2021-10-28'
 
 
 def test_onset_SOHO_ERNE_offline():
