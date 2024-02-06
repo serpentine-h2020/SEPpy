@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # TODO:
-# -dynamic spextrum for wind, psp, solo
 # - test tsa for all dataset?
 # - test print(Event1.print_energies()) after it has been fixed
 
@@ -39,6 +38,10 @@ def test_onset_SOLO_STEP_ions_old_data_online():
         check = True
     assert check
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='Pixel averaged')
+    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel averaged) ions, 2020-09-21'
+
 
 def test_onset_SOLO_STEP_ions_new_data_online():
     startdate = datetime.date(2022, 1, 9)
@@ -67,8 +70,14 @@ def test_onset_SOLO_STEP_ions_new_data_online():
     assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:30'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL 8'
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='Pixel averaged')
+    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel averaged) ions, 2022-01-09'
+    Event1.dynamic_spectrum(view='Pixel 8')
+    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel 8) ions, 2022-01-09'
 
-def test_onset_SOLO_HET_online():
+
+def test_onset_spectrum_SOLO_HET_online():
     startdate = datetime.date(2022, 11, 8)
     enddate = datetime.date(2022, 11, 8)
     lpath = f"{os.getcwd()}/data/"
@@ -95,6 +104,10 @@ def test_onset_SOLO_HET_online():
     assert ~onset_found
     assert peak_time.isoformat().split('.')[0] == '2022-11-08T22:27:54'
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 0.4533 - 18.8300 MeV electrons\n5min averaging, viewing: NORTH'
+
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='sun')
+    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/HET (sun) electrons, 2022-11-08'
 
 
 def test_onset_spectrum_tsa_SOLO_EPT_online():
@@ -162,6 +175,10 @@ def test_onset_PSP_ISOIS_EPIHI_online():
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T19:56:59'
     assert fig.get_axes()[0].get_title() == 'PSP/ISOIS-EPIHI 8.0 - 19.0 MeV protons\n5min averaging, viewing: B'
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='A')
+    assert Event1.fig.get_axes()[0].get_title() == 'PSP/ISOIS-EPIHI (A) protons, 2021-10-28'
+
 
 def test_onset_PSP_ISOIS_EPILO_e_online():
     startdate = datetime.date(2021, 10, 28)
@@ -188,6 +205,10 @@ def test_onset_PSP_ISOIS_EPILO_e_online():
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T17:48:14'
     assert fig.get_axes()[0].get_title() == 'PSP/ISOIS-EPILO 10.0 - 100.5 keV electrons\n5min averaging, viewing: 3'
+
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='7')
+    assert Event1.fig.get_axes()[0].get_title() == 'PSP/ISOIS-EPILO (7) electrons, 2021-10-28'
 
 
 def test_onset_Wind_3DP_p_online():
@@ -217,6 +238,10 @@ def test_onset_Wind_3DP_p_online():
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 385.96 - 716.78 keV protons\n5min averaging, viewing: OMNIDIRECTIONAL'
     # no channel combination inlcuded for Wind/3DP, yet
 
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='sector 3')
+    assert Event1.fig.get_axes()[0].get_title() == 'WIND/3DP (sector 3) protons, 2021-10-28'
+
 
 def test_onset_Wind_3DP_e_online():
     startdate = datetime.date(2021, 10, 28)
@@ -245,9 +270,9 @@ def test_onset_Wind_3DP_e_online():
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 127.06 - 235.96 keV electrons\n5min averaging, viewing: OMNIDIRECTIONAL'
     # no channel combination inlcuded for Wind/3DP, yet
 
-    # TODO: test dynamic spectrum:
-    # Event1.dynamic_spectrum(view='omnidirectional')
-    # assert Event1.fig.get_axes()[0].get_title() == ''
+    # test dynamic spectrum:
+    Event1.dynamic_spectrum(view='omnidirectional')
+    assert Event1.fig.get_axes()[0].get_title() == 'WIND/3DP (omnidirectional) electrons, 2021-10-28'
 
 
 def test_onset_spectrum_STEREOB_HET_p_online():
