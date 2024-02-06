@@ -10,7 +10,7 @@ import pandas as pd
 # - test dynamic spectrum for all dataset
 # - test tsa for all dataset
 # - test print(Event1.print_energies()) after it has been fixed
-#
+
 
 def test_onset_SOLO_STEP_ions_old_data_online():
     startdate = datetime.date(2020, 9, 21)
