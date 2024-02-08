@@ -269,6 +269,10 @@ class Event:
                 meta = {"E5": "0.45 - 0.50 MeV",
                         "E15": "0.70 - 1.10 MeV"}
 
+                # TODO:
+                # - add resample_df here?
+                # - add pos_timestamp here
+
                 self.update_viewing(viewing)
                 return df, meta
 
