@@ -105,6 +105,10 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     metadata : {dict}
         Dictionary containing different metadata, e.g., energy channels
     """
+    # Catch old default value for pos_timestamp
+    if pos_timestamp is None:
+        pos_timestamp = 'center'
+
     if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp=='original'):
         raise ValueError(f'"pos_timestamp" must be either "original", "center", or "start"!')
 

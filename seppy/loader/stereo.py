@@ -338,6 +338,11 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
     trange = a.Time(startdate, enddate)
     if trange.min==trange.max:
         print(f'"startdate" and "enddate" might need to be different!')
+
+    # Catch old default value for pos_timestamp
+    if pos_timestamp is None:
+        pos_timestamp = 'center'
+
     if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp=='original'):
         raise ValueError(f'"pos_timestamp" must be either "original", "center", or "start"!')
 
