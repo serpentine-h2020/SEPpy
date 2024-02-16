@@ -345,7 +345,8 @@ class Event:
             df, meta = bepi_sixs_load(startdate=self.start_date,
                                       enddate=self.end_date,
                                       side=viewing,
-                                      path=self.data_path)
+                                      path=self.data_path,
+                                      pos_timestamp='center')
             df_i = df[[f"P{i}" for i in range(1, 10)]]
             df_e = df[[f"E{i}" for i in range(1, 8)]]
             return df_i, df_e, meta

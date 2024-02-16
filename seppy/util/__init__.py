@@ -75,7 +75,7 @@ def flux2series(flux, dates, cadence=None):
     return flux_series
 
 
-def bepicolombo_sixs_stack(path, date, side):
+def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
     # side is the index of the file here
     try:
         try:
@@ -90,6 +90,20 @@ def bepicolombo_sixs_stack(path, date, side):
         times = [t.tz_convert(None) for t in times]
         df.index = np.array(times)
         df = df.drop(columns=['TimeUTC'])
+
+        # TODO: (as it's not really nicely done so far)
+        # careful!
+        # adjusting the position of the timestamp manually.
+        # requires knowledge of the original time resolution and timestamp position!
+        if date < pd.Timestamp(2022, 8, 29).date():
+            cadence = 8
+        elif date >= pd.Timestamp(2022, 8, 29).date():
+            cadence = 24
+        #
+        if pos_timestamp == 'center':
+            df.index = df.index+pd.Timedelta(f'{cadence/2}s')
+        elif pos_timestamp == 'start':
+            pass
     except FileNotFoundError:
         print(f'Unable to open {filename}')
         df = pd.DataFrame()
@@ -97,14 +111,14 @@ def bepicolombo_sixs_stack(path, date, side):
     return df, filename
 
 
-def bepi_sixs_load(startdate, enddate, side, path):
+def bepi_sixs_load(startdate, enddate, side, path, pos_timestamp='center'):
     dates = pd.date_range(startdate, enddate)
 
     # read files into Pandas dataframes:
-    df, file = bepicolombo_sixs_stack(path, startdate, side=side)
+    df, file = bepicolombo_sixs_stack(path, startdate, side=side, pos_timestamp=pos_timestamp)
     if len(dates) > 1:
         for date in dates[1:]:
-            t_df, file = bepicolombo_sixs_stack(path, date.date(), side=side)
+            t_df, file = bepicolombo_sixs_stack(path, date.date(), side=side, pos_timestamp=pos_timestamp)
             df = pd.concat([df, t_df])
 
     channels_dict = {"Energy_Bin_str": {'E1': '71 keV', 'E2': '106 keV', 'E3': '169 keV', 'E4': '280 keV', 'E5': '960 keV', 'E6': '2240 keV', 'E7': '8170 keV',
@@ -313,7 +327,7 @@ def speed2energy(species, speed):
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     gamma = 1/np.sqrt(1-speed**2/const.c**2)
     K = (gamma-1)*mass_dict[species]*const.c**2
-    return K.to(u.MeV) 
+    return K.to(u.MeV)
 
 
 def speed2momentum(species, speed):
