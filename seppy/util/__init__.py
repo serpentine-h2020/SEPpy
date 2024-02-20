@@ -162,6 +162,9 @@ def calc_av_en_flux_sixs(df, channel, species):
     GEOMFACTOR_PROT_COMB89 = 3.34
     GEOMFACTOR_ELEC_COMB56 = 0.0972
 
+    if type(channel) is list and len(channel) == 1:
+        channel = channel[0]
+
     if species in ['p', 'protons']:
         if channel == [8, 9]:
             countrate = df['P8'] * GEOMFACTOR_PROT8 + df['P9'] * GEOMFACTOR_PROT9
