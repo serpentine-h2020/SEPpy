@@ -6,6 +6,7 @@ import astropy.units as u
 import sunpy.sun.constants as sconst
 
 import datetime
+import warnings
 from sunpy.coordinates import get_horizons_coord
 
 # Utilities toolbox, contains helpful functions
@@ -102,6 +103,7 @@ def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
         #
         if pos_timestamp == 'center':
             df.index = df.index+pd.Timedelta(f'{cadence/2}s')
+            warnings.warn("Assuming cadence of 8s before 2022-08-29 and 24s after!")
         elif pos_timestamp == 'start':
             pass
     except FileNotFoundError:
