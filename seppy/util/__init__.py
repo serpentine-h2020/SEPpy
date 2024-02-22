@@ -96,9 +96,13 @@ def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
         # careful!
         # adjusting the position of the timestamp manually.
         # requires knowledge of the original time resolution and timestamp position!
-        if date < pd.Timestamp(2022, 8, 29).date():
+        if type(date) is datetime.datetime:
+            change_date = pd.Timestamp(2022, 8, 29)
+        elif type(date) is datetime.date:
+            change_date = pd.Timestamp(2022, 8, 29).date()
+        if date < change_date:
             cadence = 8
-        elif date >= pd.Timestamp(2022, 8, 29).date():
+        elif date >= change_date:
             cadence = 24
         #
         if pos_timestamp == 'center':
