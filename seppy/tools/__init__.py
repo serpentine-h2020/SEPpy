@@ -92,10 +92,8 @@ class Event:
         # names from the dataframe.
         self.load_all_viewing()
 
-        # JG: This is NOT enough to just check this at this position! This needs to be aborting the process if the specific combination is chosen!
-        # JG: Removed here and moved to appropriate positions.
         # # Check that the data that was loaded is valid. If not, give a warning.
-        # self.validate_data()
+        self.validate_data()
 
         # Download radio cdf files ONLY if asked to
         if self.radio_spacecraft is not None:
@@ -111,11 +109,11 @@ class Event:
         if self.spacecraft == "solo" and self.sensor == "step":
             if self.start_date < pd.to_datetime("2021-10-22").date():
                 if not self.viewing == 'Pixel averaged':
-                    raise Warning("WARNING! SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021.")
+                    raise Warning("SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021. Only 'Pixel averaged' is supported.")
 
         # Electron data for SolO/STEP is removed for now (Feb 2024, JG)
         if self.spacecraft == "solo" and self.sensor == "step" and self.species.lower()[0] == 'e':
-            raise Warning("WARNING! SolO/STEP electron data is not implemented yet!")
+            raise Warning("SolO/STEP electron data is not implemented yet!")
 
     def update_onset_attributes(self, flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean):
         """
