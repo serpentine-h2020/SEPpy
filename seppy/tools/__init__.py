@@ -105,11 +105,16 @@ class Event:
         Provide an error msg if this object is initialized with a combination that yields invalid data products.
         """
 
-        # Data products for SolO/STEP before 22 Oct 2021 are no reliable for non-Pixel Averaged data
+        # SolO/STEP data before 22 Oct 2021 is not supported yet for non-'Pixel averaged' viewing
+        warn_mess_step_pixels_old = "SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021. Only 'Pixel averaged' is supported."
         if self.spacecraft == "solo" and self.sensor == "step":
             if self.start_date < pd.to_datetime("2021-10-22").date():
                 if not self.viewing == 'Pixel averaged':
-                    raise Warning("SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021. Only 'Pixel averaged' is supported.")
+                    # when 'viewing' is undefined, only give a warning; if it's wrong defined, abort with warning
+                    if not self.viewing:
+                        warnings.warn(message=warn_mess_step_pixels_old)
+                    else:
+                        raise Warning(warn_mess_step_pixels_old)
 
         # Electron data for SolO/STEP is removed for now (Feb 2024, JG)
         if self.spacecraft == "solo" and self.sensor == "step" and self.species.lower()[0] == 'e':
