@@ -475,7 +475,10 @@ class Event:
         self.update_viewing(viewing)
 
         if self.spacecraft == 'solo':
-            if viewing == 'sun':
+            if not viewing:
+                raise Exception("For this operation, the instrument's 'viewing' direction must be defined in the call of 'Event'!")
+
+            elif viewing == 'sun':
 
                 self.current_df_i = self.df_i_sun
                 self.current_df_e = self.df_e_sun
@@ -2445,9 +2448,13 @@ class Event:
         from IPython.display import display
 
         # This has to be run first, otherwise self.current_df does not exist
-        # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes
-        if self.viewing != "all":
-            self.choose_data(self.viewing)
+        # Note that PSP will by default have its viewing=='all', which does not yield proper dataframes
+        if self.viewing != 'all':
+            if self.spacecraft == 'solo' and not self.viewing:
+                raise Warning("For this operation the instrument's 'viewing' direction must be defined in the call of 'Event'! Please define and re-run.")
+                return
+            else:
+                self.choose_data(self.viewing)
         else:
             if self.sensor == "isois-epihi":
                 # Just choose data with either ´A´ or ´B´. I'm not sure if there's a difference
@@ -2524,6 +2531,7 @@ class Event:
                                'display.max_columns', None,
                                ):
             display(df)
+        return
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
