@@ -33,6 +33,22 @@ warnings.filterwarnings(action="ignore",
                         category=UserWarning)
 
 
+def custom_formatwarning(message, *args, **kwargs):
+    # ignore everything except the message
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = "\033[1m"
+    return BOLD+FAIL+'WARNING: '+ENDC+ str(message) + '\n'
+
+
+def custom_warning(message):
+    formatwarning_orig = warnings.formatwarning
+    warnings.formatwarning = custom_formatwarning
+    warnings.warn(message)
+    warnings.formatwarning = formatwarning_orig
+    return
+
+
 class Event:
 
     def __init__(self, start_date, end_date, spacecraft, sensor,
@@ -112,7 +128,8 @@ class Event:
                 if not self.viewing == 'Pixel averaged':
                     # when 'viewing' is undefined, only give a warning; if it's wrong defined, abort with warning
                     if not self.viewing:
-                        warnings.warn(message=warn_mess_step_pixels_old)
+                        # warnings.warn(message=warn_mess_step_pixels_old)
+                        custom_warning(message=warn_mess_step_pixels_old)
                     else:
                         raise Warning(warn_mess_step_pixels_old)
 
@@ -1105,7 +1122,7 @@ class Event:
 
             if (self.spacecraft == 'solo' or self.spacecraft == 'psp'):
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
-                                      f"Peak flux: {df_flux_peak['flux'][0]:.2E}",
+                                      f"Peak flux: {df_flux_peak['flux'].iloc[0]:.2E}",
                                       prop=dict(size=13), frameon=True,
                                       loc=(4))
             # if(self.spacecraft[:2].lower() == 'st' or self.spacecraft == 'soho' or self.spacecraft == 'wind'):
@@ -1189,8 +1206,9 @@ class Event:
             # Check if background is separated from plot range by over a day, issue a warning if so, but don't
             if (background_range[0] < xlim[0] - datetime.timedelta(days=1) and background_range[0] < xlim[1] - datetime.timedelta(days=1)) or \
                (background_range[1] > xlim[0] + datetime.timedelta(days=1) and background_range[1] > xlim[1] + datetime.timedelta(days=1)):
-                background_warning = "NOTICE that your background_range is separated from plot_range by over a day.\nIf this was intentional you may ignore this warning."
-                warnings.warn(message=background_warning)
+                background_warning = "Your background_range is separated from plot_range by over a day. If this was intentional you may ignore this warning."
+                # warnings.warn(message=background_warning)
+                custom_warning(message=background_warning)
 
         if (self.spacecraft[:2].lower() == 'st' and self.sensor == 'sept') \
                 or (self.spacecraft.lower() == 'psp' and self.sensor.startswith('isois')) \
