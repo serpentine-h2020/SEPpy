@@ -22,6 +22,10 @@ from seppy.util import resample_df
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 
+logger = pooch.get_logger()
+logger.setLevel("WARNING")
+
+
 def stereo_sept_download(date, spacecraft, species, viewing, path=None):
     """Download STEREO/SEPT level 2 data file from Kiel university to local path
 
@@ -70,6 +74,7 @@ def stereo_sept_download(date, spacecraft, species, viewing, path=None):
     except requests.HTTPError:
         print(f'No corresponding SEPT data found at {url}')
         downloaded_file = []
+    print('')
 
     return downloaded_file
 

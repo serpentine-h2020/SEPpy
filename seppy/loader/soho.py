@@ -18,6 +18,10 @@ from sunpy.timeseries import TimeSeries
 from seppy.util import custom_warning, resample_df
 
 
+logger = pooch.get_logger()
+logger.setLevel("WARNING")
+
+
 def _get_metadata(dataset, path_to_cdf):
     """
     Get meta data from single cdf file
@@ -247,6 +251,7 @@ def soho_ephin_download(date, path=None):
     except requests.HTTPError:
         print(f'No corresponding EPHIN data found at {url}')
         downloaded_file = []
+    print('')
 
     return downloaded_file
 

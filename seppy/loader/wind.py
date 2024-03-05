@@ -17,6 +17,10 @@ from sunpy.net import attrs as a
 from seppy.util import resample_df
 
 
+logger = pooch.get_logger()
+logger.setLevel("WARNING")
+
+
 def _download_metafile(dataset, path=None):
     """
     Download master cdf file from cdaweb for 'dataset'
@@ -30,6 +34,7 @@ def _download_metafile(dataset, path=None):
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
     except ModuleNotFoundError:
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
+    print('')
     return downloaded_file
 
 
@@ -123,6 +128,7 @@ def wind3dp_single_download(file, path=None):
     except requests.HTTPError:
         print(f'No corresponding data found at {url}')
         downloaded_file = []
+    print('')
 
     return downloaded_file
 
