@@ -1,14 +1,31 @@
 
-import numpy as np
-import pandas as pd
+import datetime
+import warnings
+
 import astropy.constants as const
 import astropy.units as u
+import numpy as np
+import pandas as pd
 import sunpy.sun.constants as sconst
-
-import datetime
 from sunpy.coordinates import get_horizons_coord
 
 # Utilities toolbox, contains helpful functions
+
+
+def custom_formatwarning(message, *args, **kwargs):
+    # ignore everything except the message
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = "\033[1m"
+    return BOLD+FAIL+'WARNING: '+ENDC+ str(message) + '\n'
+
+
+def custom_warning(message):
+    formatwarning_orig = warnings.formatwarning
+    warnings.formatwarning = custom_formatwarning
+    warnings.warn(message)
+    warnings.formatwarning = formatwarning_orig
+    return
 
 
 def resample_df(df, resample, pos_timestamp="center", origin="start"):
@@ -25,8 +42,10 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
             Controls if the timestamp is at the center of the time bin, or at
             the start of it
     origin : str, default 'start'
-            Controls if the origin of resampling is at the start of the day
-            (midnight) or at the first entry of the input dataframe/series
+            Controls if the origin of resampling is at the first entry of the
+            input dataframe/series (‘start’), or at the start of the day
+            (‘start_day’)
+            
 
     Returns:
     ----------
@@ -75,7 +94,7 @@ def flux2series(flux, dates, cadence=None):
     return flux_series
 
 
-def bepicolombo_sixs_stack(path, date, side):
+def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
     # side is the index of the file here
     try:
         try:
@@ -90,6 +109,26 @@ def bepicolombo_sixs_stack(path, date, side):
         times = [t.tz_convert(None) for t in times]
         df.index = np.array(times)
         df = df.drop(columns=['TimeUTC'])
+
+        # TODO: (as it's not really nicely done so far)
+        # careful!
+        # adjusting the position of the timestamp manually.
+        # requires knowledge of the original time resolution and timestamp position!
+        if type(date) is datetime.datetime:
+            change_date = pd.Timestamp(2022, 8, 29)
+        elif type(date) is datetime.date:
+            change_date = pd.Timestamp(2022, 8, 29).date()
+        if date < change_date:
+            cadence = 8
+        elif date >= change_date:
+            cadence = 24
+        #
+        if pos_timestamp == 'center':
+            df.index = df.index+pd.Timedelta(f'{cadence/2}s')
+            # warnings.warn("Assuming cadence of 8s before 2022-08-29 and 24s after!")
+            custom_warning("Assuming cadence of 8s before 2022-08-29 and 24s after!")
+        elif pos_timestamp == 'start':
+            pass
     except FileNotFoundError:
         print(f'Unable to open {filename}')
         df = pd.DataFrame()
@@ -97,14 +136,14 @@ def bepicolombo_sixs_stack(path, date, side):
     return df, filename
 
 
-def bepi_sixs_load(startdate, enddate, side, path):
+def bepi_sixs_load(startdate, enddate, side, path, pos_timestamp='center'):
     dates = pd.date_range(startdate, enddate)
 
     # read files into Pandas dataframes:
-    df, file = bepicolombo_sixs_stack(path, startdate, side=side)
+    df, file = bepicolombo_sixs_stack(path, startdate, side=side, pos_timestamp=pos_timestamp)
     if len(dates) > 1:
         for date in dates[1:]:
-            t_df, file = bepicolombo_sixs_stack(path, date.date(), side=side)
+            t_df, file = bepicolombo_sixs_stack(path, date.date(), side=side, pos_timestamp=pos_timestamp)
             df = pd.concat([df, t_df])
 
     channels_dict = {"Energy_Bin_str": {'E1': '71 keV', 'E2': '106 keV', 'E3': '169 keV', 'E4': '280 keV', 'E5': '960 keV', 'E6': '2240 keV', 'E7': '8170 keV',
@@ -145,6 +184,9 @@ def calc_av_en_flux_sixs(df, channel, species):
     GEOMFACTOR_ELEC6 = 1.33E-01
     GEOMFACTOR_PROT_COMB89 = 3.34
     GEOMFACTOR_ELEC_COMB56 = 0.0972
+
+    if type(channel) is list and len(channel) == 1:
+        channel = channel[0]
 
     if species in ['p', 'protons']:
         if channel == [8, 9]:
@@ -313,7 +355,7 @@ def speed2energy(species, speed):
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     gamma = 1/np.sqrt(1-speed**2/const.c**2)
     K = (gamma-1)*mass_dict[species]*const.c**2
-    return K.to(u.MeV) 
+    return K.to(u.MeV)
 
 
 def speed2momentum(species, speed):

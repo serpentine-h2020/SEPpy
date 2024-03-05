@@ -22,6 +22,10 @@ from seppy.util import resample_df
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 
+logger = pooch.get_logger()
+logger.setLevel("WARNING")
+
+
 def stereo_sept_download(date, spacecraft, species, viewing, path=None):
     """Download STEREO/SEPT level 2 data file from Kiel university to local path
 
@@ -70,11 +74,12 @@ def stereo_sept_download(date, spacecraft, species, viewing, path=None):
     except requests.HTTPError:
         print(f'No corresponding SEPT data found at {url}')
         downloaded_file = []
+    print('')
 
     return downloaded_file
 
 
-def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resample=None, path=None, all_columns=False, pos_timestamp=None):
+def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resample=None, path=None, all_columns=False, pos_timestamp='center'):
     """Loads STEREO/SEPT data and returns it as Pandas dataframe together with a dictionary providing the energy ranges per channel
 
     Parameters
@@ -285,7 +290,7 @@ def _get_metadata(dataset, path_to_cdf):
     return metadata
 
 
-def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='RTN', sept_species='e', sept_viewing='sun', path=None, resample=None, pos_timestamp=None, max_conn=5):
+def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='RTN', sept_species='e', sept_viewing='sun', path=None, resample=None, pos_timestamp='center', max_conn=5):
     """
     Downloads CDF files via SunPy/Fido from CDAWeb for HET, LET, MAG, and SEPT onboard STEREO
 
@@ -322,7 +327,8 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
     resample : {str}, optional
         resample frequency in format understandable by Pandas, e.g. '1min', by default None
     pos_timestamp : {str}, optional
-        change the position of the timestamp: 'center' or 'start' of the accumulation interval, by default None
+        change the position of the timestamp: 'center' or 'start' of the accumulation interval,
+        or 'original' to do nothing, by default 'center'.
     max_conn : {int}, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
@@ -337,8 +343,13 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
     trange = a.Time(startdate, enddate)
     if trange.min==trange.max:
         print(f'"startdate" and "enddate" might need to be different!')
-    if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp is None):
-        raise ValueError(f'"pos_timestamp" must be either None, "center", or "start"!')
+
+    # Catch old default value for pos_timestamp
+    if pos_timestamp is None:
+        pos_timestamp = 'center'
+
+    if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp=='original'):
+        raise ValueError(f'"pos_timestamp" must be either "original", "center", or "start"!')
 
     # find name variations
     if spacecraft.lower()=='a' or spacecraft.lower()=='sta':

@@ -50,7 +50,7 @@ def test_psp_load_offline():
 
 def test_soho_ephin_load_online():
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                         path=None, resample="1min", pos_timestamp=None)
+                         path=None, resample="1min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1145, 14)
     assert meta['E1300'] == '0.67 - 10.4 MeV'
@@ -89,7 +89,7 @@ def test_solo_mag_load_offline():
 
 def test_stereo_het_load_online():
     df, meta = stereo_load(instrument="HET", startdate="2021/10/28", enddate="2021/10/29",
-                           path=None, resample="1min", pos_timestamp=None)
+                           path=None, resample="1min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1440, 28)
     assert meta['Proton_Bins_Text'][0][0] == '13.6 - 15.1 MeV '
@@ -110,7 +110,7 @@ def test_stereo_het_load_offline():
 
 def test_stereo_sept_load_online():
     df, meta = stereo_load(instrument="SEPT", startdate="2006/11/14", enddate="2006/11/14",
-                           path=None, resample="1min", pos_timestamp=None)
+                           path=None, resample="1min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
     assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'

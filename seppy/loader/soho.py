@@ -1,21 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import cdflib
 import datetime as dt
 import glob
-import numpy as np
 import os
+import warnings
+
+import cdflib
+import numpy as np
 import pandas as pd
 import pooch
 import requests
 import sunpy
-import warnings
-
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import resample_df
+from seppy.util import custom_warning, resample_df
+
+
+logger = pooch.get_logger()
+logger.setLevel("WARNING")
 
 
 def _get_metadata(dataset, path_to_cdf):
@@ -68,9 +72,9 @@ def _get_metadata(dataset, path_to_cdf):
     return metadata
 
 
-def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timestamp=None, max_conn=5):
+def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timestamp='center', max_conn=5):
     """
-    Downloads CDF files via SunPy/Fido from CDAWeb for CELIAS, EPHIN, ERNE onboard SOHO
+    Download CDF files via SunPy/Fido from CDAWeb for CELIAS, EPHIN, ERNE onboard SOHO
 
     Parameters
     ----------
@@ -93,7 +97,8 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     resample : {str}, optional
         Resample frequency in format understandable by Pandas, e.g. '1min', by default None
     pos_timestamp : {str}, optional
-        Change the position of the timestamp: 'center' or 'start' of the accumulation interval, by default None
+        change the position of the timestamp: 'center' or 'start' of the accumulation interval,
+        or 'original' to do nothing, by default 'center'.
     max_conn : {int}, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
@@ -104,8 +109,12 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     metadata : {dict}
         Dictionary containing different metadata, e.g., energy channels
     """
-    if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp is None):
-        raise ValueError(f'"pos_timestamp" must be either None, "center", or "start"!')
+    # Catch old default value for pos_timestamp
+    if pos_timestamp is None:
+        pos_timestamp = 'center'
+
+    if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp=='original'):
+        raise ValueError(f'"pos_timestamp" must be either "original", "center", or "start"!')
 
     if dataset == 'SOHO_COSTEP-EPHIN_L2-1MIN':
         df, metadata = soho_ephin_loader(startdate, enddate, resample=resample, path=path, all_columns=False, pos_timestamp=pos_timestamp)
@@ -201,7 +210,8 @@ def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor
 
 
 def soho_ephin_download(date, path=None):
-    """Download SOHO/EPHIN level 2 data file from Kiel university to local path
+    """
+    Download SOHO/EPHIN level 2 ascii data file from Kiel university to local path
 
     Parameters
     ----------
@@ -241,12 +251,14 @@ def soho_ephin_download(date, path=None):
     except requests.HTTPError:
         print(f'No corresponding EPHIN data found at {url}')
         downloaded_file = []
+    print('')
 
     return downloaded_file
 
 
-def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=False, pos_timestamp=None, use_uncorrected_data_on_own_risk=False):
-    """Loads SOHO/EPHIN data and returns it as Pandas dataframe together with a dictionary providing the energy ranges per channel
+def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=False, pos_timestamp='center', use_uncorrected_data_on_own_risk=False):
+    """
+    Load SOHO/EPHIN level 2 ascii data and return it as Pandas dataframe together with a dictionary providing the energy ranges per channel
 
     Parameters
     ----------
@@ -260,6 +272,9 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
         local path where the files are/should be stored, by default None
     all_columns : boolean, optional
         if True provide all availalbe columns in returned dataframe, by default False
+    pos_timestamp : {str}, optional
+        change the position of the timestamp: 'center' or 'start' of the accumulation interval,
+        or 'original' to do nothing, by default 'center'.
 
     Returns
     -------
@@ -333,7 +348,8 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
         # Setting use_uncorrected_data_on_own_risk=True skips this replacement, so that the uncorrected
         # data can be obtained at own risk!
         if use_uncorrected_data_on_own_risk:
-            warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            # warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            custom_warning("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
         else:
             df.P4 = -9e9
             df.P8 = -9e9
@@ -375,7 +391,8 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_p25 = '25 - 53 MeV'
             cs_he25 = '25 - 53 MeV/n'
         if max(fmodes)==2:
-            warnings.warn('Careful: EPHIN ring off!')
+            # warnings.warn('Careful: EPHIN ring off!')
+            custom_warning('Careful: EPHIN ring off!')
 
         # failure mode D since 4 Oct 2017:
         # dates[-1].date() is enddate, used to catch cases when enddate is a string
@@ -384,7 +401,8 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_e1300 = "0.67 - 10.4 MeV"
             # dates[0].date() is startdate, used to catch cases when startdate is a string
             if dates[0].date() <= dt.date(2017, 10, 4):
-                warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                # warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                custom_warning('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
 
         # careful!
         # adjusting the position of the timestamp manually.

@@ -92,10 +92,8 @@ class Event:
         # names from the dataframe.
         self.load_all_viewing()
 
-        # JG: This is NOT enough to just check this at this position! This needs to be aborting the process if the specific combination is chosen!
-        # JG: Removed here and moved to appropriate positions.
         # # Check that the data that was loaded is valid. If not, give a warning.
-        # self.validate_data()
+        self.validate_data()
 
         # Download radio cdf files ONLY if asked to
         if self.radio_spacecraft is not None:
@@ -107,15 +105,21 @@ class Event:
         Provide an error msg if this object is initialized with a combination that yields invalid data products.
         """
 
-        # Data products for SolO/STEP before 22 Oct 2021 are no reliable for non-Pixel Averaged data
+        # SolO/STEP data before 22 Oct 2021 is not supported yet for non-'Pixel averaged' viewing
+        warn_mess_step_pixels_old = "SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021. Only 'Pixel averaged' is supported."
         if self.spacecraft == "solo" and self.sensor == "step":
             if self.start_date < pd.to_datetime("2021-10-22").date():
                 if not self.viewing == 'Pixel averaged':
-                    raise Warning("WARNING! SolO/STEP data is not included yet for individual Pixels for dates preceding Oct 22, 2021.")
+                    # when 'viewing' is undefined, only give a warning; if it's wrong defined, abort with warning
+                    if not self.viewing:
+                        # warnings.warn(message=warn_mess_step_pixels_old)
+                        custom_warning(message=warn_mess_step_pixels_old)
+                    else:
+                        raise Warning(warn_mess_step_pixels_old)
 
         # Electron data for SolO/STEP is removed for now (Feb 2024, JG)
         if self.spacecraft == "solo" and self.sensor == "step" and self.species.lower()[0] == 'e':
-            raise Warning("WARNING! SolO/STEP electron data is not implemented yet!")
+            raise Warning("SolO/STEP electron data is not implemented yet!")
 
     def update_onset_attributes(self, flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean):
         """
@@ -269,6 +273,10 @@ class Event:
                 meta = {"E5": "0.45 - 0.50 MeV",
                         "E15": "0.70 - 1.10 MeV"}
 
+                # TODO:
+                # - add resample_df here?
+                # - add pos_timestamp here
+
                 self.update_viewing(viewing)
                 return df, meta
 
@@ -341,7 +349,8 @@ class Event:
             df, meta = bepi_sixs_load(startdate=self.start_date,
                                       enddate=self.end_date,
                                       side=viewing,
-                                      path=self.data_path)
+                                      path=self.data_path,
+                                      pos_timestamp='center')
             df_i = df[[f"P{i}" for i in range(1, 10)]]
             df_e = df[[f"E{i}" for i in range(1, 8)]]
             return df_i, df_e, meta
@@ -472,7 +481,10 @@ class Event:
         self.update_viewing(viewing)
 
         if self.spacecraft == 'solo':
-            if viewing == 'sun':
+            if not viewing:
+                raise Exception("For this operation, the instrument's 'viewing' direction must be defined in the call of 'Event'!")
+
+            elif viewing == 'sun':
 
                 self.current_df_i = self.df_i_sun
                 self.current_df_e = self.df_e_sun
@@ -1094,7 +1106,7 @@ class Event:
 
             if (self.spacecraft == 'solo' or self.spacecraft == 'psp'):
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
-                                      f"Peak flux: {df_flux_peak['flux'][0]:.2E}",
+                                      f"Peak flux: {df_flux_peak['flux'].iloc[0]:.2E}",
                                       prop=dict(size=13), frameon=True,
                                       loc=(4))
             # if(self.spacecraft[:2].lower() == 'st' or self.spacecraft == 'soho' or self.spacecraft == 'wind'):
@@ -1178,8 +1190,9 @@ class Event:
             # Check if background is separated from plot range by over a day, issue a warning if so, but don't
             if (background_range[0] < xlim[0] - datetime.timedelta(days=1) and background_range[0] < xlim[1] - datetime.timedelta(days=1)) or \
                (background_range[1] > xlim[0] + datetime.timedelta(days=1) and background_range[1] > xlim[1] + datetime.timedelta(days=1)):
-                background_warning = "NOTICE that your background_range is separated from plot_range by over a day.\nIf this was intentional you may ignore this warning."
-                warnings.warn(message=background_warning)
+                background_warning = "Your background_range is separated from plot_range by over a day. If this was intentional you may ignore this warning."
+                # warnings.warn(message=background_warning)
+                custom_warning(message=background_warning)
 
         if (self.spacecraft[:2].lower() == 'st' and self.sensor == 'sept') \
                 or (self.spacecraft.lower() == 'psp' and self.sensor.startswith('isois')) \
@@ -2442,9 +2455,13 @@ class Event:
         from IPython.display import display
 
         # This has to be run first, otherwise self.current_df does not exist
-        # Note that PSP will by default have its viewing=="all", which does not yield proper dataframes
-        if self.viewing != "all":
-            self.choose_data(self.viewing)
+        # Note that PSP will by default have its viewing=='all', which does not yield proper dataframes
+        if self.viewing != 'all':
+            if self.spacecraft == 'solo' and not self.viewing:
+                raise Warning("For this operation the instrument's 'viewing' direction must be defined in the call of 'Event'! Please define and re-run.")
+                return
+            else:
+                self.choose_data(self.viewing)
         else:
             if self.sensor == "isois-epihi":
                 # Just choose data with either ´A´ or ´B´. I'm not sure if there's a difference
@@ -2521,6 +2538,7 @@ class Event:
                                'display.max_columns', None,
                                ):
             display(df)
+        return
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
