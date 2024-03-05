@@ -1,20 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import cdflib
 import datetime as dt
 import glob
-import numpy as np
 import os
+import warnings
+
+import cdflib
+import numpy as np
 import pandas as pd
 import pooch
 import requests
 import sunpy
-import warnings
-
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
+from seppy.tools import custom_warning
 from seppy.util import resample_df
 
 
@@ -343,7 +344,8 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
         # Setting use_uncorrected_data_on_own_risk=True skips this replacement, so that the uncorrected
         # data can be obtained at own risk!
         if use_uncorrected_data_on_own_risk:
-            warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            # warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            custom_warning("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
         else:
             df.P4 = -9e9
             df.P8 = -9e9
@@ -385,7 +387,8 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_p25 = '25 - 53 MeV'
             cs_he25 = '25 - 53 MeV/n'
         if max(fmodes)==2:
-            warnings.warn('Careful: EPHIN ring off!')
+            # warnings.warn('Careful: EPHIN ring off!')
+            custom_warning('Careful: EPHIN ring off!')
 
         # failure mode D since 4 Oct 2017:
         # dates[-1].date() is enddate, used to catch cases when enddate is a string
@@ -394,7 +397,8 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_e1300 = "0.67 - 10.4 MeV"
             # dates[0].date() is startdate, used to catch cases when startdate is a string
             if dates[0].date() <= dt.date(2017, 10, 4):
-                warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                # warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                custom_warning('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
 
         # careful!
         # adjusting the position of the timestamp manually.
