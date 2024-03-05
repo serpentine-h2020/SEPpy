@@ -15,8 +15,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.tools import custom_warning
-from seppy.util import resample_df
+from seppy.util import custom_warning, resample_df
 
 
 def _get_metadata(dataset, path_to_cdf):

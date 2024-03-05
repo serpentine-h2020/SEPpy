@@ -9,9 +9,23 @@ import pandas as pd
 import sunpy.sun.constants as sconst
 from sunpy.coordinates import get_horizons_coord
 
-from seppy.tools import custom_warning
-
 # Utilities toolbox, contains helpful functions
+
+
+def custom_formatwarning(message, *args, **kwargs):
+    # ignore everything except the message
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = "\033[1m"
+    return BOLD+FAIL+'WARNING: '+ENDC+ str(message) + '\n'
+
+
+def custom_warning(message):
+    formatwarning_orig = warnings.formatwarning
+    warnings.formatwarning = custom_formatwarning
+    warnings.warn(message)
+    warnings.formatwarning = formatwarning_orig
+    return
 
 
 def resample_df(df, resample, pos_timestamp="center", origin="start"):

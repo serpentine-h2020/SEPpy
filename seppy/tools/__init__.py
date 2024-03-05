@@ -33,22 +33,6 @@ warnings.filterwarnings(action="ignore",
                         category=UserWarning)
 
 
-def custom_formatwarning(message, *args, **kwargs):
-    # ignore everything except the message
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = "\033[1m"
-    return BOLD+FAIL+'WARNING: '+ENDC+ str(message) + '\n'
-
-
-def custom_warning(message):
-    formatwarning_orig = warnings.formatwarning
-    warnings.formatwarning = custom_formatwarning
-    warnings.warn(message)
-    warnings.formatwarning = formatwarning_orig
-    return
-
-
 class Event:
 
     def __init__(self, start_date, end_date, spacecraft, sensor,
