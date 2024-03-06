@@ -19,7 +19,7 @@ from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_HET as calc_av_en_flux_ST_HET
 from seppy.loader.stereo import calc_av_en_flux_SEPT, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import custom_warning, resample_df
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df
 
 
 # This is to get rid of this specific warning:
