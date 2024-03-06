@@ -45,7 +45,6 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
             Controls if the origin of resampling is at the first entry of the
             input dataframe/series (‘start’), or at the start of the day
             (‘start_day’)
-            
 
     Returns:
     ----------

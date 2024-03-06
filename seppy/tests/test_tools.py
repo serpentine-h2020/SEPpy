@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-# TODO: test print(Event1.print_energies()) after it has been fixed
+# switch to non-plotting matplotlib backend to avoid showing all the figures:
+plt.switch_backend("Agg")
 
 
 def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
@@ -18,8 +19,8 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     background_range = (datetime.datetime(2020, 9, 21, 0, 0, 0), datetime.datetime(2020, 9, 21, 2, 0, 0))
     #
     # ions
-    Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
-    # print(Event1.print_energies())  # TODO: see test_onset_SOLO_EPT_online
+    Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', viewing='Pixel averaged', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
+    print(Event1.print_energies())
     # Pixel averaged
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel averaged', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
@@ -37,9 +38,10 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
         check = True
     assert check
 
+    # TODO: deactivated, as this function is deactivated atm:
     # test dynamic spectrum:
-    Event1.dynamic_spectrum(view='Pixel averaged')
-    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel averaged) ions, 2020-09-21'
+    # Event1.dynamic_spectrum(view='Pixel averaged')
+    # assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel averaged) ions, 2020-09-21'
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
@@ -53,8 +55,8 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     lpath = f"{os.getcwd()}/data/"
     background_range = (datetime.datetime(2022, 1, 9, 10, 0, 0), datetime.datetime(2022, 1, 9, 12, 0, 0))
     # ions
-    Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
-    # print(Event1.print_energies())  # TODO: see test_onset_SOLO_EPT_online
+    Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', viewing='Pixel averaged', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
+    print(Event1.print_energies())
     # Pixel averaged
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel averaged', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
@@ -74,11 +76,12 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:30'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL 8'
 
+    # TODO: deactivated, as this function is deactivated atm:
     # test dynamic spectrum:
-    Event1.dynamic_spectrum(view='Pixel averaged')
-    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel averaged) ions, 2022-01-09'
-    Event1.dynamic_spectrum(view='Pixel 8')
-    assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel 8) ions, 2022-01-09'
+    # Event1.dynamic_spectrum(view='Pixel averaged')
+    # assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel averaged) ions, 2022-01-09'
+    # Event1.dynamic_spectrum(view='Pixel 8')
+    # assert Event1.fig.get_axes()[0].get_title() == 'SOLO/STEP (Pixel 8) ions, 2022-01-09'
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
@@ -92,8 +95,8 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     lpath = f"{os.getcwd()}/data/"
     background_range = (datetime.datetime(2022, 11, 8, 0, 0, 0), datetime.datetime(2022, 11, 8, 1, 0, 0))
     # viewing "sun", single channel, protons
-    Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
-    # print(Event1.print_energies())  # TODO: see test_onset_SOLO_EPT_online
+    Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', viewing='sun', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
+    print(Event1.print_energies())
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='sun', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (73,)
@@ -103,8 +106,8 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     assert peak_time.isoformat().split('.')[0] == '2022-11-08T17:57:54'
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 7.3540 - 7.8900 MeV protons\n5min averaging, viewing: SUN'
     # viewing "north", combined channel, electrons
-    Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
-    # print(Event1.print_energies())  # TODO: see test_onset_SOLO_EPT_online
+    Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    print(Event1.print_energies())
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[0, 3], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (73,)
@@ -130,8 +133,8 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     lpath = f"{os.getcwd()}/data/"
     background_range = (datetime.datetime(2022, 6, 6, 0, 0, 0), datetime.datetime(2022, 6, 6, 1, 0, 0))
     # viewing "sun", single channel, ions
-    Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
-    # print(Event1.print_energies())  # TODO: Fix bug! right now viewing is not defined. if run after event.find_onset, it works!
+    Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
+    print(Event1.print_energies())
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='sun', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
@@ -141,8 +144,8 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     assert peak_time.isoformat().split('.')[0] == '2022-06-06T01:02:30'
     assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0608 - 0.0678 MeV protons\n5min averaging, viewing: SUN'
     # viewing "north", combined channel, electrons
-    Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
-    # print(Event1.print_energies())  # TODO: see above
+    Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    print(Event1.print_energies())
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[1, 4], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)

@@ -19,7 +19,7 @@ from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_HET as calc_av_en_flux_ST_HET
 from seppy.loader.stereo import calc_av_en_flux_SEPT, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import *
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df
 
 
 # This is to get rid of this specific warning:
@@ -1516,6 +1516,8 @@ class Event:
             return yaxis_bin_boundaries * y_multiplier
 
         def combine_grids_and_ybins(grid, grid1, y_arr, y_arr1):
+            # TODO: Which bin exactly is removed here? HET? EPT? (JG)
+
             # solo/het lowest electron channel partially overlaps with ept highest channel -> erase the "extra" bin where overlapping hapens
             if self.spacecraft == "solo" and (self.sensor == "het" or other.sensor == "het") and self.species in ("electrons", "electron", 'e'):
 
@@ -1558,6 +1560,8 @@ class Event:
         if self.spacecraft == "solo":
 
             if instrument == "step":
+                # custom_warning('The lower STEP energy channels are partly overlapping, which is not correctly implemented at the moment!')
+                raise Warning('SolO/STEP is not implemented yet in the dynamic spectrum tool!')
 
                 # All viewings are contained in the same dataframe, choose the pixel (viewing) here
                 pixel = self.viewing.split(' ')[1]
