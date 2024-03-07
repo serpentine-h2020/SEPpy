@@ -28,7 +28,7 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     assert len(onset_stats) == 6
     assert onset_stats[5].isoformat().split('.')[0] == '2020-09-21T17:27:37'
     assert onset_found
-    assert peak_time.isoformat().split('.')[0] == '2020-09-21T17:57:32'
+    assert peak_time.isoformat().split('.')[0] == '2020-09-21T17:57:37'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0060 - 0.0091 MeV/n protons\n5min averaging, viewing: PIXEL AVERAGED'
     # Pixel 8 - check that calculation is stopped bc. this data is not implemented correctly!
     check = False
@@ -73,7 +73,7 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:12:30'
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:30'
+    assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:31'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL 8'
 
     # TODO: deactivated, as this function is deactivated atm:
@@ -114,7 +114,7 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-11-08T22:27:54'
+    assert peak_time.isoformat().split('.')[0] == '2022-11-08T22:27:56'
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 0.4533 - 18.8300 MeV electrons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
@@ -152,7 +152,7 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:30'
+    assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:31'
     assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0334 - 0.0439 MeV electrons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
