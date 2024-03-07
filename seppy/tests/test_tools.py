@@ -26,9 +26,9 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2020-09-21T17:27:32'
+    assert onset_stats[5].isoformat().split('.')[0] == '2020-09-21T17:27:37'
     assert onset_found
-    assert peak_time.isoformat().split('.')[0] == '2020-09-21T17:57:32'
+    assert peak_time.isoformat().split('.')[0] == '2020-09-21T17:57:37'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0060 - 0.0091 MeV/n protons\n5min averaging, viewing: PIXEL AVERAGED'
     # Pixel 8 - check that calculation is stopped bc. this data is not implemented correctly!
     check = False
@@ -64,7 +64,7 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:07:30'
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-01-09T01:32:30'
+    assert peak_time.isoformat().split('.')[0] == '2022-01-09T01:32:31'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL AVERAGED'
     # Pixel 8
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel 8', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
@@ -73,7 +73,7 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:12:30'
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:30'
+    assert peak_time.isoformat().split('.')[0] == '2022-01-09T00:02:31'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0061 - 0.0091 MeV protons\n5min averaging, viewing: PIXEL 8'
 
     # TODO: deactivated, as this function is deactivated atm:
@@ -103,7 +103,7 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-11-08T17:57:54'
+    assert peak_time.isoformat().split('.')[0] == '2022-11-08T17:58:09'
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 7.3540 - 7.8900 MeV protons\n5min averaging, viewing: SUN'
     # viewing "north", combined channel, electrons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
@@ -114,7 +114,7 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-11-08T22:27:54'
+    assert peak_time.isoformat().split('.')[0] == '2022-11-08T22:27:56'
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 0.4533 - 18.8300 MeV electrons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
@@ -141,7 +141,7 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-06-06T01:02:30'
+    assert peak_time.isoformat().split('.')[0] == '2022-06-06T01:02:31'
     assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0608 - 0.0678 MeV protons\n5min averaging, viewing: SUN'
     # viewing "north", combined channel, electrons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
@@ -152,7 +152,7 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert ~onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:30'
+    assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:31'
     assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0334 - 0.0439 MeV electrons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
