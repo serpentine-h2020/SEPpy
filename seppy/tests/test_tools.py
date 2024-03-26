@@ -1,4 +1,3 @@
-
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.tools import Event
@@ -515,3 +514,22 @@ def test_dynamic_spectrum_SOHO_ERNE_offline():
     Event1.dynamic_spectrum(view=None)
 
     assert Event1.fig.get_axes()[0].get_title() == 'SOHO/ERNE protons, 2021-10-28'
+
+
+def test_onset_Bepi_SIXS_offline():
+    startdate = datetime.date(2023, 5, 9)
+    enddate = datetime.date(2023, 5, 9)
+    fullpath = get_pkg_data_filename('data/test/20230509_side1.csv', package='seppy')
+    lpath = Path(fullpath).parent.as_posix()
+    lpath = '/home/jagies/data/bepi/bc_mpo_sixs/data_csv/cruise/sixs-p/raw'
+    Event1 = Event(spacecraft='Bepi', sensor='SIXS', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    background_range = (datetime.datetime(2023, 5, 9, 16, 30, 0), datetime.datetime(2023, 5, 9, 18, 30, 0))
+    flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='1', background_range=background_range, channels=2, resample_period="5min", yscale='log', cusum_window=30)
+
+    assert isinstance(flux, pd.Series)
+    assert flux.shape == (288,)
+    assert len(onset_stats) == 6
+    assert onset_stats[5].isoformat().split('.')[0] == '2023-05-09T18:57:42'
+    assert onset_found
+    assert peak_time.isoformat().split('.')[0] == '2023-05-09T21:37:42'
+    assert fig.get_axes()[0].get_title() == 'BEPI/SIXS 106 keV electrons\n5min averaging, viewing: 1'
