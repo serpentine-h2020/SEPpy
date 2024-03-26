@@ -439,12 +439,15 @@ def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     # no channel combination inlcuded for SOHO/EPHIN electrons, yet
 
     # test dynamic spectrum:
-    check = False
-    try:
-        Event1.dynamic_spectrum(view=None)
-    except Warning:
-        check = True
-    assert check
+    # check = False
+    # try:
+    #     Event1.dynamic_spectrum(view=None)
+    # except Warning:
+    #     check = True
+    # assert check
+    Event1.dynamic_spectrum(view=None)
+    assert Event1.fig.get_axes()[0].get_title() == 'SOHO/EPHIN electrons, 2021-10-28'
+
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
