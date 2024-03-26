@@ -1616,8 +1616,13 @@ class Event:
                 s_identifier = "protons"
             if instrument.lower() == "ephin":
                 particle_data = self.current_df_e
+                # Here drop the E300 channel altogether from the dataframe if the data is produced after Oct 4, 2017,
+                # for it contains no valid data. Keyword axis==1 refers to the columns axis.
+                if self.start_date > pd.to_datetime("2017-10-04").date():
+                    particle_data = particle_data.drop("E300", axis=1)
+
                 s_identifier = "electrons"
-                raise Warning('SOHO/EPHIN is not implemented yet in the dynamic spectrum tool!')
+                # raise Warning('SOHO/EPHIN is not implemented yet in the dynamic spectrum tool!')
 
         if spacecraft == "psp":
             if instrument.lower() == "isois-epihi":
@@ -2302,11 +2307,11 @@ class Event:
                 energy_ranges = self.current_energies["channels_dict_df_p"]["ch_strings"].values
             if self.sensor.lower() == "ephin":
                 # Choose only the first 4 channels (E150, E300, E1300 and E3000)
-                # This are the only electron channels (rest p and He), and we
+                # These are the only electron channels (rest are p and He), and we
                 # use only electron data here.
                 energy_ranges = [val for val in self.current_energies.values()][:4]
             if self.sensor.lower() in ("ephin-5", "ephin-15"):
-                energy_ranges = [value for key, value in self.current_energies.items()]
+                energy_ranges = [value for _, value in self.current_energies.items()]
 
         if self.spacecraft == "psp":
             energy_dict = self.meta
