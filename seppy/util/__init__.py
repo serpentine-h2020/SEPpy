@@ -109,24 +109,13 @@ def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
         df.index = np.array(times)
         df = df.drop(columns=['TimeUTC'])
 
-        # TODO: (as it's not really nicely done so far)
-        # careful!
-        # adjusting the position of the timestamp manually.
-        # requires knowledge of the original time resolution and timestamp position!
-        if type(date) is datetime.datetime:
-            change_date = pd.Timestamp(2022, 8, 29)
-        elif type(date) is datetime.date:
-            change_date = pd.Timestamp(2022, 8, 29).date()
-        if date < change_date:
-            cadence = 8
-        elif date >= change_date:
-            cadence = 24
-        #
-        if pos_timestamp == 'center':
-            df.index = df.index+pd.Timedelta(f'{cadence/2}s')
-            # warnings.warn("Assuming cadence of 8s before 2022-08-29 and 24s after!")
-            custom_warning("Assuming cadence of 8s before 2022-08-29 and 24s after!")
-        elif pos_timestamp == 'start':
+        if pos_timestamp == 'start':
+            cadence1 = (df.index[1]-df.index[0]).seconds
+            cadence2 = (df.index[-1]-df.index[-2]).seconds
+            if cadence1 != cadence2:
+                custom_warning("Bepi/SIXS cadence is changing throughout the day; something is wrong!")    
+            df.index = df.index-pd.Timedelta(f'{cadence1/2}s')
+        elif pos_timestamp == 'center':
             pass
     except FileNotFoundError:
         print(f'Unable to open {filename}')
