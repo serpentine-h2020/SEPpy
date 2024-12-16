@@ -10,5 +10,6 @@ numpy
 pandas
 pooch
 requests
+setuptools
 solo-epd-loader
 sunpy>=4.1.0
