@@ -180,6 +180,9 @@ def wind3dp_download(dataset, startdate, enddate, path=None, **kwargs):
             if not os.path.exists(f):
                 # downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
                 downloaded_file = wind3dp_single_download(files[i], path=path)
+                if downloaded_file == []:
+                    print('Trying download from CDAWeb...')
+                    downloaded_file = Fido.fetch(result[0][i], path=path)  #, max_conn=max_conn)
 
     except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
@@ -288,12 +291,17 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
         energies['Bins_Text']= np.around(e_low/1e3, 2).astype('string') +' - '+ np.around(e_high/1e3, 2).astype('string') + ' keV'
 
         meta = {'channels_dict_df': energies,
-                'APPROX_ENERGY_LABELS': metacdf.varget('APPROX_ENERGY_LABELS'),
                 'ENERGY_UNITS': metacdf.varattsget('ENERGY')['UNITS'],
                 'FLUX_UNITS': metacdf.varattsget('FLUX')['UNITS'],
                 'FLUX_FILLVAL': metacdf.varattsget('FLUX')['FILLVAL'],
-                'FLUX_LABELS': metacdf.varget('FLUX_ENERGY_LABL'),
                 }
+
+        # for SFSP, SOSP, SFPD, SFSP:
+        try:
+            meta['APPROX_ENERGY_LABELS'] = metacdf.varget('APPROX_ENERGY_LABELS')
+            meta['FLUX_LABELS'] = metacdf.varget('FLUX_ENERGY_LABL')
+        except:
+            pass
 
         # create multi-index data frame of flux
         if multi_index:
