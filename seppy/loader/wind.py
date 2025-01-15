@@ -282,9 +282,13 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
         metacdf = cdflib.CDF(path_to_metafile)
 
         e_mean = df.filter(like='ENERGY_').mean()
-        # ∼30% ΔE/E => ΔE = 0.3*E
         # from Table 3 of Wilson et al. 2021, https://doi.org/10.1029/2020RG000714
-        delta_e = 0.3 * e_mean
+        # ∼30% ΔE/E => ΔE = 0.3*E
+        if dataset in ['WI_SFSP_3DP', 'WI_SFPD_3DP', 'WI_SOSP_3DP', 'WI_SOPD_3DP']:
+            delta_e = 0.3 * e_mean
+        # ∼20% ΔE/E => ΔE = 0.2*E
+        elif dataset in ['WI_ELSP_3DP', 'WI_ELPD_3DP', 'WI_EHSP_3DP', 'WI_EHPD_3DP']:
+            delta_e = 0.2 * e_mean
         e_low = e_mean - delta_e
         e_high = e_mean + delta_e
         energies = pd.concat([e_mean, delta_e, e_low, e_high], axis=1, keys=['mean_E', 'DE', 'lower_E', 'upper_E'])
