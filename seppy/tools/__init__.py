@@ -2276,8 +2276,8 @@ class Event:
                 p_identifier =  "Ion_Bins_Text" if self.sensor == "ept" else "H_Bins_Text" if self.sensor == "het" else "Bins_Text"
                 energy_ranges = energy_dict[p_identifier]
 
-            # Each element in the list is also a list with len==1, so fix that
-            energy_ranges = [element[0] for element in energy_ranges]
+            # Each element in the list is also a list with len==1 for cdflib < 1.3.3, so fix that
+            energy_ranges = energy_ranges.flatten()
 
         if self.spacecraft[:2] == "st":
 
@@ -2299,8 +2299,8 @@ class Event:
                 else:
                     energy_ranges = energy_dict["Proton_Bins_Text"]
 
-                # Each element in the list is also a list with len==1, so fix that
-                energy_ranges = [element[0] for element in energy_ranges]
+                # Each element in the list is also a list with len==1 for cdflib < 1.3.3, so fix that
+                energy_ranges = energy_ranges.flatten()
 
         if self.spacecraft == "soho":
             if self.sensor.lower() == "erne":
@@ -2322,9 +2322,8 @@ class Event:
                 if self.species == 'p':
                     energy_ranges = energy_dict["H_ENERGY_LABL"]
 
-                # In the case of ISOIS-EPIHI, each iterable object is a list with len=1 that contains
-                # the str
-                energy_ranges = [element[0] for element in energy_ranges]
+                # Each element in the list is also a list with len==1 for cdflib < 1.3.3, so fix that
+                energy_ranges = energy_ranges.flatten()
 
             if self.sensor == "isois-epilo":
                 # The metadata of ISOIS-EPILO comes in a bit of complex form, so some handling is required
