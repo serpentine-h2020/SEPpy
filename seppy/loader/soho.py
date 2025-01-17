@@ -39,13 +39,13 @@ def _get_metadata(dataset, path_to_cdf):
         if dataset=='SOHO_ERNE-LED_L2-1MIN':
             alpha = 'A'
             m = 'L'
-        metadata = {'He_E_label': cdf.varget('He_E_label')[0],
+        metadata = {'He_E_label': cdf.varget('He_E_label').flatten(),
                     'He_energy': cdf.varget('He_energy'),
                     'He_energy_delta': cdf.varget('He_energy_delta'),
                     f'{alpha}{m}_LABL': cdf.varattsget(f'{alpha}{m}')['LABLAXIS'],
                     f'{alpha}{m}_UNITS': cdf.varattsget(f'{alpha}{m}')['UNITS'],
                     f'{alpha}{m}_FILLVAL': cdf.varattsget(f'{alpha}{m}')['FILLVAL'],
-                    'P_E_label': cdf.varget('P_E_label')[0],
+                    'P_E_label': cdf.varget('P_E_label').flatten(),
                     'P_energy': cdf.varget('P_energy'),
                     'P_energy_delta': cdf.varget('P_energy_delta'),
                     f'P{m}_LABL': cdf.varattsget(f'P{m}')['LABLAXIS'],
@@ -53,14 +53,14 @@ def _get_metadata(dataset, path_to_cdf):
                     f'P{m}_FILLVAL': cdf.varattsget(f'P{m}')['FILLVAL'],
                     }
 
-        channels_dict_df_He = pd.DataFrame(cdf.varget('He_E_label')[0], columns=['ch_strings'])
+        channels_dict_df_He = pd.DataFrame(cdf.varget('He_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_He['lower_E'] = cdf.varget("He_energy")-cdf.varget("He_energy_delta")
         channels_dict_df_He['upper_E'] = cdf.varget("He_energy")+cdf.varget("He_energy_delta")
         channels_dict_df_He['DE'] = cdf.varget("He_energy_delta")
         # channels_dict_df_He['mean_E'] = np.sqrt(channels_dict_df_He['upper_E'] * channels_dict_df_He['lower_E'])
         channels_dict_df_He['mean_E'] = cdf.varget("He_energy")
 
-        channels_dict_df_p = pd.DataFrame(cdf.varget('P_E_label')[0], columns=['ch_strings'])
+        channels_dict_df_p = pd.DataFrame(cdf.varget('P_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_p['lower_E'] = cdf.varget("P_energy")-cdf.varget("P_energy_delta")
         channels_dict_df_p['upper_E'] = cdf.varget("P_energy")+cdf.varget("P_energy_delta")
         channels_dict_df_p['DE'] = cdf.varget("P_energy_delta")
