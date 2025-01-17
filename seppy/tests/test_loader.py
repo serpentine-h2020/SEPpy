@@ -14,7 +14,7 @@ def test_psp_load_online():
                               enddate="2021/06/01", path=None, resample="1min")
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (48, 136)
-    assert meta['H_ENERGY_LABL'][0][0] == '  6.7 -   8.0 MeV'
+    assert meta['H_ENERGY_LABL'].flatten()[0] == '  6.7 -   8.0 MeV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['B_H_Uncertainty_14'])) == 48
     #
@@ -102,7 +102,7 @@ def test_stereo_het_load_online():
                            path=None, resample="1min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1440, 28)
-    assert meta['Proton_Bins_Text'][0][0] == '13.6 - 15.1 MeV '
+    assert meta['Proton_Bins_Text'].flatten()[0] == '13.6 - 15.1 MeV '
     assert np.sum(np.isnan(df['Electron_Flux_0'])) == 0
 
 
@@ -114,7 +114,7 @@ def test_stereo_het_load_offline():
                            path=path, resample="1min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1440, 28)
-    assert meta['Proton_Bins_Text'][0][0] == '13.6 - 15.1 MeV '
+    assert meta['Proton_Bins_Text'].flatten()[0] == '13.6 - 15.1 MeV '
     assert np.sum(np.isnan(df['Electron_Flux_0'])) == 0
 
 
@@ -150,7 +150,7 @@ def test_wind3dp_load_online():
                             path=None)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (2880, 76)
-    assert meta['FLUX_LABELS'][0][0] == 'ElecNoFlux_Ch1_Often~27keV '
+    assert meta['FLUX_LABELS'].flatten()[0] == 'ElecNoFlux_Ch1_Often~27keV '
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['FLUX_E0', 'FLUX_E0_P0'])) == 169
 
@@ -167,6 +167,6 @@ def test_wind3dp_load_offline():
                             path=path)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (897, 15)
-    assert meta['FLUX_LABELS'][0][0] == 'ElecNoFlux_Ch1_Often~27keV '
+    assert meta['FLUX_LABELS'].flatten()[0] == 'ElecNoFlux_Ch1_Often~27keV '
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['FLUX_0'])) == 352
