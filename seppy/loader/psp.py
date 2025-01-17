@@ -410,8 +410,8 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
             flux_key = 'H_Flux'
     en_str = energies[f'{species_str}_ENERGY_LABL']
     if type(en_channel) == list:
-        energy_low = en_str[en_channel[0]][0].split('-')[0]
-        energy_up = en_str[en_channel[-1]][0].split('-')[-1]
+        energy_low = en_str[en_channel[0]].flat[0].split('-')[0]
+        energy_up = en_str[en_channel[-1]].flat[0].split('-')[-1]
         en_channel_string = energy_low + '-' + energy_up
 
         DE = energies[f'{species_str}_ENERGY_DELTAPLUS']+energies[f'{species_str}_ENERGY_DELTAMINUS']
