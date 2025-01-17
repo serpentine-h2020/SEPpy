@@ -71,6 +71,15 @@ def test_soho_ephin_load_offline():
     assert np.sum(np.isnan(df['E1300'])) == 444
 
 
+def test_soho_erne_load_online():
+    df, meta = soho_load(dataset='SOHO_ERNE-HED_L2-1MIN', startdate="2021/04/16", enddate="2021/04/17",
+                         path=None, resample="1min", pos_timestamp='center')
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1145, 41)
+    assert meta['channels_dict_df_p']['ch_strings'].iloc[9] == '100 - 130 MeV'
+    assert df['PHC_9'].sum() == 1295.0
+
+
 def test_solo_mag_load_online():
     df = mag_load("2021/07/12", "2021/07/13", level='l2', data_type='normal-1-minute', frame='rtn', path=None)
     assert isinstance(df, pd.DataFrame)
