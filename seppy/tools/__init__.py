@@ -675,9 +675,9 @@ class Event:
 
             # An IndexError here is caused by invalid channel choice
             try:
-                en_channel_string = en_str[en_channel[0]][0].split()[0] + ' - '\
-                    + en_str[en_channel[-1]][0].split()[2] + ' ' +\
-                    en_str[en_channel[-1]][0].split()[3]
+                en_channel_string = en_str[en_channel[0]].flat[0].split()[0] + ' - '\
+                    + en_str[en_channel[-1]].flat[0].split()[2] + ' ' +\
+                    en_str[en_channel[-1]].flat[0].split()[3]
 
             except IndexError:
                 raise Exception(f"{en_channel} is an invalid channel or a combination of channels!")
@@ -781,9 +781,9 @@ class Event:
 
             # An IndexError here is caused by invalid channel choice
             try:
-                en_channel_string = en_str[en_channel[0]][0].split()[0] + ' - '\
-                    + en_str[en_channel[-1]][0].split()[2] + ' '\
-                    + en_str[en_channel[-1]][0].split()[3]
+                en_channel_string = en_str[en_channel[0]].flat[0].split()[0] + ' - '\
+                    + en_str[en_channel[-1]].flat[0].split()[2] + ' '\
+                    + en_str[en_channel[-1]].flat[0].split()[3]
 
             except IndexError:
                 raise Exception(f"{en_channel} is an invalid channel or a combination of channels!")
