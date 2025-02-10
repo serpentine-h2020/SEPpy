@@ -3,6 +3,7 @@ astroquery
 bs4
 cdflib>=0.4.9
 # ipykernel
+ipympl
 ipywidgets
 matplotlib
 mpl-animators>=1.0.0
