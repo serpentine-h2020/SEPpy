@@ -19,6 +19,7 @@ dependencies = [
     "astroquery",
     "bs4",
     "cdflib",
+    "ipympl",
     "ipywidgets",
     "matplotlib",
     "mpl-animators>=1.0.0",
