@@ -1,21 +1,15 @@
 SEPpy Documentation
------------------------------
+-------------------
 
-This is the documentation for SEPpy.
+This is the documentation for seppy.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+Indices and tables
+==================
 
-..
-	Indices and tables
-	==================
-..
-	* :ref:`genindex`
-	* :ref:`modindex`
-	* :ref:`search`
-
-
-.. autofunction:: seppy.seppy
-
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
