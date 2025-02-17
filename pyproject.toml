@@ -88,20 +88,23 @@ python_files = [
 
 [tool.coverage.run]
 omit = [
- "seppy/__init*",
+ "setup.py",
+ "seppy/_dev/*",
+ "seppy/_version*",
  "seppy/conftest.py",
  "seppy/*setup_package*",
  "seppy/tests/*",
  "seppy/*/tests/*",
  "seppy/extern/*",
  "seppy/version*",
- "*/seppy/__init*",
+ "*/seppy/_dev/*",
  "*/seppy/conftest.py",
  "*/seppy/*setup_package*",
  "*/seppy/tests/*",
  "*/seppy/*/tests/*",
  "*/seppy/extern/*",
  "*/seppy/version*",
+ "*/seppy/_version*",
 ]
 
 [tool.coverage.report]
