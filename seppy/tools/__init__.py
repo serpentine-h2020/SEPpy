@@ -1898,8 +1898,7 @@ class Event:
             ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
 
             # Introduce minor ticks back
-            # ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=8., width=1.2, which='minor', labelsize=0.)  # TODO: change labelsize being zeros as it creates warnings!
-            ax[DYN_SPEC_INDX].yaxis.minorticks_off()
+            ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=8., width=1.2, which='minor')
 
             fig.set_size_inches((27, 18))
 
