@@ -1782,7 +1782,7 @@ class Event:
             ax[DYN_SPEC_INDX].yaxis.set_major_formatter(ScalarFormatter(useMathText=False))
 
         # gets rid of minor ticks and labels
-        ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=0, width=0, which='minor', labelsize=0.)
+        ax[DYN_SPEC_INDX].yaxis.minorticks_off()
         ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=12., width=2.0, which='major')
 
         # x-axis settings
@@ -1898,7 +1898,7 @@ class Event:
             ax[DYN_SPEC_INDX].set_ylabel(f"Energy [{y_unit}]")
 
             # Introduce minor ticks back
-            ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=8., width=1.2, which='minor', labelsize=0.)
+            ax[DYN_SPEC_INDX].yaxis.set_tick_params(length=8., width=1.2, which='minor')
 
             fig.set_size_inches((27, 18))
 
