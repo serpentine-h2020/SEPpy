@@ -34,7 +34,7 @@ def _download_metafile(dataset, path=None):
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
     except ModuleNotFoundError:
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
-    print('')
+    #
     return downloaded_file
 
 
