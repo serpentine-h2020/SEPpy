@@ -504,6 +504,8 @@ def calc_av_en_flux_HET(df, channels_dict_df, avg_channels, species):
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
     """
+    if type(avg_channels) is int:
+        avg_channels = [avg_channels]
     # calculation of total delta-E for averaging multiple channels:
     if len(avg_channels) > 1:
         DE_total = channels_dict_df.loc[avg_channels[0]:avg_channels[-1]]['DE'].sum()

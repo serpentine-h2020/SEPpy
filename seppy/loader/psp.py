@@ -386,7 +386,7 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
     df : pd.DataFrame DataFrame containing HET data
         DataFrame containing PSP data
     energies : dict
-        Energy dict returned from psp_loader
+        Energy dict returned from psp_load
     en_channel : int or list
         energy channel number(s) to be used
     species : string
@@ -435,7 +435,7 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
             flux_out = pd.DataFrame({'flux': df[f'{viewing.upper()}_{flux_key}_{en_channel}']}, index=df.index)
     else:
         flux_out = pd.DataFrame({'flux': df[f'{viewing.upper()}_{flux_key}_{en_channel}']}, index=df.index)
-        en_channel_string = en_str[en_channel][0]
+        en_channel_string = en_str[en_channel].flat[0]
     # replace multiple whitespaces with single ones
     en_channel_string = ' '.join(en_channel_string.split())
     return flux_out, en_channel_string
@@ -453,7 +453,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
     df : pd.DataFrame DataFrame containing HET data
         DataFrame containing PSP data
     energies : dict
-        Energy dict returned from psp_loader
+        Energy dict returned from psp_load
     en_channel : int or list
         energy channel number(s) to be used
     species : string
