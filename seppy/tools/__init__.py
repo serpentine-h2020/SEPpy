@@ -60,7 +60,7 @@ class Event:
         self.sensor = sensor.lower()
         self.species = species.lower()
         self.data_level = data_level.lower()
-        self.data_path = data_path + os.sep
+        self.data_path = f'{data_path}os.sep'
         self.threshold = threshold
         self.radio_spacecraft = radio_spacecraft  # this is a 2-tuple, e.g., ("ahead", "STEREO-A")
         self.viewing = viewing
