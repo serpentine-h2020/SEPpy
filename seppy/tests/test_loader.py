@@ -143,8 +143,8 @@ def test_stereo_sept_load_offline():
 
 def test_wind3dp_load_online():
     df, meta = wind3dp_load(dataset="WI_SFPD_3DP",
-                            startdate="2021/04/16",
-                            enddate="2021/04/18",
+                            startdate="2021/04/15",
+                            enddate="2021/04/17",
                             resample='1min',
                             multi_index=True,
                             path=None)
@@ -152,7 +152,7 @@ def test_wind3dp_load_online():
     assert df.shape == (2880, 76)
     assert meta['FLUX_LABELS'].flatten()[0] == 'ElecNoFlux_Ch1_Often~27keV '
     # Check that fillvals are replaced by NaN
-    assert np.sum(np.isnan(df['FLUX_E0', 'FLUX_E0_P0'])) == 169
+    assert np.sum(np.isnan(df['FLUX_E0', 'FLUX_E0_P0'])) == 129
 
 
 def test_wind3dp_load_offline():
