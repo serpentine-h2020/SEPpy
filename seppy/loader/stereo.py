@@ -290,7 +290,7 @@ def _get_metadata(dataset, path_to_cdf):
     return metadata
 
 
-def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='RTN', sept_species='e', sept_viewing='sun', path=None, resample=None, pos_timestamp='center', max_conn=5):
+def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='RTN', sept_species='e', sept_viewing=None, path=None, resample=None, pos_timestamp='center', max_conn=5):
     """
     Downloads CDF files via SunPy/Fido from CDAWeb for HET, LET, MAG, and SEPT onboard STEREO
 
@@ -358,16 +358,19 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
         spacecraft='behind'
 
     if instrument.upper()=='SEPT':
-        df, channels_dict_df = stereo_sept_loader(startdate=startdate,
-                                                  enddate=enddate,
-                                                  spacecraft=spacecraft,
-                                                  species=sept_species,
-                                                  viewing=sept_viewing,
-                                                  resample=resample,
-                                                  path=path,
-                                                  all_columns=False,
-                                                  pos_timestamp=pos_timestamp)
-        return df, channels_dict_df
+        if not sept_viewing:
+            raise Exception("STEREO/SEPT loading requires a defined 'sept_viewing'!")
+        else:
+            df, channels_dict_df = stereo_sept_loader(startdate=startdate,
+                                                      enddate=enddate,
+                                                      spacecraft=spacecraft,
+                                                      species=sept_species,
+                                                      viewing=sept_viewing,
+                                                      resample=resample,
+                                                      path=path,
+                                                      all_columns=False,
+                                                      pos_timestamp=pos_timestamp)
+            return df, channels_dict_df
     else:
         # define spacecraft string
         sc = 'ST' + spacecraft.upper()[0]
