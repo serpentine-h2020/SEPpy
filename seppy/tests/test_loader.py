@@ -120,7 +120,7 @@ def test_stereo_het_load_offline():
 
 def test_stereo_sept_load_online():
     df, meta = stereo_load(instrument="SEPT", startdate="2006/11/14", enddate="2006/11/14",
-                           path=None, resample="1min", pos_timestamp='center')
+                           path=None, resample="1min", pos_timestamp='center', sept_viewing='north')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
     assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'
@@ -133,7 +133,7 @@ def test_stereo_sept_load_offline():
     fullpath = get_pkg_data_filename('data/test/sept_ahead_ele_sun_2006_318_1min_l2_v03.dat', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = stereo_load(instrument="SEPT", startdate="2006/11/14", enddate="2006/11/14",
-                           path=path, resample="1min", pos_timestamp=None)
+                           path=path, resample="1min", pos_timestamp=None, sept_viewing='sun')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
     assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'
