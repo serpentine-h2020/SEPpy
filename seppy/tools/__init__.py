@@ -63,7 +63,9 @@ class Event:
         self.data_path = data_path + os.sep
         self.threshold = threshold
         self.radio_spacecraft = radio_spacecraft  # this is a 2-tuple, e.g., ("ahead", "STEREO-A")
-        self.viewing = viewing
+
+        # Sets the self.viewing to the given viewing
+        self.update_viewing(viewing=viewing)
 
         self.radio_files = None
 
@@ -174,7 +176,7 @@ class Event:
                                             enddate=self.end_date,
                                             path=self.data_path,
                                             autodownload=autodownload)
-                # self.update_viewing(viewing) Why is viewing updated here?
+
                 return df_i, df_e, meta
 
             elif self.sensor == "step":
@@ -186,7 +188,6 @@ class Event:
                                     path=self.data_path,
                                     autodownload=autodownload)
 
-                # self.update_viewing(viewing) Why is viewing updated here?
                 return df, meta
 
         if self.spacecraft[:2].lower() == 'st':
@@ -204,7 +205,6 @@ class Event:
                                                            path=self.data_path)
                     df_e, channels_dict_df_e = [], []
 
-                    self.update_viewing(viewing)
                     return df_i, df_e, channels_dict_df_i, channels_dict_df_e
 
                 if self.species == "e":
@@ -221,7 +221,6 @@ class Event:
 
                     df_i, channels_dict_df_i = [], []
 
-                    self.update_viewing(viewing)
                     return df_i, df_e, channels_dict_df_i, channels_dict_df_e
 
             if self.sensor == 'het':
@@ -233,7 +232,6 @@ class Event:
                                        pos_timestamp="center",
                                        path=self.data_path)
 
-                self.update_viewing(viewing)
                 return df, meta
 
         if self.spacecraft.lower() == 'soho':
@@ -245,7 +243,6 @@ class Event:
                                      resample=None,
                                      pos_timestamp="center")
 
-                self.update_viewing(viewing)
                 return df, meta
 
             if self.sensor == 'ephin':
@@ -256,7 +253,6 @@ class Event:
                                      resample=None,
                                      pos_timestamp="center")
 
-                self.update_viewing(viewing)
                 return df, meta
 
             if self.sensor in ("ephin-5", "ephin-15"):
@@ -277,7 +273,6 @@ class Event:
                 # - add resample_df here?
                 # - add pos_timestamp here
 
-                self.update_viewing(viewing)
                 return df, meta
 
         if self.spacecraft.lower() == 'wind':
@@ -320,7 +315,6 @@ class Event:
                                                       path=self.data_path,
                                                       threshold=self.threshold)
 
-                self.update_viewing(viewing)
                 return df_omni_i, df_omni_e, df_i, df_e, meta_i, meta_e
 
         if self.spacecraft.lower() == 'psp':
@@ -331,7 +325,6 @@ class Event:
                                           path=self.data_path,
                                           resample=None)
 
-                self.update_viewing(viewing)
                 return df, meta
             if self.sensor.lower() == 'isois-epilo':
                 df, meta = psp_isois_load(dataset='PSP_ISOIS-EPILO_L2-PE',
@@ -342,7 +335,6 @@ class Event:
                                           epilo_channel='F',
                                           epilo_threshold=self.threshold)
 
-                self.update_viewing(viewing)
                 return df, meta
 
         if self.spacecraft.lower() == 'bepi':
