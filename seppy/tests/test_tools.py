@@ -385,7 +385,7 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
 
     # test dynamic spectrum:
     Event1.dynamic_spectrum(view="north")
-    assert Event1.fig.get_axes()[0].get_title() == 'STA/SEPT protons, 2021-10-28'
+    assert Event1.fig.get_axes()[0].get_title() == 'STA/SEPT (north) protons, 2021-10-28'
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
@@ -412,7 +412,7 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
 
     # test dynamic spectrum:
     Event1.dynamic_spectrum(view="asun")
-    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, STA/SEPT electrons, 2021-10-28'
+    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, STA/SEPT (asun) electrons, 2021-10-28'
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
