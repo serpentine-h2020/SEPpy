@@ -254,19 +254,20 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
             df = data.to_dataframe()
             # df = read_cdf(downloaded_files[0])
 
-            # reduce data frame to only H_Flux, H_Uncertainty, Electron_Counts, and Electron_Rate.
-            # There is no Electron_Uncertainty, maybe one could use at least the Poission error from Electron_Counts for that.
-            # df = df.filter(like='H_Flux') + df.filter(like='H_Uncertainty') + df.filter(like='Electrons')
-            if dataset.split('-')[2].upper() == 'HET':
-                if dataset.split('-')[3] == 'RATES60':
-                    selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
-                if dataset.split('-')[3] == 'RATES3600':
-                    selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
-            if dataset.split('-')[2].upper() == 'LET1':
-                selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
-            if dataset.split('-')[2].upper() == 'LET2':
-                selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
-            df = df[df.columns[df.columns.str.startswith(tuple(selected_cols))]]
+            # # reduce data frame to only H_Flux, H_Uncertainty, Electron_Counts, and Electron_Rate.
+            # # There is no Electron_Uncertainty, maybe one could use at least the Poission error from Electron_Counts for that.
+            # # df = df.filter(like='H_Flux') + df.filter(like='H_Uncertainty') + df.filter(like='Electrons')
+            # if dataset.split('-')[2].upper() == 'HET':
+            #     if dataset.split('-')[3] == 'RATES60':
+            #         selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
+            #     if dataset.split('-')[3] == 'RATES3600':
+            #         selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
+            # if dataset.split('-')[2].upper() == 'LET1':
+            #     selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
+            # if dataset.split('-')[2].upper() == 'LET2':
+            #     selected_cols = ["A_H_Flux", "B_H_Flux", "A_H_Uncertainty", "B_H_Uncertainty", "A_Electrons", "B_Electrons"]
+            # df = df[df.columns[df.columns.str.startswith(tuple(selected_cols))]]
+            # raise Warning(f"{dataset} is not fully suppported, only proton and electron data will be processed!")
 
             cdf = cdflib.CDF(downloaded_files[0])
 
@@ -288,8 +289,6 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
                              cdf['H_ENERGY_DELTAMINUS'],
                              "H_ENERGY_LABL":
                              cdf['H_ENERGY_LABL'],
-                             "H_FLUX_UNITS":
-                             cdf.varattsget('A_H_Flux')['UNITS'],
                              "Electrons_ENERGY":
                              cdf['Electrons_ENERGY'],
                              "Electrons_ENERGY_DELTAPLUS":
@@ -297,10 +296,17 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
                              "Electrons_ENERGY_DELTAMINUS":
                              cdf['Electrons_ENERGY_DELTAMINUS'],
                              "Electrons_ENERGY_LABL":
-                             cdf['Electrons_ENERGY_LABL'],
-                             "Electrons_Rate_UNITS":
-                             cdf.varattsget('A_Electrons_Rate')['UNITS']
+                             cdf['Electrons_ENERGY_LABL']
                              }
+            try:
+                energies_dict["H_FLUX_UNITS"] = cdf.varattsget('A_H_Flux')['UNITS']
+                energies_dict["Electrons_Rate_UNITS"] = cdf.varattsget('A_Electrons_Rate')['UNITS']
+            except ValueError:
+                try:
+                    energies_dict["H_FLUX_UNITS"] = cdf.varattsget('C_H_Flux')['UNITS']
+                    energies_dict["Electrons_Rate_UNITS"] = cdf.varattsget('C_Electrons_Rate')['UNITS']
+                except ValueError:
+                    raise Warning(f"Can't obtain UNITS from metadata. Possibly an unsupported dataset is loaded!")
 
         # loading for EPILO
         if dataset.split('-')[1] == 'EPILO_L2':
