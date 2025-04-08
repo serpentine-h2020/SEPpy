@@ -32,6 +32,15 @@ warnings.filterwarnings(action="ignore",
                         decreasing. This may lead to incorrectly calculated cell edges, in which case, please supply explicit cell edges to pcolormesh.",
                         category=UserWarning)
 
+STEREO_SEPT_VIEWINGS = ("sun", "asun", "north", "south")
+WIND_3DP_VIEWINGS = ("omnidirectional", '0', '1', '2', '3', '4', '5', '6', '7')
+SOLO_EPT_VIEWINGS = ("sun", "asun", "north", "south")
+SOLO_HET_VIEWINGS = ("sun", "asun", "north", "south")
+SOLO_STEP_VIEWINGS = ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 4", "Pixel 5", "Pixel 6" \
+                      "Pixel 7", "Pixel 8", "Pixel 9", "Pixel 10", "Pixel 11", "Pixel 12", "Pixel 13" \
+                      "Pixel 14", "Pixel 15")
+PSP_EPILO_VIEWINGS = ('3', '7')
+PSP_EPIHI_VIEWINGS = ('A', 'B')
 
 class Event:
 
@@ -148,17 +157,52 @@ class Event:
                        }
 
     def update_viewing(self, viewing):
+
+        invalid_viewing_msg = f"{viewing} is an invalid viewing direction for {self.spacecraft}/{self.sensor}!"
+
         if self.spacecraft != "wind":
+
+            # Validate viewing here. It may be nonsensical and that affects choose_data() and print_energies().
+            if self.spacecraft in ("sta", "stb"):
+                if self.sensor == "sept" and viewing not in STEREO_SEPT_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "het" and viewing is not None:
+                    raise ValueError(invalid_viewing_msg)
+            
+            if self.spacecraft == "solo":
+                if self.sensor == "step" and viewing not in SOLO_STEP_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "ept" and viewing not in SOLO_EPT_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "het" and viewing not in SOLO_HET_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+            
+            if self.spacecraft == "psp":
+                if self.sensor == "isois-epilo" and viewing not in PSP_EPILO_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "isois-epihi" and viewing not in PSP_EPIHI_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+
+            if self.spacecraft == "soho":
+                if viewing is not None:
+                    raise ValueError(invalid_viewing_msg)
+
+            # Finally set validated viewing
             self.viewing = viewing
+
         else:
-            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n.
+            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section 7.
             # This catches the number or the word if omnidirectional
             try:
-                self.viewing = viewing.split(" ")[-1]
-
-            # AttributeError is cause by initializing Event with spacecraft='Wind' and viewing=None
+                sector_direction = viewing.split(" ")[-1]
+            # AttributeError is caused by calling None.split()
             except AttributeError:
-                self.viewing = '0'  # A placeholder viewing that should not cause any trouble
+                raise ValueError(invalid_viewing_msg)
+
+            if sector_direction not in WIND_3DP_VIEWINGS:
+                raise ValueError(invalid_viewing_msg)
+
+            self.viewing = sector_direction
 
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
