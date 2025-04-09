@@ -32,6 +32,15 @@ warnings.filterwarnings(action="ignore",
                         decreasing. This may lead to incorrectly calculated cell edges, in which case, please supply explicit cell edges to pcolormesh.",
                         category=UserWarning)
 
+STEREO_SEPT_VIEWINGS = ("sun", "asun", "north", "south")
+WIND_3DP_VIEWINGS = ("omnidirectional", '0', '1', '2', '3', '4', '5', '6', '7')
+SOLO_EPT_VIEWINGS = ("sun", "asun", "north", "south")
+SOLO_HET_VIEWINGS = ("sun", "asun", "north", "south")
+SOLO_STEP_VIEWINGS = ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 4", "Pixel 5", "Pixel 6" \
+                      "Pixel 7", "Pixel 8", "Pixel 9", "Pixel 10", "Pixel 11", "Pixel 12", "Pixel 13" \
+                      "Pixel 14", "Pixel 15")
+PSP_EPILO_VIEWINGS = ('3', '7')
+PSP_EPIHI_VIEWINGS = ('A', 'B')
 
 class Event:
 
@@ -63,7 +72,9 @@ class Event:
         self.data_path = data_path + os.sep
         self.threshold = threshold
         self.radio_spacecraft = radio_spacecraft  # this is a 2-tuple, e.g., ("ahead", "STEREO-A")
-        self.viewing = viewing
+
+        # Sets the self.viewing to the given viewing
+        self.update_viewing(viewing=viewing)
 
         self.radio_files = None
 
@@ -146,17 +157,52 @@ class Event:
                        }
 
     def update_viewing(self, viewing):
+
+        invalid_viewing_msg = f"{viewing} is an invalid viewing direction for {self.spacecraft}/{self.sensor}!"
+
         if self.spacecraft != "wind":
+
+            # Validate viewing here. It may be nonsensical and that affects choose_data() and print_energies().
+            if self.spacecraft in ("sta", "stb"):
+                if self.sensor == "sept" and viewing not in STEREO_SEPT_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "het" and viewing is not None:
+                    raise ValueError(invalid_viewing_msg)
+            
+            if self.spacecraft == "solo":
+                if self.sensor == "step" and viewing not in SOLO_STEP_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "ept" and viewing not in SOLO_EPT_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "het" and viewing not in SOLO_HET_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+            
+            if self.spacecraft == "psp":
+                if self.sensor == "isois-epilo" and viewing not in PSP_EPILO_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+                if self.sensor == "isois-epihi" and viewing not in PSP_EPIHI_VIEWINGS:
+                    raise ValueError(invalid_viewing_msg)
+
+            if self.spacecraft == "soho":
+                if viewing is not None:
+                    raise ValueError(invalid_viewing_msg)
+
+            # Finally set validated viewing
             self.viewing = viewing
+
         else:
-            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section n.
+            # Wind/3DP viewing directions are omnidirectional, section 0, section 1... section 7.
             # This catches the number or the word if omnidirectional
             try:
-                self.viewing = viewing.split(" ")[-1]
-
-            # AttributeError is cause by initializing Event with spacecraft='Wind' and viewing=None
+                sector_direction = viewing.split(" ")[-1]
+            # AttributeError is caused by calling None.split()
             except AttributeError:
-                self.viewing = '0'  # A placeholder viewing that should not cause any trouble
+                raise ValueError(invalid_viewing_msg)
+
+            if sector_direction not in WIND_3DP_VIEWINGS:
+                raise ValueError(invalid_viewing_msg)
+
+            self.viewing = sector_direction
 
     # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
     # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
@@ -174,7 +220,7 @@ class Event:
                                             enddate=self.end_date,
                                             path=self.data_path,
                                             autodownload=autodownload)
-                # self.update_viewing(viewing) Why is viewing updated here?
+
                 return df_i, df_e, meta
 
             elif self.sensor == "step":
@@ -186,7 +232,6 @@ class Event:
                                     path=self.data_path,
                                     autodownload=autodownload)
 
-                # self.update_viewing(viewing) Why is viewing updated here?
                 return df, meta
 
         if self.spacecraft[:2].lower() == 'st':
@@ -204,7 +249,6 @@ class Event:
                                                            path=self.data_path)
                     df_e, channels_dict_df_e = [], []
 
-                    self.update_viewing(viewing)
                     return df_i, df_e, channels_dict_df_i, channels_dict_df_e
 
                 if self.species == "e":
@@ -221,7 +265,6 @@ class Event:
 
                     df_i, channels_dict_df_i = [], []
 
-                    self.update_viewing(viewing)
                     return df_i, df_e, channels_dict_df_i, channels_dict_df_e
 
             if self.sensor == 'het':
@@ -233,7 +276,6 @@ class Event:
                                        pos_timestamp="center",
                                        path=self.data_path)
 
-                self.update_viewing(viewing)
                 return df, meta
 
         if self.spacecraft.lower() == 'soho':
@@ -245,7 +287,6 @@ class Event:
                                      resample=None,
                                      pos_timestamp="center")
 
-                self.update_viewing(viewing)
                 return df, meta
 
             if self.sensor == 'ephin':
@@ -256,7 +297,6 @@ class Event:
                                      resample=None,
                                      pos_timestamp="center")
 
-                self.update_viewing(viewing)
                 return df, meta
 
             if self.sensor in ("ephin-5", "ephin-15"):
@@ -277,7 +317,6 @@ class Event:
                 # - add resample_df here?
                 # - add pos_timestamp here
 
-                self.update_viewing(viewing)
                 return df, meta
 
         if self.spacecraft.lower() == 'wind':
@@ -320,7 +359,6 @@ class Event:
                                                       path=self.data_path,
                                                       threshold=self.threshold)
 
-                self.update_viewing(viewing)
                 return df_omni_i, df_omni_e, df_i, df_e, meta_i, meta_e
 
         if self.spacecraft.lower() == 'psp':
@@ -331,7 +369,6 @@ class Event:
                                           path=self.data_path,
                                           resample=None)
 
-                self.update_viewing(viewing)
                 return df, meta
             if self.sensor.lower() == 'isois-epilo':
                 df, meta = psp_isois_load(dataset='PSP_ISOIS-EPILO_L2-PE',
@@ -342,7 +379,6 @@ class Event:
                                           epilo_channel='F',
                                           epilo_threshold=self.threshold)
 
-                self.update_viewing(viewing)
                 return df, meta
 
         if self.spacecraft.lower() == 'bepi':
