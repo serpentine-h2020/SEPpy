@@ -170,7 +170,7 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     lpath = f"{os.getcwd()}/data/"
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewing "A", single channel, electrons
-    Event1 = Event(spacecraft='PSP', sensor='isois-epihi', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='PSP', sensor='isois-epihi', viewing='A', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='A', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
@@ -181,7 +181,7 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T16:06:59'
     assert fig.get_axes()[0].get_title() == 'PSP/ISOIS-EPIHI 0.8 - 1.0 MeV electrons\n5min averaging, viewing: A'
     # viewing "B", combined channel, protons
-    Event1 = Event(spacecraft='PSP', sensor='isois-epihi', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='PSP', sensor='isois-epihi', viewing='B', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='B', background_range=background_range, channels=[1, 5], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
@@ -206,7 +206,7 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPILO_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='PSP', sensor='isois-epilo', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='PSP', sensor='isois-epilo', viewing='7', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewing "7", single channel
@@ -242,7 +242,7 @@ def test_onset_spectrum_tsa_Wind_3DP_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', viewing="Sector 3", species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewng "sector 3"
@@ -279,7 +279,7 @@ def test_onset_spectrum_tsa_Wind_3DP_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)  # TODO: radio_spacecraft=('wind', 'WIND')
+    Event1 = Event(spacecraft='Wind', sensor='3DP', viewing="Sector 3", data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)  # TODO: radio_spacecraft=('wind', 'WIND')
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     #
@@ -370,7 +370,7 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
+    Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', viewing="north", data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[5, 8], resample_period="5min", yscale='log', cusum_window=30)
@@ -384,12 +384,12 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     assert fig.get_axes()[0].get_title() == 'STA/SEPT 110-174.6 keV protons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
-    Event1.dynamic_spectrum(view=None)
-    assert Event1.fig.get_axes()[0].get_title() == 'STA/SEPT protons, 2021-10-28'
+    Event1.dynamic_spectrum(view="north")
+    assert Event1.fig.get_axes()[0].get_title() == 'STA/SEPT (north) protons, 2021-10-28'
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
-    Event1.tsa_plot(None, selection=None, resample=None)
+    Event1.tsa_plot(view="north", selection=None, resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'STEREO-A SEPT, protons'
 
 
@@ -397,7 +397,7 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
     lpath = f"{os.getcwd()}/data/"
-    Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'))
+    Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', viewing="asun", data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='asun', background_range=background_range, channels=[8], resample_period="5min", yscale='log', cusum_window=30)
@@ -411,12 +411,12 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
     assert fig.get_axes()[0].get_title() == 'STA/SEPT 125-145 keV electrons\n5min averaging, viewing: ASUN'
 
     # test dynamic spectrum:
-    Event1.dynamic_spectrum(view=None)
-    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, STA/SEPT electrons, 2021-10-28'
+    Event1.dynamic_spectrum(view="asun")
+    assert Event1.fig.get_axes()[0].get_title() == 'Radio & Dynamic Spectrum, STA/SEPT (asun) electrons, 2021-10-28'
 
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
-    Event1.tsa_plot(None, selection=None, resample=None)
+    Event1.tsa_plot(view="asun", selection=None, resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'STEREO-A SEPT, electrons'
 
 
