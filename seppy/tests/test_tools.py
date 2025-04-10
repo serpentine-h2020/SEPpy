@@ -448,7 +448,6 @@ def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     Event1.dynamic_spectrum(view=None)
     assert Event1.fig.get_axes()[0].get_title() == 'SOHO/EPHIN electrons, 2021-10-28'
 
-
     # test tsa plot:
     plt.close('all')  # in order to pick the right figure, make sure all previous are closed
     Event1.tsa_plot(None, selection=(0, 4, 1), resample='5min')

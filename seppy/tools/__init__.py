@@ -36,11 +36,12 @@ STEREO_SEPT_VIEWINGS = ("sun", "asun", "north", "south")
 WIND_3DP_VIEWINGS = ("omnidirectional", '0', '1', '2', '3', '4', '5', '6', '7')
 SOLO_EPT_VIEWINGS = ("sun", "asun", "north", "south")
 SOLO_HET_VIEWINGS = ("sun", "asun", "north", "south")
-SOLO_STEP_VIEWINGS = ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 4", "Pixel 5", "Pixel 6" \
-                      "Pixel 7", "Pixel 8", "Pixel 9", "Pixel 10", "Pixel 11", "Pixel 12", "Pixel 13" \
+SOLO_STEP_VIEWINGS = ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 4", "Pixel 5", "Pixel 6",
+                      "Pixel 7", "Pixel 8", "Pixel 9", "Pixel 10", "Pixel 11", "Pixel 12", "Pixel 13",
                       "Pixel 14", "Pixel 15")
 PSP_EPILO_VIEWINGS = ('3', '7')
 PSP_EPIHI_VIEWINGS = ('A', 'B')
+
 
 class Event:
 
@@ -168,7 +169,7 @@ class Event:
                     raise ValueError(invalid_viewing_msg)
                 if self.sensor == "het" and viewing is not None:
                     raise ValueError(invalid_viewing_msg)
-            
+
             if self.spacecraft == "solo":
                 if self.sensor == "step" and viewing not in SOLO_STEP_VIEWINGS:
                     raise ValueError(invalid_viewing_msg)
@@ -176,7 +177,7 @@ class Event:
                     raise ValueError(invalid_viewing_msg)
                 if self.sensor == "het" and viewing not in SOLO_HET_VIEWINGS:
                     raise ValueError(invalid_viewing_msg)
-            
+
             if self.spacecraft == "psp":
                 if self.sensor == "isois-epilo" and viewing not in PSP_EPILO_VIEWINGS:
                     raise ValueError(invalid_viewing_msg)
@@ -2252,7 +2253,7 @@ class Event:
                 line.set_xdata(line.get_xdata() - pd.Timedelta(seconds=timedelta_sec))
 
             # Update the path label artist
-            text.set_text(f"R={radial_distance_value:.2f} AU\nL = {np.round(slider.value,2)} AU")
+            text.set_text(f"R={radial_distance_value:.2f} AU\nL = {np.round(slider.value, 2)} AU")
 
             # Effectively this refreshes the figure
             fig.canvas.draw_idle()
