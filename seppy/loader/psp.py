@@ -199,8 +199,8 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
         Name of PSP dataset:
             - 'PSP_ISOIS-EPIHI_L2-HET-RATES60'
             - 'PSP_ISOIS-EPIHI_L2-HET-RATES3600' (higher coverage than 'RATES60' before mid-2021)
-            - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60' (not yet supported)
-            - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60' (not yet supported)
+            - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60'
+            - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60'
             - 'PSP_ISOIS-EPILO_L2-PE'
             - 'PSP_ISOIS-EPILO_L2-IC'
     startdate, enddate : {datetime or str}
