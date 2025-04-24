@@ -1,5 +1,6 @@
 
 import datetime
+import psutil
 import warnings
 
 import astropy.constants as const
@@ -429,3 +430,14 @@ def intensity2vsd(species, kinetic_energy, intensity):
         p = energy2momentum(species, kinetic_energy)
         f = intensity / (p**2) * mass_dict[species]**3
         return f.to(u.s**3/(u.sr*u.cm**6))
+
+
+def jupyterhub_data_path(path_org, path_hub='/home/jovyan/data'):
+    """
+    Checks if Notebook is run within SOLER/SERPENTINE JupyterHub. Returns the path of a common data folder if yes, and the original path if not.
+    """
+    if (psutil.Process().parent().name() == 'jupyterhub-sing') and all(x in psutil.Process().parent().environ()['PYTHONPATH'] for x in ['/home/jovyan/serpentine/', '/home/jovyan/soler/sep_tools/']):
+        print(f"JupyterHub detected. Adjusting data path to {path_hub}")
+        return path_hub
+    else:
+        return path_org
