@@ -1,6 +1,7 @@
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.tools import Event
+from seppy.util import jupyterhub_data_path
 import datetime
 import os
 import matplotlib.pyplot as plt
@@ -14,7 +15,8 @@ plt.switch_backend("Agg")
 def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     startdate = datetime.date(2020, 9, 21)
     enddate = datetime.date(2020, 9, 21)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     background_range = (datetime.datetime(2020, 9, 21, 0, 0, 0), datetime.datetime(2020, 9, 21, 2, 0, 0))
     #
     # ions
@@ -51,7 +53,8 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
 def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     startdate = datetime.date(2022, 1, 9)
     enddate = datetime.date(2022, 1, 9)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     background_range = (datetime.datetime(2022, 1, 9, 10, 0, 0), datetime.datetime(2022, 1, 9, 12, 0, 0))
     # ions
     Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', viewing='Pixel averaged', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
@@ -91,7 +94,8 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
 def test_onset_spectrum_tsa_SOLO_HET_online():
     startdate = datetime.date(2022, 11, 8)
     enddate = datetime.date(2022, 11, 8)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     background_range = (datetime.datetime(2022, 11, 8, 0, 0, 0), datetime.datetime(2022, 11, 8, 1, 0, 0))
     # viewing "sun", single channel, protons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', viewing='sun', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
@@ -129,7 +133,8 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
 def test_onset_spectrum_tsa_SOLO_EPT_online():
     startdate = datetime.date(2022, 6, 6)
     enddate = datetime.date(2022, 6, 6)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     background_range = (datetime.datetime(2022, 6, 6, 0, 0, 0), datetime.datetime(2022, 6, 6, 1, 0, 0))
     # viewing "sun", single channel, ions
     Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
@@ -167,7 +172,8 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
 def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewing "A", single channel, electrons
     Event1 = Event(spacecraft='PSP', sensor='isois-epihi', viewing='A', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
@@ -205,7 +211,8 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
 def test_onset_spectrum_tsa_PSP_ISOIS_EPILO_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='PSP', sensor='isois-epilo', viewing='7', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -241,7 +248,8 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPILO_e_online():
 def test_onset_spectrum_tsa_Wind_3DP_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', viewing="Sector 3", species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -278,7 +286,8 @@ def test_onset_spectrum_tsa_Wind_3DP_p_online():
 def test_onset_spectrum_tsa_Wind_3DP_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='Wind', sensor='3DP', viewing="Sector 3", data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)  # TODO: radio_spacecraft=('wind', 'WIND')
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -315,7 +324,8 @@ def test_onset_spectrum_tsa_Wind_3DP_e_online():
 def test_onset_spectrum_tsa_STEREOB_HET_p_online():
     startdate = datetime.date(2006, 12, 13)
     enddate = datetime.date(2006, 12, 14)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-B', sensor='HET', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2006, 12, 13, 0, 0, 0), datetime.datetime(2006, 12, 13, 2, 0, 0))
@@ -342,7 +352,8 @@ def test_onset_spectrum_tsa_STEREOB_HET_p_online():
 def test_onset_spectrum_tsa_STEREOB_HET_e_online():
     startdate = datetime.date(2006, 12, 13)
     enddate = datetime.date(2006, 12, 14)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-B', sensor='HET', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('behind', 'STEREO-B'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2006, 12, 13, 0, 0, 0), datetime.datetime(2006, 12, 13, 2, 0, 0))
@@ -369,7 +380,8 @@ def test_onset_spectrum_tsa_STEREOB_HET_e_online():
 def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', viewing="north", data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -396,7 +408,8 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
 def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', viewing="asun", data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -423,7 +436,8 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
 def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='SOHO', sensor='EPHIN', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -457,7 +471,8 @@ def test_onset_spectrum_tsa_SOHO_EPHIN_online():
 def test_onset_spectrum_tsa_SOHO_ERNE_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    lpath = f"{os.getcwd()}/data/"
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'))
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
