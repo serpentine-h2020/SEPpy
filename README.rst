@@ -59,7 +59,7 @@ The standard usecase is to utilize the ``***_load`` function, which returns Pand
                         startdate="2021/04/16",
                         enddate="2021/04/20")
 
-Note that the syntax is different for each loader! `Please refer to this Notebook for more info and examples for the different data sets! <https://github.com/jgieseler/serpentine/blob/main/notebooks/sep_analysis_tools/data_loader.ipynb>`_
+Note that the syntax is different for each loader! `Please refer to this Notebook for more info and examples for the different data sets! <https://github.com/serpentine-h2020/serpentine/blob/main/notebooks/sep_analysis_tools/data_loader.ipynb>`_
 
 
 
