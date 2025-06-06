@@ -178,7 +178,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     return df, metadata
 
 
-def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor='HET'):
+def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor='HED'):
     """
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
