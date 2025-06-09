@@ -2492,9 +2492,13 @@ class Event:
 
         return np.array(beta)*const.c.value
 
-    def print_energies(self):
+    def print_energies(self, return_df=False):
         """
         Prints out the channel name / energy range pairs
+
+        Parameter:
+        ---------
+        return_df : {bool} default False. If True, returns the df instead of displaying it.
         """
 
         from IPython.display import display
@@ -2579,11 +2583,13 @@ class Event:
         df = df.set_index(column_names[0])
 
         # Finally display the dataframe such that ALL rows are shown
-        with pd.option_context('display.max_rows', None,
-                               'display.max_columns', None,
-                               ):
-            display(df)
-        return
+      if not return_df:
+          with pd.option_context('display.max_rows', None,
+                                 'display.max_columns', None,
+                                 ):
+              display(df)
+      else:
+        return df
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
