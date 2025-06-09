@@ -2583,13 +2583,13 @@ class Event:
         df = df.set_index(column_names[0])
 
         # Finally display the dataframe such that ALL rows are shown
-      if not return_df:
-          with pd.option_context('display.max_rows', None,
+        if not return_df:
+            with pd.option_context('display.max_rows', None,
                                  'display.max_columns', None,
                                  ):
-              display(df)
-      else:
-        return df
+                display(df)
+        else:
+            return df
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
