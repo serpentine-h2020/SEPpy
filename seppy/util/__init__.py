@@ -15,15 +15,32 @@ from sunpy.coordinates import get_horizons_coord
 
 def custom_formatwarning(message, *args, **kwargs):
     # ignore everything except the message
-    FAIL = '\033[91m'
+    RED = '\033[91m'
     ENDC = '\033[0m'
     BOLD = "\033[1m"
-    return BOLD+FAIL+'WARNING: '+ENDC+ str(message) + '\n'
+    return BOLD+RED+'WARNING: '+ENDC+ str(message) + '\n'
+
+
+def custom_formatnotification(message, *args, **kwargs):
+    # ignore everything except the message
+    YELLOW = '\033[93m'
+    ENDC = '\033[0m'
+    BOLD = "\033[1m"
+    _yllw_str = '\x1b[38;5;226m'
+    return BOLD+YELLOW+'NOTE: '+ENDC+ str(message) + '\n'
 
 
 def custom_warning(message):
     formatwarning_orig = warnings.formatwarning
     warnings.formatwarning = custom_formatwarning
+    warnings.warn(message)
+    warnings.formatwarning = formatwarning_orig
+    return
+
+
+def custom_notification(message):
+    formatwarning_orig = warnings.formatwarning
+    warnings.formatwarning = custom_formatnotification
     warnings.warn(message)
     warnings.formatwarning = formatwarning_orig
     return
