@@ -14,7 +14,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import resample_df
+from seppy.util import custom_warning, resample_df
 
 # Not needed atm as units are skipped in the modified read_cdf
 # if hasattr(sunpy, "__version__") and Version(sunpy.__version__) >= Version("5.0.0"):
@@ -544,7 +544,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
 
     # check if not all elements of en_channel_string_all are the same:
     if len(en_channel_string_all) != en_channel_string_all.count(en_channel_string_all[0]):
-        print("You are combining viewing directions that have different energies. This is strongly advised against!")
+        custom_warning(f"PSP/EPI-Lo {mode.upper()}: You are combining viewing directions that have different energies. This is strongly advised against!")
         print(en_channel_string_all)
         return df_out2, en_channel_string_all[0]
     else:
