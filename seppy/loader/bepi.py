@@ -93,7 +93,8 @@ def bepi_sixsp_l3_loader(startdate, enddate, resample=None, path=None, pos_times
                     # "Side0_Proton_Bins_High_Energy": np.array([1.254, 1.311, 1.608, 2.388, 4.241, 8.534, 15.515, 28.413, 40.0]),
                     "Side0_Proton_As_Electron_Bins_Effective_Energy": np.array([0.468, 0.824, 2.22]),
                     # "Side0_Proton_As_Electron_Bins_Low_Energy": np.array([np.nan, np.nan, np.nan]),
-                    # "Side0_Proton_As_Electron_Bins_High_Energy": np.array([np.nan, np.nan, np.nan])}
+                    # "Side0_Proton_As_Electron_Bins_High_Energy": np.array([np.nan, np.nan, np.nan])
+                    }
     for i in range(1, 5):
         channels_dict[f"Side{i}_Energy_Bin_str"] = {'E0': 'NaN', 'E1': '73 keV', 'E2': '107 keV', 'E3': '168 keV', 'E4': '275 keV', 'E5': '918 keV', 'E6': '2.22 MeV', 'E7': '6.46 MeV',
                                                     'P0': 'NaN', 'P1': '1.1 MeV', 'P2': '1.2 MeV', 'P3': '1.5 MeV', 'P4': '2.3 MeV', 'P5': '3.9 MeV', 'P6': '8.0 MeV', 'P7': '14.5 MeV', 'P8': '25.1 MeV', 'P9': '49.8 MeV',
