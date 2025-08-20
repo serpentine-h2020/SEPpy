@@ -546,9 +546,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
     if len(en_channel_string_all) != en_channel_string_all.count(en_channel_string_all[0]):
         custom_warning(f"PSP/EPI-Lo {mode.upper()}: You are combining viewing directions that have different energies. This is strongly advised against!")
         print(en_channel_string_all)
-        return df_out2, en_channel_string_all[0]
-    else:
-        return df_out2, en_channel_string_all[0]
+    return df_out2, en_channel_string_all[0]
 
 
 psp_load = copy.copy(psp_isois_load)
