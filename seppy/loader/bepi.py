@@ -7,6 +7,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from astropy.utils.data import get_pkg_data_filename
 from seppy.util import resample_df
 
 # omit Pandas' PerformanceWarning
@@ -79,36 +80,28 @@ def bepi_sixsp_l3_loader(startdate, enddate, resample=None, path=None, pos_times
         Dictionary giving details on the measurement channels
     """
 
-    # TODO:
-    # 1. verify values for Bins_Low_Energy and Bins_High_Energy energies
-    # 2. update Bins_Low_Energy and Bins_High_Energy with real numbers for PE channels
-    channels_dict = {"Side0_Energy_Bin_str": {'E0': 'NaN', 'E1': '71 keV', 'E2': '106 keV', 'E3': '169 keV', 'E4': '278 keV', 'E5': '918 keV', 'E6': '2.12 MeV', 'E7': '7.01 MeV',
-                                              'P0': 'NaN', 'P1': '1.1 MeV', 'P2': '1.2 MeV', 'P3': '1.5 MeV', 'P4': '2.3 MeV', 'P5': '3.9 MeV', 'P6': '8.0 MeV', 'P7': '14.3 MeV', 'P8': '25.4 MeV', 'P9': '49.8 MeV',
-                                              'PE0': 'NaN', 'PE1': '0.47 MeV', 'PE2': '0.82 MeV', 'PE3': '2.22 MeV'},
-                    "Side0_Electron_Bins_Effective_Energy": np.array([0.0714, 0.106, 0.169, 0.278, 0.918, 2.120, 7.010]),
-                    # "Side0_Electron_Bins_Low_Energy": np.array([0.055, 0.078, 0.134, 0.235, 1.000, 1.432, 4.904]),
-                    # "Side0_Electron_Bins_High_Energy": np.array([0.092, 0.143, 0.214, 0.331, 1.193, 3.165, 10.000]),
-                    "Side0_Proton_Bins_Effective_Energy": np.array([1.09, 1.19, 1.51, 2.26, 3.94, 8.02, 14.3, 25.4, 49.8]),
-                    # "Side0_Proton_Bins_Low_Energy": np.array([0.001, 1.088, 1.407, 2.139, 3.647, 7.533, 13.211, 22.606, 29.246]),
-                    # "Side0_Proton_Bins_High_Energy": np.array([1.254, 1.311, 1.608, 2.388, 4.241, 8.534, 15.515, 28.413, 40.0]),
-                    "Side0_Proton_As_Electron_Bins_Effective_Energy": np.array([0.468, 0.824, 2.22]),
-                    # "Side0_Proton_As_Electron_Bins_Low_Energy": np.array([np.nan, np.nan, np.nan]),
-                    # "Side0_Proton_As_Electron_Bins_High_Energy": np.array([np.nan, np.nan, np.nan])
-                    }
-    for i in range(1, 5):
-        channels_dict[f"Side{i}_Energy_Bin_str"] = {'E0': 'NaN', 'E1': '73 keV', 'E2': '107 keV', 'E3': '168 keV', 'E4': '275 keV', 'E5': '918 keV', 'E6': '2.22 MeV', 'E7': '6.46 MeV',
-                                                    'P0': 'NaN', 'P1': '1.1 MeV', 'P2': '1.2 MeV', 'P3': '1.5 MeV', 'P4': '2.3 MeV', 'P5': '3.9 MeV', 'P6': '8.0 MeV', 'P7': '14.5 MeV', 'P8': '25.1 MeV', 'P9': '49.8 MeV',
-                                                    'PE0': 'NaN', 'PE1': '0.46 MeV', 'PE2': '0.86 MeV', 'PE3': '2.47 MeV'}
-        channels_dict[f"Side{i}_Electron_Bins_Effective_Energy"] = np.array([0.0726, 0.107, 0.168, 0.275, 0.918, 2.220, 6.460])
-        # channels_dict[f"Side{i}_Electron_Bins_Low_Energy"] = np.array([0.055, 0.078, 0.134, 0.235, 1.000, 1.432, 4.904])
-        # channels_dict[f"Side{i}_Electron_Bins_High_Energy"] = np.array([0.092, 0.143, 0.214, 0.331, 1.193, 3.165, 10.000])
-        channels_dict[f"Side{i}_Proton_Bins_Effective_Energy"] = np.array([1.12, 1.22, 1.53, 2.28, 3.94, 8.02, 14.5, 25.1, 49.8])
-        # channels_dict[f"Side{i}_Proton_Bins_Low_Energy"] = np.array([0.001, 1.088, 1.407, 2.139, 3.647, 7.533, 13.211, 22.606, 29.246])
-        # channels_dict[f"Side{i}_Proton_Bins_High_Energy"] = np.array([1.254, 1.311, 1.608, 2.388, 4.241, 8.534, 15.515, 28.413, 40.0])
-        channels_dict[f"Side{i}_Proton_As_Electron_Bins_Effective_Energy"] = np.array([0.459, 0.854, 2.47])
-        # channels_dict[f"Side{i}_Proton_As_Electron_Bins_Low_Energy"] = np.array([np.nan, np.nan, np.nan])
-        # channels_dict[f"Side{i}_Proton_As_Electron_Bins_High_Energy"] = np.array([np.nan, np.nan, np.nan])
-
+    channels_dict = {}
+    for side in range(0, 4):  # omit Side4 info because it's not part of the L3 data product (22 Aug 2025)
+        for species in ['e', 'p', 'pe']:
+            filepath = get_pkg_data_filename(f'data/bepi_sixsp_instrumental_constants/sixsp_side{side}_{species}_gf_en.csv', package='seppy')
+            tdf = pd.read_csv(filepath, index_col=0).T
+            if species == 'e':
+                species_str = 'Electron'
+                channels_dict[f'Side{side}_{species_str}_Bins_str'] = ((tdf['E']*1000).round(0).astype(int).astype('str')+' keV').to_dict()
+            if species == 'p':
+                species_str = 'Proton'
+                channels_dict[f'Side{side}_{species_str}_Bins_str'] = (tdf['E'].round(2).astype('str')+' MeV').to_dict()
+            if species == 'pe':
+                species_str = 'Proton_As_Electron'
+                for i in ['PE4', 'PE5', 'PE6']:
+                    try:
+                        tdf.drop(index=i, inplace=True)  # drop PE4, PE5, PE6 info because it's not part of the L3 data product (22 Aug 2025)
+                    except KeyError:
+                        pass
+                channels_dict[f'Side{side}_{species_str}_Bins_str'] = (tdf['E'].round(2).astype('str')+' MeV').to_dict()
+            channels_dict[f'Side{side}_{species_str}_Bins_Effective_Energy'] = tdf['E'].to_dict()
+            channels_dict[f'Side{side}_{species_str}_Bins_Low_Energy'] = tdf['E_low'].to_dict()
+            channels_dict[f'Side{side}_{species_str}_Bins_High_Energy'] = tdf['E_high'].to_dict()
 
     if not path:
         path = sunpy.config.get('downloads', 'download_dir') + os.sep
