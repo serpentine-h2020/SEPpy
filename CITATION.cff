@@ -1,0 +1,81 @@
+# YAML 1.2
+# Metadata for citation of this software according to the CFF format (https://citation-file-format.github.io/)
+cff-version: 1.0.3
+message: If you use this software, please cite it using these metadata.
+title: SEPpy
+doi: 10.5281/zenodo.15275445
+authors:
+- given-names: Jan
+  family-names: Gieseler
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0003-1848-7067
+- given-names: Christian
+  family-names: Palmroos
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0002-7778-5454
+- given-names: Nina
+  family-names: Dresing
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0003-3903-4649
+- given-names: Diana
+  family-names: Morosan
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0002-8416-1375
+- given-names: Eleanna
+  family-names: Asvestari
+  affiliation: University of Helsinki
+  orcid: https://orcid.org/0000-0002-6998-7224
+- given-names: Aleksi
+  family-names: Yli-Laurila
+  affiliation: University of Turku
+- given-names: Daniel
+  family-names: Price
+  name-particle: J.
+  affiliation: University of Helsinki
+  orcid: https://orcid.org/0000-0002-8065-2847
+- given-names: Rami
+  family-names: Vainio
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0002-3298-2067
+version: 0.2.1
+date-released: 2025-04-24
+repository-code: https://github.com/serpentine-h2020/SEPpy
+license: BSD-3-Clause
+preferred-citation:
+  type: article
+  authors:
+  - given-names: Christian
+    family-names: Palmroos
+    orcid: https://orcid.org/0000-0002-7778-5454
+  - given-names: Jan
+    family-names: Gieseler
+    orcid: https://orcid.org/0000-0003-1848-7067
+  - given-names: Nina
+    family-names: Dresing
+    orcid: https://orcid.org/0000-0003-3903-4649
+  - given-names: Diana
+    family-names: Morosan
+    orcid: https://orcid.org/0000-0002-8416-1375
+  - given-names: Eleanna
+    family-names: Asvestari
+    affiliation: University of Helsinki
+    orcid: https://orcid.org/0000-0002-6998-7224
+  - given-names: Aleksi
+    family-names: Yli-Laurila
+    affiliation: University of Turku
+  - given-names: "Daniel J."
+    family-names: Price
+    orcid: https://orcid.org/0000-0003-2672-5491
+  - given-names: Saku
+    family-names: Valkila
+    affiliation: University of Turku
+  - given-names: Rami
+    family-names: Vainio
+    orcid: https://orcid.org/0000-0002-3298-2067
+  doi: 10.3389/fspas.2022.1073578
+  url: http://dx.doi.org/10.3389/fspas.2022.1073578
+  journal: Frontiers in Astronomy and Space Sciences
+  month: 12
+  title: 'Solar Energetic Particle Time Series Analysis with Python'
+  volume: 9
+  year: 2022

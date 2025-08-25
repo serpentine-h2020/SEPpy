@@ -1,12 +1,27 @@
+import datetime as dt
 import numpy as np
 import pandas as pd
+import pytest
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
+from seppy.loader.bepi import bepi_sixsp_l3_loader
 from seppy.loader.psp import psp_isois_load
 from seppy.loader.soho import soho_load
 from seppy.loader.solo import mag_load
 from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
+
+
+def test_bepi_sixs_load_online():
+    startdate = dt.datetime(2020, 10, 9, 12, 0)
+    enddate = "2020/12/10 22:00:00"
+    df, meta = bepi_sixsp_l3_loader(startdate=startdate, enddate=enddate, resample="10min", path=None, pos_timestamp='center')
+    #
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (8212, 309)
+    assert df['Side2_P2'].mean() == pytest.approx(np.float64(0.1928595238095238))
+    assert len(meta) == 48
+    assert meta['Side0_Electron_Bins_str']['E4'] == '278 keV'
 
 
 def test_psp_load_online():

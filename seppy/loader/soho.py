@@ -15,7 +15,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import custom_warning, resample_df
+from seppy.util import custom_notification, custom_warning, resample_df
 
 
 logger = pooch.get_logger()
@@ -178,7 +178,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     return df, metadata
 
 
-def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor='HET'):
+def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor='HED'):
     """
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
@@ -342,15 +342,16 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
                                   'H41 GM', 'H41 GR', 'H41 S1', 'H41 S23',
                                   'Spare 1', 'Spare 2', 'Spare 3'])
 
-        # Proton and helium measurements need to be corrected for effects determined post-launch,
+        # TODO: Proton and helium measurements need to be corrected for effects determined post-launch,
         # cf. chapter 2.3 of https://www.ieap.uni-kiel.de/et/ag-heber/costep/materials/L2_spec_ephin.pdf
         # Until this correction has been implemented here, these data products are set to -9e9.
         # Setting use_uncorrected_data_on_own_risk=True skips this replacement, so that the uncorrected
         # data can be obtained at own risk!
         if use_uncorrected_data_on_own_risk:
             # warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
-            custom_warning("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            custom_warning("SOHO/EPHIN proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
         else:
+            custom_notification("SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!")
             df.P4 = -9e9
             df.P8 = -9e9
             df.P25 = -9e9
@@ -392,7 +393,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_he25 = '25 - 53 MeV/n'
         if max(fmodes)==2:
             # warnings.warn('Careful: EPHIN ring off!')
-            custom_warning('Careful: EPHIN ring off!')
+            custom_warning('SOHO/EPHIN ring is off! This means high risk of contaminated measurements!')
 
         # failure mode D since 4 Oct 2017:
         # dates[-1].date() is enddate, used to catch cases when enddate is a string
@@ -402,7 +403,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             # dates[0].date() is startdate, used to catch cases when startdate is a string
             if dates[0].date() <= dt.date(2017, 10, 4):
                 # warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
-                custom_warning('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                custom_warning('SOHO/EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
 
         # careful!
         # adjusting the position of the timestamp manually.
