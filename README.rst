@@ -21,6 +21,7 @@ seppy
 
 So far combines loaders for the following instruments into one PyPI package:
 
+- BepiColombo: SIXS-P
 - Parker Solar Probe: ISOIS
 - SOHO: CELIAS, COSTEP-EPHIN, ERNE
 - Solar Orbiter: EPD (STEP, EPT, HET)*, MAG
