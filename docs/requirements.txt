@@ -1,0 +1,9 @@
+ipython
+nbsphinx
+nbsphinx_link
+numpydoc
+seppy
+sphinx
+sphinx-automodapi
+sphinx-copybutton
+sphinx_rtd_theme
