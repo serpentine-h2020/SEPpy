@@ -14,6 +14,9 @@ from sunpy.coordinates import get_horizons_coord
 
 
 def custom_formatwarning(message, *args, **kwargs):
+    """
+    :meta private:
+    """
     # ignore everything except the message
     RED = '\033[91m'
     ENDC = '\033[0m'
@@ -22,6 +25,9 @@ def custom_formatwarning(message, *args, **kwargs):
 
 
 def custom_formatnotification(message, *args, **kwargs):
+    """
+    :meta private:
+    """
     # ignore everything except the message
     YELLOW = '\033[93m'
     ENDC = '\033[0m'
@@ -31,6 +37,9 @@ def custom_formatnotification(message, *args, **kwargs):
 
 
 def custom_warning(message):
+    """
+    :meta private:
+    """
     formatwarning_orig = warnings.formatwarning
     warnings.formatwarning = custom_formatwarning
     warnings.warn(message)
@@ -39,6 +48,9 @@ def custom_warning(message):
 
 
 def custom_notification(message):
+    """
+    :meta private:
+    """
     formatwarning_orig = warnings.formatwarning
     warnings.formatwarning = custom_formatnotification
     warnings.warn(message)
@@ -50,8 +62,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     """
     Resamples a Pandas Dataframe or Series to a new frequency.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     df : pd.DataFrame or pd.Series
             The dataframe or series to resample
     resample : str
@@ -64,8 +76,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
             input dataframe/series (‘start’), or at the start of the day
             (‘start_day’)
 
-    Returns:
-    ----------
+    Returns
+    -------
     df : pd.DataFrame or Series, depending on the input
     """
     try:
@@ -87,14 +99,14 @@ def flux2series(flux, dates, cadence=None):
     Converts an array of observed particle flux + timestamps into a pandas series
     with the desired cadence.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     flux: an array of observed particle fluxes
     dates: an array of corresponding dates/times
     cadence: str - desired spacing between the series elements e.g. '1s' or '5min'
 
-    Returns:
-    ----------
+    Returns
+    -------
     flux_series: Pandas Series object indexed by the resampled cadence
     """
 
@@ -112,6 +124,9 @@ def flux2series(flux, dates, cadence=None):
 
 
 def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
+    """
+    :meta private:
+    """
     # side is the index of the file here
     try:
         try:
@@ -143,6 +158,9 @@ def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
 
 
 def bepi_sixs_load(startdate, enddate, side, path, pos_timestamp='center'):
+    """
+    :meta private:
+    """
     dates = pd.date_range(startdate, enddate)
 
     # read files into Pandas dataframes:
@@ -163,7 +181,7 @@ def bepi_sixs_load(startdate, enddate, side, path, pos_timestamp='center'):
 
 def calc_av_en_flux_sixs(df, channel, species):
     """
-    This function averages the flux of two energy channels of BepiColombo/SIXS into a combined energy channel
+    This function averages the flux of two energy channels of BepiColombo/SIXS-P into a combined energy channel
     channel numbers counted from 1
 
     Parameters
@@ -181,6 +199,8 @@ def calc_av_en_flux_sixs(df, channel, species):
         channel-averaged flux
     en_channel_string: str
         string containing the energy information of combined channel
+
+    :meta private:
     """
 
     # define constant geometric factors

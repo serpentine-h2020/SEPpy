@@ -1968,7 +1968,7 @@ class Event:
         Makes an interactive time-shift plot
 
         Parameters:
-        ----------
+        -----------
         view : str or None
                     Viewing direction for the chosen sensor
         selection : 2-tuple
