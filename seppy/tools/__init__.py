@@ -1,4 +1,3 @@
-import copy
 import os
 import datetime
 import warnings
@@ -45,9 +44,42 @@ PSP_EPIHI_VIEWINGS = ('A', 'B')
 
 class Event:
 
-    def __init__(self, start_date, end_date, spacecraft, sensor,
-                 species, data_level, data_path, viewing=None, radio_spacecraft=None,
+    def __init__(self, start_date, end_date, spacecraft, sensor, species,
+                 data_level, data_path, viewing=None, radio_spacecraft=None,
                  threshold=None):
+        """
+        Initialize the Event object, for which the analysis functions can be
+        run. This will download and read-in the necessary data.
+
+        Parameters
+        ----------
+        start_date : datetime or str
+            Start date for data loading
+        end_date : datetime or str
+            End date for data loading
+        spacecraft : str
+            Selected spacecraft; supported are 'PSP', 'SOHO', 'Solar Orbiter',
+            'STEREO-A', 'STEREO-B', 'Wind'
+        sensor : str
+            Selected instrument. Supported options depend on spacecraft
+        species : str
+            Selected species. Depending on instrument, this could be
+            'electrons', 'protons', or 'ions'
+        data_level : str
+            Selected data level. Usually 'l2'.
+        data_path : str
+            Full local path where the downloaded data should be stored.
+        viewing : str, optional
+            Selected viewing direction; possible options depend on instrument.
+            By default None
+        radio_spacecraft : tuple of str, optional
+            Spacecraft from which radio spectrogram should be added. Supported
+            are ('ahead', 'STEREO-A') and ('behind', 'STEREO-B'). By default
+            None
+        threshold : int or float, optional
+            Only applies to Wind/3DP. Replace all FLUX values above given
+            number with np.nan, by default None
+        """
 
         if spacecraft == "Solar Orbiter":
             spacecraft = "solo"
@@ -1327,7 +1359,7 @@ class Event:
 
                 if self.sensor == 'ephin':
                     # convert single-element "channels" list to integer
-                    if type(channels) == list:
+                    if type(channels) is list:
                         if len(channels) == 1:
                             channels = channels[0]
                         else:
@@ -1352,7 +1384,7 @@ class Event:
         if self.spacecraft == 'wind':
             if self.sensor == '3dp':
                 # convert single-element "channels" list to integer
-                if type(channels) == list:
+                if type(channels) is list:
                     if len(channels) == 1:
                         channels = channels[0]
                     else:
@@ -1379,7 +1411,7 @@ class Event:
                     en_channel_string = self.current_e_energies['channels_dict_df']['Bins_Text'][f'ENERGY_{channels}']
 
         if self.spacecraft.lower() == 'bepi':
-            if type(channels) == list:
+            if type(channels) is list:
                 if len(channels) == 1:
                     # convert single-element "channels" list to integer
                     channels = channels[0]
