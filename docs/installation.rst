@@ -7,4 +7,4 @@ It can be installed from `PyPI <https://pypi.org/project/seppy/>`_ using:
 
 .. code:: bash
 
-    pip install solarmach
+    pip install seppy
