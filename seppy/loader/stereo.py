@@ -502,7 +502,7 @@ def calc_av_en_flux_SEPT(df, channels_dict_df, avg_channels):
     return avg_flux, new_ch_string
 
 
-def calc_av_en_flux_HET(df, channels_dict_df, avg_channels, species):
+def calc_av_en_flux_ST_HET(df, channels_dict_df, avg_channels, species):
     """
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
