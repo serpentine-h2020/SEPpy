@@ -1,12 +1,12 @@
 
 import datetime
-import psutil
 import warnings
 
 import astropy.constants as const
 import astropy.units as u
 import numpy as np
 import pandas as pd
+import psutil
 import sunpy.sun.constants as sconst
 from sunpy.coordinates import get_horizons_coord
 
