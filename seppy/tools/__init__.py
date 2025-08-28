@@ -19,6 +19,7 @@ from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
 from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df
+from solo_epd_loader import combine_channels as solo_epd_combine_channels
 
 
 # This is to get rid of this specific warning:
@@ -649,218 +650,162 @@ class Event:
             #     self.current_df_e = self.df_e_4
             #     self.current_energies = self.energies_4
 
-    def calc_av_en_flux_HET(self, df, energies, en_channel):
-
-        """This function averages the flux of several
-        energy channels of SolO/HET into a combined energy channel
-        channel numbers counted from 0
-
-        Parameters
-        ----------
-        df : pd.DataFrame DataFrame containing HET data
-            DataFrame containing HET data
-        energies : dict
-            Energy dict returned from epd_loader (from Jan)
-        en_channel : int or list
-            energy channel or list with first and last channel to be used
-        species : string
-            'e', 'electrons', 'p', 'i', 'protons', 'ions'
-
-        Returns
-        -------
-        pd.DataFrame
-            flux_out: contains channel-averaged flux
-
-        Raises
-        ------
-        Exception
-            [description]
-        """
-
-        species = self.species
-
-        try:
-
-            if species not in ['e', 'electrons', 'p', 'protons', 'H']:
-
-                raise ValueError("species not defined. Must by one of 'e',\
-                                 'electrons', 'p', 'protons', 'H'")
-
-        except ValueError as error:
-
-            print(repr(error))
-            raise
-
-        if species in ['e', 'electrons']:
-
-            en_str = energies['Electron_Bins_Text']
-            bins_width = 'Electron_Bins_Width'
-            flux_key = 'Electron_Flux'
-
-        if species in ['p', 'protons', 'H']:
-
-            en_str = energies['H_Bins_Text']
-            bins_width = 'H_Bins_Width'
-            flux_key = 'H_Flux'
-
-            if flux_key not in df.keys():
-
-                flux_key = 'H_Flux'
-
-        if type(en_channel) == list:
-
-            # An IndexError here is caused by invalid channel choice
-            try:
-                en_channel_string = en_str[en_channel[0]].flat[0].split()[0] + ' - '\
-                    + en_str[en_channel[-1]].flat[0].split()[2] + ' ' +\
-                    en_str[en_channel[-1]].flat[0].split()[3]
-
-            except IndexError:
-                raise Exception(f"{en_channel} is an invalid channel or a combination of channels!")
-
-            if len(en_channel) > 2:
-
-                raise Exception('en_channel must have len 2 or less!')
-
-            if len(en_channel) == 2:
-
-                DE = energies[bins_width]
-
-                for bins in np.arange(en_channel[0], en_channel[-1] + 1):
-
-                    if bins == en_channel[0]:
-
-                        I_all = df[flux_key].values[:, bins] * DE[bins]
-
-                    else:
-
-                        I_all = I_all + df[flux_key].values[:, bins] * DE[bins]
-
-                DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1] + 1)])
-                flux_av_en = pd.Series(I_all/DE_total, index=df.index)
-                flux_out = pd.DataFrame({'flux': flux_av_en}, index=df.index)
-
-            else:
-
-                en_channel = en_channel[0]
-                flux_out = pd.DataFrame({'flux':
-                                        df[flux_key].values[:, en_channel]},
-                                        index=df.index)
-
-        else:
-
-            flux_out = pd.DataFrame({'flux':
-                                    df[flux_key].values[:, en_channel]},
-                                    index=df.index)
-            en_channel_string = en_str[en_channel]
-
-        return flux_out, en_channel_string
-
-    def calc_av_en_flux_EPT(self, df, energies, en_channel):
-
-        """This function averages the flux of several energy
-        channels of EPT into a combined energy channel
-        channel numbers counted from 0
-
-        Parameters
-        ----------
-        df : pd.DataFrame DataFrame containing EPT data
-            DataFrame containing EPT data
-        energies : dict
-            Energy dict returned from epd_loader (from Jan)
-        en_channel : int or list
-            energy channel number(s) to be used
-        species : string
-            'e', 'electrons', 'p', 'i', 'protons', 'ions'
-
-        Returns
-        -------
-        pd.DataFrame
-            flux_out: contains channel-averaged flux
-
-        Raises
-        ------
-        Exception
-            [description]
-        """
-
-        species = self.species
-
-        try:
-
-            if species not in ['e', 'electrons', 'p', 'i', 'protons', 'ions']:
-
-                raise ValueError("species not defined. Must by one of 'e',"
-                                 "'electrons', 'p', 'i', 'protons', 'ions'")
-
-        except ValueError as error:
-            print(repr(error))
-            raise
-
-        if species in ['e', 'electrons']:
-
-            bins_width = 'Electron_Bins_Width'
-            flux_key = 'Electron_Flux'
-            en_str = energies['Electron_Bins_Text']
-
-        if species in ['p', 'i', 'protons', 'ions']:
-
-            bins_width = 'Ion_Bins_Width'
-            flux_key = 'Ion_Flux'
-            en_str = energies['Ion_Bins_Text']
-
-            if flux_key not in df.keys():
-
-                flux_key = 'H_Flux'
-
-        if type(en_channel) == list:
-
-            # An IndexError here is caused by invalid channel choice
-            try:
-                en_channel_string = en_str[en_channel[0]].flat[0].split()[0] + ' - '\
-                    + en_str[en_channel[-1]].flat[0].split()[2] + ' '\
-                    + en_str[en_channel[-1]].flat[0].split()[3]
-
-            except IndexError:
-                raise Exception(f"{en_channel} is an invalid channel or a combination of channels!")
-
-            if len(en_channel) > 2:
-
-                raise Exception('en_channel must have len 2 or less!')
-
-            if len(en_channel) == 2:
-
-                DE = energies[bins_width]
-
-                for bins in np.arange(en_channel[0], en_channel[-1]+1):
-
-                    if bins == en_channel[0]:
-
-                        I_all = df[flux_key].values[:, bins] * DE[bins]
-
-                    else:
-
-                        I_all = I_all + df[flux_key].values[:, bins] * DE[bins]
-
-                DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1]+1)])
-                flux_av_en = pd.Series(I_all/DE_total, index=df.index)
-                flux_out = pd.DataFrame({'flux': flux_av_en}, index=df.index)
-
-            else:
-
-                en_channel = en_channel[0]
-                flux_out = pd.DataFrame({'flux':
-                                        df[flux_key].values[:, en_channel]},
-                                        index=df.index)
-
-        else:
-
-            flux_out = pd.DataFrame({'flux':
-                                    df[flux_key].values[:, en_channel]},
-                                    index=df.index)
-            en_channel_string = en_str[en_channel]
-
-        return flux_out, en_channel_string
+    # def calc_av_en_flux_HET(self, df, energies, en_channel):
+    #     """This function averages the flux of several
+    #     energy channels of SolO/HET into a combined energy channel
+    #     channel numbers counted from 0
+
+    #     Parameters
+    #     ----------
+    #     df : pd.DataFrame DataFrame containing HET data
+    #         DataFrame containing HET data
+    #     energies : dict
+    #         Energy dict returned from epd_loader (from Jan)
+    #     en_channel : int or list
+    #         energy channel or list with first and last channel to be used
+    #     species : string
+    #         'e', 'electrons', 'p', 'i', 'protons', 'ions'
+
+    #     Returns
+    #     -------
+    #     pd.DataFrame
+    #         flux_out: contains channel-averaged flux
+
+    #     Raises
+    #     ------
+    #     Exception
+    #         [description]
+    #     """
+
+    #     species = self.species
+
+    #     try:
+    #         if species not in ['e', 'electrons', 'p', 'protons', 'H']:
+    #             raise ValueError("species not defined. Must by one of 'e',\
+    #                              'electrons', 'p', 'protons', 'H'")
+    #     except ValueError as error:
+    #         print(repr(error))
+    #         raise
+    #     if species in ['e', 'electrons']:
+    #         en_str = energies['Electron_Bins_Text']
+    #         bins_width = 'Electron_Bins_Width'
+    #         flux_key = 'Electron_Flux'
+    #     if species in ['p', 'protons', 'H']:
+    #         en_str = energies['H_Bins_Text']
+    #         bins_width = 'H_Bins_Width'
+    #         flux_key = 'H_Flux'
+    #         if flux_key not in df.keys():
+    #             flux_key = 'H_Flux'
+    #     if type(en_channel) == list:
+    #         # An IndexError here is caused by invalid channel choice
+    #         try:
+    #             en_channel_string = en_str[en_channel[0]].flat[0].split()[0] + ' - '\
+    #                 + en_str[en_channel[-1]].flat[0].split()[2] + ' ' +\
+    #                 en_str[en_channel[-1]].flat[0].split()[3]
+    #         except IndexError:
+    #             raise Exception(f"{en_channel} is an invalid channel or a combination of channels!")
+    #         if len(en_channel) > 2:
+    #             raise Exception('en_channel must have len 2 or less!')
+    #         if len(en_channel) == 2:
+    #             DE = energies[bins_width]
+    #             for bins in np.arange(en_channel[0], en_channel[-1] + 1):
+    #                 if bins == en_channel[0]:
+    #                     I_all = df[flux_key].values[:, bins] * DE[bins]
+    #                 else:
+    #                     I_all = I_all + df[flux_key].values[:, bins] * DE[bins]
+    #             DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1] + 1)])
+    #             flux_av_en = pd.Series(I_all/DE_total, index=df.index)
+    #             flux_out = pd.DataFrame({'flux': flux_av_en}, index=df.index)
+    #         else:
+    #             en_channel = en_channel[0]
+    #             flux_out = pd.DataFrame({'flux':
+    #                                     df[flux_key].values[:, en_channel]},
+    #                                     index=df.index)
+    #     else:
+    #         flux_out = pd.DataFrame({'flux':
+    #                                 df[flux_key].values[:, en_channel]},
+    #                                 index=df.index)
+    #         en_channel_string = en_str[en_channel]
+    #     return flux_out, en_channel_string
+
+    # def calc_av_en_flux_EPT(self, df, energies, en_channel):
+
+    #     """This function averages the flux of several energy
+    #     channels of EPT into a combined energy channel
+    #     channel numbers counted from 0
+
+    #     Parameters
+    #     ----------
+    #     df : pd.DataFrame DataFrame containing EPT data
+    #         DataFrame containing EPT data
+    #     energies : dict
+    #         Energy dict returned from epd_loader (from Jan)
+    #     en_channel : int or list
+    #         energy channel number(s) to be used
+    #     species : string
+    #         'e', 'electrons', 'p', 'i', 'protons', 'ions'
+
+    #     Returns
+    #     -------
+    #     pd.DataFrame
+    #         flux_out: contains channel-averaged flux
+
+    #     Raises
+    #     ------
+    #     Exception
+    #         [description]
+    #     """
+
+    #     species = self.species
+
+    #     try:
+    #         if species not in ['e', 'electrons', 'p', 'i', 'protons', 'ions']:
+    #             raise ValueError("species not defined. Must by one of 'e',"
+    #                              "'electrons', 'p', 'i', 'protons', 'ions'")
+    #     except ValueError as error:
+    #         print(repr(error))
+    #         raise
+    #     if species in ['e', 'electrons']:
+    #         bins_width = 'Electron_Bins_Width'
+    #         flux_key = 'Electron_Flux'
+    #         en_str = energies['Electron_Bins_Text']
+    #     if species in ['p', 'i', 'protons', 'ions']:
+    #         bins_width = 'Ion_Bins_Width'
+    #         flux_key = 'Ion_Flux'
+    #         en_str = energies['Ion_Bins_Text']
+    #         if flux_key not in df.keys():
+    #             flux_key = 'H_Flux'
+    #     if type(en_channel) == list:
+    #         # An IndexError here is caused by invalid channel choice
+    #         try:
+    #             en_channel_string = en_str[en_channel[0]].flat[0].split()[0] + ' - '\
+    #                 + en_str[en_channel[-1]].flat[0].split()[2] + ' '\
+    #                 + en_str[en_channel[-1]].flat[0].split()[3]
+    #         except IndexError:
+    #             raise Exception(f"{en_channel} is an invalid channel or a combination of channels!")
+    #         if len(en_channel) > 2:
+    #             raise Exception('en_channel must have len 2 or less!')
+    #         if len(en_channel) == 2:
+    #             DE = energies[bins_width]
+    #             for bins in np.arange(en_channel[0], en_channel[-1]+1):
+    #                 if bins == en_channel[0]:
+    #                     I_all = df[flux_key].values[:, bins] * DE[bins]
+    #                 else:
+    #                     I_all = I_all + df[flux_key].values[:, bins] * DE[bins]
+    #             DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1]+1)])
+    #             flux_av_en = pd.Series(I_all/DE_total, index=df.index)
+    #             flux_out = pd.DataFrame({'flux': flux_av_en}, index=df.index)
+    #         else:
+    #             en_channel = en_channel[0]
+    #             flux_out = pd.DataFrame({'flux':
+    #                                     df[flux_key].values[:, en_channel]},
+    #                                     index=df.index)
+    #     else:
+    #         flux_out = pd.DataFrame({'flux':
+    #                                 df[flux_key].values[:, en_channel]},
+    #                                 index=df.index)
+    #         en_channel_string = en_str[en_channel]
+    #     return flux_out, en_channel_string
 
     def print_info(self, title, info):
 
@@ -1253,36 +1198,28 @@ class Event:
         self.x_sigma = x_sigma
 
         if self.spacecraft == 'solo':
-
             if self.sensor == 'het':
-
                 if self.species in ['p', 'i']:
-
+                    # df_flux, en_channel_string =\
+                    #     self.calc_av_en_flux_HET(self.current_df_i, self.current_energies, channels)
                     df_flux, en_channel_string =\
-                        self.calc_av_en_flux_HET(self.current_df_i,
-                                                 self.current_energies,
-                                                 channels)
+                        solo_epd_combine_channels(self.current_df_i, self.current_energies, channels, sensor='HET')
                 elif self.species == 'e':
-
+                    # df_flux, en_channel_string =\
+                    #     self.calc_av_en_flux_HET(self.current_df_e, self.current_energies, channels)
                     df_flux, en_channel_string =\
-                        self.calc_av_en_flux_HET(self.current_df_e,
-                                                 self.current_energies,
-                                                 channels)
-
+                        solo_epd_combine_channels(self.current_df_e, self.current_energies, channels, sensor='HET')
             elif self.sensor == 'ept':
-
                 if self.species in ['p', 'i']:
-
+                    # df_flux, en_channel_string =\
+                    #     self.calc_av_en_flux_EPT(self.current_df_i, self.current_energies, channels)
                     df_flux, en_channel_string =\
-                        self.calc_av_en_flux_EPT(self.current_df_i,
-                                                 self.current_energies,
-                                                 channels)
+                        solo_epd_combine_channels(self.current_df_i, self.current_energies, channels, sensor='EPT')
                 elif self.species == 'e':
-
+                    # df_flux, en_channel_string =\
+                    #     self.calc_av_en_flux_EPT(self.current_df_e, self.current_energies, channels)
                     df_flux, en_channel_string =\
-                        self.calc_av_en_flux_EPT(self.current_df_e,
-                                                 self.current_energies,
-                                                 channels)
+                        solo_epd_combine_channels(self.current_df_e, self.current_energies, channels, sensor='EPT')
 
             elif self.sensor == "step":
 
