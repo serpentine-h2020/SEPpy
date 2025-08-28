@@ -115,6 +115,7 @@ class Event:
     def validate_data(self):
         """
         Provide an error msg if this object is initialized with a combination that yields invalid data products.
+        :meta private:
         """
 
         # SolO/STEP data before 22 Oct 2021 is not supported yet for non-'Pixel averaged' viewing
@@ -135,7 +136,8 @@ class Event:
 
     def update_onset_attributes(self, flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean):
         """
-        Method to update onset-related attributes, that are None by default and only have values after analyse() has been run.
+        Method to update onset-related attributes, that are None by default and only have values after find_onset() has been run.
+        :meta private:
         """
         self.flux_series = flux_series
         self.onset_stats = onset_stats
@@ -158,6 +160,9 @@ class Event:
                        }
 
     def update_viewing(self, viewing):
+        """
+        :meta private:
+        """
 
         invalid_viewing_msg = f"{viewing} is an invalid viewing direction for {self.spacecraft}/{self.sensor}!"
 
@@ -210,6 +215,9 @@ class Event:
     # are class attributes, and should probably be cleaned up at some point
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
+        """
+        :meta private:
+        """
 
         if self.spacecraft == 'solo':
 
@@ -393,6 +401,9 @@ class Event:
             return df_i, df_e, meta
 
     def load_all_viewing(self):
+        """
+        :meta private:
+        """
 
         if self.spacecraft == 'solo':
 
@@ -514,6 +525,9 @@ class Event:
             #     self.load_data(self.spacecraft, self.sensor, viewing='4', data_level='None')
 
     def choose_data(self, viewing):
+        """
+        :meta private:
+        """
 
         self.update_viewing(viewing)
 
@@ -808,6 +822,9 @@ class Event:
     #     return flux_out, en_channel_string
 
     def print_info(self, title, info):
+        """
+        :meta private:
+        """
 
         title_string = "##### >" + title + "< #####"
         print(title_string)
@@ -815,10 +832,10 @@ class Event:
         print('#'*len(title_string) + '\n')
 
     def mean_value(self, tb_start, tb_end, flux_series):
-
         """
         This function calculates the classical mean of the background period
         which is used in the onset analysis.
+        :meta private:
         """
 
         # replace date_series with the resampled version
@@ -826,11 +843,12 @@ class Event:
         background = flux_series.loc[(date >= tb_start) & (date < tb_end)]
         mean_value = np.nanmean(background)
         sigma = np.nanstd(background)
-
         return [mean_value, sigma]
 
     def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time):
-
+        """
+        :meta private:
+        """
         flux_series = flux_series[bg_end_time:]
 
         # assert date and the starting index of the averaging process
@@ -904,7 +922,9 @@ class Event:
     def onset_analysis(self, df_flux, windowstart, windowlen, windowrange, channels_dict,
                        channel='flux', cusum_window=30, yscale='log',
                        ylim=None, xlim=None):
-
+        """
+        :meta private:
+        """
         self.print_info("Energy channels", channels_dict)
         spacecraft = self.spacecraft.upper()
         sensor = self.sensor.upper()
@@ -1426,7 +1446,8 @@ class Event:
         return flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean
 
     # For backwards compatibility, make a copy of the `find_onset` function that is called `analyse` (which was its old name).
-    analyse = copy.copy(find_onset)
+    # Deactivated in August 2025. Remove later if no problems occur.
+    # analyse = copy.copy(find_onset)
 
     def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False,
                          other=None) -> None:
@@ -2234,6 +2255,8 @@ class Event:
         or
         lower_bounds : list of lower bounds of each energy channel in eVs
         higher_bounds : list of higher bounds of each energy channel in eVs
+
+        :meta private:
         """
 
         # First check by spacecraft, then by sensor
@@ -2402,6 +2425,7 @@ class Event:
     def calculate_particle_speeds(self):
         """
         Calculates average particle speeds by input channel energy boundaries.
+        :meta private:
         """
 
         if self.species in ["electron", 'e']:
@@ -2530,6 +2554,8 @@ class Event:
         -----------
         plotting_function : str
                             The name of the plotting routine that is run, e.g., 'onset_tool', 'dynamic_spectrum' or 'tsa'
+
+        :meta private:
         """
 
         # The original rcParams set by the user prior to running function
