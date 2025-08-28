@@ -5,14 +5,14 @@ SEPpy Documentation
 
 So far combines loaders for the following instruments into one PyPI package:
 
-- BepiColombo: SIXS-P
-- Parker Solar Probe: ISOIS
-- SOHO: CELIAS, COSTEP-EPHIN, ERNE
-- Solar Orbiter: EPD (STEP, EPT, HET)*, MAG
-- STEREO: HET, LET, SEPT, MAG
-- Wind: 3DP
+* BepiColombo: SIXS-P
+* Parker Solar Probe: ISOIS
+* SOHO: CELIAS, COSTEP-EPHIN, ERNE
+* Solar Orbiter: EPD [1]_ (STEP, EPT, HET), MAG
+* STEREO: HET, LET, SEPT, MAG
+* Wind: 3DP
 
-* Note that `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ is an independent `PyPI package <https://pypi.org/project/solo-epd-loader/>`_ that is loaded here for completeness.
+.. [1] Note that `solo-epd-loader <https://github.com/jgieseler/solo-epd-loader>`_ is an independent `PyPI package <https://pypi.org/project/solo-epd-loader/>`_ that is loaded here for completeness.
 
 .. note::
   Please cite the following paper if you use **SEPpy** in your publication:
@@ -32,4 +32,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-.. * :ref:`search`
