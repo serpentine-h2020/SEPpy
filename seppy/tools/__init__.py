@@ -115,6 +115,7 @@ class Event:
     def validate_data(self):
         """
         Provide an error msg if this object is initialized with a combination that yields invalid data products.
+
         :meta private:
         """
 
@@ -137,6 +138,7 @@ class Event:
     def update_onset_attributes(self, flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean):
         """
         Method to update onset-related attributes, that are None by default and only have values after find_onset() has been run.
+
         :meta private:
         """
         self.flux_series = flux_series
@@ -835,6 +837,7 @@ class Event:
         """
         This function calculates the classical mean of the background period
         which is used in the onset analysis.
+
         :meta private:
         """
 
@@ -2425,6 +2428,7 @@ class Event:
     def calculate_particle_speeds(self):
         """
         Calculates average particle speeds by input channel energy boundaries.
+        
         :meta private:
         """
 
