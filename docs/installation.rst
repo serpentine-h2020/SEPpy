@@ -1,5 +1,6 @@
+############
 Installation
-------------
+############
 
 `seppy` requires python >= 3.9.
 

@@ -23,7 +23,7 @@ So far combines loaders for the following instruments into one PyPI package:
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    installation
