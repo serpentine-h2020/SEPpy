@@ -26,6 +26,7 @@ dependencies = [
     "numpy",
     "pandas",
     "pooch",
+    "psutil",
     "requests",
     "solo-epd-loader",
     "sunpy>=4.1.0",

@@ -44,23 +44,19 @@ def wind3dp_download_fido(dataset, startdate, enddate, path=None, max_conn=5):
 
     Parameters
     ----------
-    dataset : {str}
-        Name of Wind/3DP dataset:
-        - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often
-            at 24 sec
-        - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV,
-            often at 24 sec
-        - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often
-            at 24 sec
-        - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV,
-            often at 24 sec
-    startdate, enddate : {datetime or str}
+    dataset : str
+        Name of Wind/3DP dataset: \n
+            - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often at 24 sec \n
+            - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV, often at 24 sec \n
+            - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often at 24 sec \n
+            - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV, often at 24 sec \n
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or
         "standard" datetime string (e.g., "2021/04/15") (enddate must always be
         later than startdate)
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    max_conn : {int}, optional
+    max_conn : int, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
     Returns
@@ -140,15 +136,11 @@ def wind3dp_download(dataset, startdate, enddate, path=None, **kwargs):
     Parameters
     ----------
     dataset : {str}
-        Name of Wind/3DP dataset:
-        - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often
-            at 24 sec
-        - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV,
-            often at 24 sec
-        - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often
-            at 24 sec
-        - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV,
-            often at 24 sec
+        Name of Wind/3DP dataset: \n
+            - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often at 24 sec \n
+            - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV, often at 24 sec \n
+            - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often at 24 sec \n
+            - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV, often at 24 sec
     startdate, enddate : {datetime or str}
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or
         "standard" datetime string (e.g., "2021/04/15") (enddate must always be
@@ -241,29 +233,25 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
 
     Parameters
     ----------
-    dataset : {str}
-        Name of Wind/3DP dataset:
-        - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often
-            at 24 sec
-        - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV,
-            often at 24 sec
-        - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often
-            at 24 sec
-        - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV,
-            often at 24 sec
-    startdate, enddate : {datetime or str}
+    dataset : str
+        Name of Wind/3DP dataset: \n
+            - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often at 24 sec \n
+            - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV, often at 24 sec \n
+            - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often at 24 sec \n
+            - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV, often at 24 sec \n
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or
         "standard" datetime string (e.g., "2021/04/15") (enddate must always be
         later than startdate)
-    resample : {str}, optional
+    resample : str, optional
         Frequency to which the original data (~24 seconds) is resamepled. Pandas
         frequency (e.g., '1min' or '1h') or None, by default "1min"
-    multi_index : {bool}, optional
+    multi_index : bool, optional
         Provide output for pitch-angle resolved data as Pandas Dataframe with
         multiindex, by default True
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    threshold : {int or float}, optional
+    threshold : int or float, optional
         Replace all FLUX values above 'threshold' with np.nan, by default None
 
     Returns

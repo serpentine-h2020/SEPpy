@@ -192,39 +192,40 @@ def _get_cdf_vars(cdf):
 
 def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_threshold=None, path=None, resample=None, all_columns=False):
     """
-    Downloads CDF files via SunPy/Fido from CDAWeb for CELIAS, EPHIN, ERNE onboard SOHO
+    Downloads CDF files via SunPy/Fido from CDAWeb for ISOIS onboard PSP
+
     Parameters
     ----------
-    dataset : {str}
-        Name of PSP dataset:
-            - 'PSP_ISOIS-EPIHI_L2-HET-RATES60'
-            - 'PSP_ISOIS-EPIHI_L2-HET-RATES3600' (higher coverage than 'RATES60' before mid-2021)
-            - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60'
-            - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60'
-            - 'PSP_ISOIS-EPILO_L2-PE'
+    dataset : str
+        Name of PSP dataset: \n
+            - 'PSP_ISOIS-EPIHI_L2-HET-RATES60' \n
+            - 'PSP_ISOIS-EPIHI_L2-HET-RATES3600' (higher coverage than 'RATES60' before mid-2021) \n
+            - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60' \n
+            - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60' \n
+            - 'PSP_ISOIS-EPILO_L2-PE' \n
             - 'PSP_ISOIS-EPILO_L2-IC'
-    startdate, enddate : {datetime or str}
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
     epilo_channel : string
         'E', 'F', 'G' (for 'EPILO PE'), or 'C', 'D', 'P', 'R', 'T' (for 'EPILO IC').
         EPILO chan, by default 'F'
-    epilo_threshold : {int or float}, optional
+    epilo_threshold : int or float, optional
         Replace ALL flux/countrate values above 'epilo_threshold' with np.nan, by default None.
         Only works for Electron count rates in 'PSP_ISOIS-EPILO_L2-PE' dataset
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    resample : {str}, optional
+    resample : str, optional
         resample frequency in format understandable by Pandas, e.g. '1min', by default None
-    all_columns : {boolean}, optional
+    all_columns : boolean, optional
         Whether to return all columns of the datafile for EPILO (or skip
         usually unneeded columns for better performance), by default False
     Returns
     -------
-    df : {Pandas dataframe}
+    df : Pandas dataframe
         See links above for the different datasets for a description of the dataframe columns
-    energies_dict : {dictionary}
-        Dictionary containing energy information.
+    energies_dict : dictionary
+        Dictionary containing energy information. \n
         NOTE: For EPIHI energy values are only loaded from the first day of the interval!
         For EPILO energy values are the mean of the whole loaded interval.
     """
