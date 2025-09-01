@@ -1,5 +1,5 @@
 ###################
-SEPpy Documentation
+SEPpy documentation
 ###################
 
 **A compendium of Python data loaders and analysis tools for in-situ measurements of Solar Energetic Particles (SEP)**
@@ -27,5 +27,6 @@ So far combines loaders for the following instruments into one PyPI package:
    :caption: Contents:
 
    installation
+   usage
    api
    genindex
