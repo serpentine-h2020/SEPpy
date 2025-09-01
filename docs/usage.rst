@@ -9,7 +9,7 @@ Data loading
 Please refer to the `data_loader.ipynb <https://nbviewer.org/github/serpentine-h2020/serpentine/blob/main/notebooks/sep_analysis_tools/data_loader.ipynb>`_ Jupyter Notebook provided through the `SERPENTINE project <https://serpentine-h2020.eu>`_ for examples of loading data from different spacecraft.
 
 *********
-SEP Tools
+SEP tools
 *********
 
 The main tools for SEP analysis provided in `seppy` are intended to be used in the corresponding Jupyter Notebooks provided through the `SERPENTINE project <https://serpentine-h2020.eu>`_:
