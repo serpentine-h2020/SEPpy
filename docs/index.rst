@@ -27,5 +27,6 @@ So far combines loaders for the following instruments into one PyPI package:
    :caption: Contents:
 
    installation
+   usage
    api
    genindex
