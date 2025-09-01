@@ -150,14 +150,14 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     # viewing "north", combined channel, electrons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
-    flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[1, 4], resample_period="5min", yscale='log', cusum_window=30)
+    flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[5, 10], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert not onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:31'
-    assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0334 - 0.0439 MeV electrons\n5min averaging, viewing: NORTH'
+    assert peak_time.isoformat().split('.')[0] == '2022-06-06T01:32:31'
+    assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0439 - 0.0682 MeV electrons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
     Event1.dynamic_spectrum(view='sun')

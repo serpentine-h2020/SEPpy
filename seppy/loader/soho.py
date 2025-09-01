@@ -78,35 +78,34 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
 
     Parameters
     ----------
-    dataset : {str}
-        Name of SOHO dataset:
-        - 'SOHO_COSTEP-EPHIN_L2-1MIN': SOHO COSTEP-EPHIN Level2 1 minute data
-            https://www.ieap.uni-kiel.de/et/ag-heber/costep/data.php
-            http://ulysses.physik.uni-kiel.de/costep/level2/rl2/
-        - 'SOHO_COSTEP-EPHIN_L3I-1MIN': SOHO COSTEP-EPHIN Level3 intensity 1 minute data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_COSTEP-EPHIN_L3I-1MIN
-        - 'SOHO_ERNE-LED_L2-1MIN': SOHO ERNE-LED Level2 1 minute data - VERY OFTEN NO DATA!
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-LED_L2-1MIN
-        - 'SOHO_ERNE-HED_L2-1MIN': SOHO ERNE-HED Level2 1 minute data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-HED_L2-1MIN
-    startdate, enddate : {datetime or str}
+    dataset : str
+        Name of SOHO dataset: \n
+        - 'SOHO_COSTEP-EPHIN_L2-1MIN': SOHO COSTEP-EPHIN Level2 1 minute data \n
+          https://www.ieap.uni-kiel.de/et/ag-heber/costep/data.php \n
+        - 'SOHO_COSTEP-EPHIN_L3I-1MIN': SOHO COSTEP-EPHIN Level3 intensity 1 minute data \n
+          https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_COSTEP-EPHIN_L3I-1MIN \n
+        - 'SOHO_ERNE-LED_L2-1MIN': SOHO ERNE-LED Level2 1 minute data - VERY OFTEN NO DATA! \n
+          https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-LED_L2-1MIN \n
+        - 'SOHO_ERNE-HED_L2-1MIN': SOHO ERNE-HED Level2 1 minute data \n
+          https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-HED_L2-1MIN
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    resample : {str}, optional
+    resample : str, optional
         Resample frequency in format understandable by Pandas, e.g. '1min', by default None
-    pos_timestamp : {str}, optional
+    pos_timestamp : str, optional
         change the position of the timestamp: 'center' or 'start' of the accumulation interval,
         or 'original' to do nothing, by default 'center'.
-    max_conn : {int}, optional
+    max_conn : int, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
     Returns
     -------
-    df : {Pandas dataframe}
+    df : Pandas dataframe
         See links above for the different datasets for a description of the dataframe columns
-    metadata : {dict}
+    metadata : dict
         Dictionary containing different metadata, e.g., energy channels
     """
     # Catch old default value for pos_timestamp

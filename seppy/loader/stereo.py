@@ -425,40 +425,40 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
 
     Parameters
     ----------
-    instrument : {str}
-        Name of STEREO instrument:
-        - 'HET': STEREO IMPACT/HET Level 1 Data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_HET
-        - 'LET': STEREO IMPACT/LET Level 1 Data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_LET
-        - 'MAG': STEREO IMPACT/MAG Magnetic Field Vectors (RTN or SC => mag_coord)
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_RTN
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_SC
-        - 'MAGB': STEREO IMPACT/MAG Burst Mode (~0.03 sec) Magnetic Field Vectors (RTN or SC => mag_coord)
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_RTN
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_SC
-       - 'MAGPLASMA': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L2_MAGPLASMA_1M
-        - 'SEPT': STEREO IMPACT/SEPT Level 2 Data
-    startdate, enddate : {datetime or str}
+    instrument : str
+        Name of STEREO instrument: \n
+            - 'HET': STEREO IMPACT/HET Level 1 Data \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_HET \n
+            - 'LET': STEREO IMPACT/LET Level 1 Data \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_LET \n
+            - 'MAG': STEREO IMPACT/MAG Magnetic Field Vectors (RTN or SC => mag_coord) \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_RTN \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_SC \n
+            - 'MAGB': STEREO IMPACT/MAG Burst Mode (~0.03 sec) Magnetic Field Vectors (RTN or SC => mag_coord) \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_RTN \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_SC \n
+            - 'MAGPLASMA': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L2_MAGPLASMA_1M \n
+            - 'SEPT': STEREO IMPACT/SEPT Level 2 Data
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
-    spacecraft : {str}, optional
+    spacecraft : str, optional
         Name of STEREO spacecraft: 'ahead' or 'behind', by default 'ahead'
-    mag_coord : {str}, optional
+    mag_coord : str, optional
         Coordinate system for MAG: 'RTN' or 'SC', by default 'RTN'
-    sept_species : {str}, optional
+    sept_species : str, optional
         Particle species for SEPT: 'e'lectrons or 'p'rotons (resp. ions), by default 'e'
-    sept_viewing : {str}, optional
+    sept_viewing : str, optional
         Viewing direction for SEPT: 'sun', 'asun', 'north', or 'south', by default 'sun'
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    resample : {str}, optional
+    resample : str, optional
         resample frequency in format understandable by Pandas, e.g. '1min', by default None
-    pos_timestamp : {str}, optional
+    pos_timestamp : str, optional
         change the position of the timestamp: 'center' or 'start' of the accumulation interval,
         or 'original' to do nothing, by default 'center'.
-    max_conn : {int}, optional
+    max_conn : int, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
 
@@ -631,7 +631,7 @@ def calc_av_en_flux_SEPT(df, channels_dict_df, avg_channels):
     return avg_flux, new_ch_string
 
 
-def calc_av_en_flux_HET(df, channels_dict_df, avg_channels, species):
+def calc_av_en_flux_ST_HET(df, channels_dict_df, avg_channels, species):
     """
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
