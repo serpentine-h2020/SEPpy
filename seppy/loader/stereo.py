@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import cdflib
+import copy
 import glob
 import os
 import pooch
@@ -533,3 +534,7 @@ def calc_av_en_flux_ST_HET(df, channels_dict_df, avg_channels, species):
     new_ch_string = f'{energy_low} - {energy_up} MeV'
 
     return avg_flux, new_ch_string
+
+
+# for backwards compatibility
+calc_av_en_flux_HET = copy.copy(calc_av_en_flux_ST_HET)
