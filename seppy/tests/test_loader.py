@@ -28,7 +28,7 @@ def test_psp_load_online():
     df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
                               enddate="2021/06/01", path=None, resample="1min")
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (48, 1304)
+    assert df.shape == (48, 1428)
     assert meta['H_ENERGY_LABL'].flatten()[0] == '  6.7 -   8.0 MeV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['B_H_Uncertainty_14'])) == 48
@@ -48,6 +48,22 @@ def test_psp_load_online():
     assert meta3['H_ChanP_Energy']['H_ChanP_Energy_E0_P0'] == np.float32(49.82931)
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df3['H_Flux_ChanP_E46_P79'])) == 57
+    #
+    df4, meta4 = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-LET1-RATES60', startdate="2021/05/31",
+                              enddate="2021/06/01", path=None, resample="1min")
+    assert isinstance(df4, pd.DataFrame)
+    assert df4.shape == (49, 2472)
+    assert meta4['H_ENERGY_LABL'].flatten()[0] == '  0.6 -   0.7 MeV'
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df4['A_He_Flux_19'])) == 49
+    #
+    df5, meta5 = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-LET2-RATES60', startdate="2021/05/31",
+                              enddate="2021/06/01", path=None, resample="1min")
+    assert isinstance(df5, pd.DataFrame)
+    assert df5.shape == (49, 1202)
+    assert meta5['H_ENERGY_LABL'].flatten()[0] == '  0.6 -   0.7 MeV'
+    # Check that fillvals are replaced by NaN
+    assert np.sum(np.isnan(df5['LET2_C_PA'])) == 4
 
 
 # deactivate testing of PSP offline loading bc. the version is changing so often (JG 2024/03/26)
