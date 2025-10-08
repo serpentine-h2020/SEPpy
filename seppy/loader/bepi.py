@@ -66,7 +66,11 @@ def bepi_sixsp_l3_loader(startdate, enddate, resample=None, path=None, pos_times
     enddate : str or datetime-like
         end date
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by
+        default None. Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     path : str, optional
         local path where the files are/should be stored, by default None, in which case the sunpy download folder will be used.
     pos_timestamp : str, optional

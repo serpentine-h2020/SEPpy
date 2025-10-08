@@ -60,7 +60,11 @@ def custom_notification(message):
 
 def resample_df(df, resample, pos_timestamp="center", origin="start"):
     """
-    Resamples a Pandas Dataframe or Series to a new frequency.
+    Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
+    just a simple wrapper around the pandas resample function that is
+    calculating the mean of the data in the new time bins. This is not
+    necessarily the correct way to resample data, depending on the data type
+    (for example for errors)!
 
     Parameters
     ----------

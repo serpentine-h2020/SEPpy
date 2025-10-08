@@ -245,7 +245,11 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
         later than startdate)
     resample : str, optional
         Frequency to which the original data (~24 seconds) is resamepled. Pandas
-        frequency (e.g., '1min' or '1h') or None, by default "1min"
+        frequency (e.g., '1min' or '1h') or None, by default "1min".
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     multi_index : bool, optional
         Provide output for pitch-angle resolved data as Pandas Dataframe with
         multiindex, by default True

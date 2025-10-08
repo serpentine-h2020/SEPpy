@@ -94,7 +94,11 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     path : str, optional
         Local path for storing downloaded data, by default None
     resample : str, optional
-        Resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        Resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     pos_timestamp : str, optional
         change the position of the timestamp: 'center' or 'start' of the accumulation interval,
         or 'original' to do nothing, by default 'center'.
@@ -266,7 +270,11 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
     enddate : str
         end date
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     path : str, optional
         local path where the files are/should be stored, by default None
     all_columns : boolean, optional
