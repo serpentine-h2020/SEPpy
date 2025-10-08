@@ -1498,7 +1498,11 @@ class Event:
         xlim : 2-tuple of datetime strings (str, str)
                 Pandas-compatible datetime strings for the start and stop of the figure
         resample : str
-                Pandas-compatibe resampling string, e.g. '10min' or '30s'
+                Pandas-compatibe resampling string, e.g. '10min' or '30s'.
+                Note that this is just a simple wrapper around thepandas
+                resample function that is calculating the mean of the data in the new
+                time bins. This is not necessarily the correct way to resample data,
+                depending on the data type (for example for errors)!
         save : bool
                 Saves the image
         """
@@ -1968,7 +1972,11 @@ class Event:
         xlim : 2-tuple
                     The start and end point of the plot as pandas-compatible datetimes or strings
         resample : str
-                    Pandas-compatible resampling time-string, e.g. "2min" or "50s"
+                    Pandas-compatible resampling time-string, e.g. "2min" or "50s".
+                    Note that this is just a simple wrapper around thepandas
+                    resample function that is calculating the mean of the data in the new
+                    time bins. This is not necessarily the correct way to resample data,
+                    depending on the data type (for example for errors)!
         """
 
         import ipywidgets as widgets

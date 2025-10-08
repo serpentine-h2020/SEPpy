@@ -216,7 +216,11 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
     path : str, optional
         Local path for storing downloaded data, by default None
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     all_columns : boolean, optional
         Whether to return all columns of the datafile for EPILO (or skip
         usually unneeded columns for better performance), by default False

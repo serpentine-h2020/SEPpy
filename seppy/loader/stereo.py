@@ -96,7 +96,11 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
     viewing : str
         'sun', 'asun', 'north', 'south' - viewing direction of instrument
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     path : str, optional
         local path where the files are/should be stored, by default None
     all_columns : boolean, optional
@@ -326,7 +330,11 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
     path : str, optional
         Local path for storing downloaded data, by default None
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     pos_timestamp : str, optional
         change the position of the timestamp: 'center' or 'start' of the accumulation interval,
         or 'original' to do nothing, by default 'center'.
