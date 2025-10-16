@@ -2,9 +2,8 @@ ipython
 nbsphinx
 nbsphinx_link
 numpydoc
-psutil  # temporary until it's in seppy's released version's req's
-seppy
 sphinx
 sphinx-automodapi
 sphinx-copybutton
 sphinx_rtd_theme
+-e .
