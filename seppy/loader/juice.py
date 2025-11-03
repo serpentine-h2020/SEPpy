@@ -129,8 +129,8 @@ def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp
 
     # Resample the dataframe if requested
     if resample:
-        print("Data resampling not implemented yet!")
-        stop
+        exceptionmsg = "Data resampling not yet implemented for JUICE/RADEM!"
+        raise Exception(exceptionmsg)
 
     energies_dict, metadata_dict = juice_radem_load_metadata(filename=downloaded_files[0])
 
