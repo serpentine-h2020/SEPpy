@@ -7,6 +7,7 @@ import requests
 import sunpy
 from bs4 import BeautifulSoup
 from packaging.version import Version
+from seppy.util import resample_df
 from sunpy.timeseries import TimeSeries
 
 logger = pooch.get_logger()
@@ -127,10 +128,14 @@ def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp
     data = TimeSeries(downloaded_files, concatenate=True)
     df = data.to_dataframe()
 
-    # Resample the dataframe if requested
+    # drop string columns
+    df.drop(columns=['TIME_OBT'], inplace=True)
+
+    # convert TIME_UTC column from string to datetime
+    df['TIME_UTC'] = pd.to_datetime(df['TIME_UTC'])
+
     if resample:
-        exceptionmsg = "Data resampling not yet implemented for JUICE/RADEM!"
-        raise Exception(exceptionmsg)
+        df = resample_df(df, resample, pos_timestamp=pos_timestamp)
 
     energies_dict, metadata_dict = juice_radem_load_metadata(filename=downloaded_files[0])
 
