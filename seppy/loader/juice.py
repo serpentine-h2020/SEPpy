@@ -81,12 +81,14 @@ def juice_radem_download(date, path=None):
             #     print(f"Downloaded: {fname}")
             # else:
             #     print(f"Failed to download file: {file_response.status_code}")
+
+            return downloaded_file
         else:
             print("No suitable file found online.")
+            return None
     else:
         print(f"Failed to fetch the webpage: {response.status_code}")
-
-    return downloaded_file
+        return None
 
 
 def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp='center'):
