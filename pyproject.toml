@@ -30,6 +30,7 @@ dependencies = [
     "requests",
     "solo-epd-loader",
     "sunpy[all]>=4.1.0",
+    "tqdm",
 ]
 dynamic = ["version"]
 classifiers = [
