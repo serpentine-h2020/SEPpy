@@ -5,6 +5,7 @@ import pytest
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.bepi import bepi_sixsp_l3_loader
+from seppy.loader.juice import juice_radem_load
 from seppy.loader.psp import psp_isois_load
 from seppy.loader.soho import soho_load
 from seppy.loader.solo import mag_load
@@ -22,6 +23,38 @@ def test_bepi_sixs_load_online():
     assert df['Side2_P2'].mean() == pytest.approx(np.float64(0.1928595238095238))
     assert len(meta) == 48
     assert meta['Side0_Electron_Bins_str']['E4'] == '278 keV'
+
+
+def test_juice_radem_no_files_downloaded():
+    df, energies, metadata = juice_radem_load(startdate=dt.datetime(2020, 1, 1), enddate=dt.datetime(2020, 1, 1), path="/tmp")
+
+    # Assert: empty dataframe and empty dicts
+    assert isinstance(df, pd.DataFrame)
+    assert df.empty
+    assert energies == {}
+    assert metadata == {}
+
+
+def test_juice_radem_load_without_resample():
+    df, energies, metadata = juice_radem_load(startdate=dt.datetime(2025, 1, 1), enddate=dt.datetime(2025, 1, 1), resample=None, path=None)
+    assert "TIME_OBT" not in df.columns
+    assert pd.api.types.is_datetime64_any_dtype(df["TIME_UTC"])
+    assert "PROTONS_4" in df.columns
+    assert df.shape == (1440, 64)
+    assert df['PROTONS_5'].sum() == 51
+    assert energies['LABEL_PROTONS'][0][0] == 'P-Stack_Bin_1'
+    assert metadata['PROTONS']['FILLVAL'] == 4294967295
+
+
+def test_juice_radem_load_wit_resample():
+    df, energies, metadata = juice_radem_load(startdate=dt.datetime(2025, 1, 1), enddate=dt.datetime(2025, 1, 1), resample='1h', path=None, pos_timestamp="start")
+    assert "TIME_OBT" not in df.columns
+    assert pd.api.types.is_datetime64_any_dtype(df["TIME_UTC"])
+    assert "PROTONS_4" in df.columns
+    assert df.shape == (24, 64)
+    assert df['PROTONS_5'].sum() == pytest.approx(np.float64(0.8500000000000001))
+    assert energies['LABEL_PROTONS'][0][0] == 'P-Stack_Bin_1'
+    assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
 def test_psp_load_online():
