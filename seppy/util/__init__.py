@@ -1,5 +1,7 @@
 
 import datetime
+import glob
+import os
 import warnings
 
 import astropy.constants as const
@@ -9,6 +11,7 @@ import pandas as pd
 import psutil
 import sunpy.sun.constants as sconst
 from sunpy.coordinates import get_horizons_coord
+from tqdm.auto import tqdm
 
 # Utilities toolbox, contains helpful functions
 
@@ -482,3 +485,43 @@ def jupyterhub_data_path(path_org, path_hub='/home/jovyan/data'):
         return path_hub
     else:
         return path_org
+
+
+def remove_duplicate_cdf_files(path=None):
+    """
+    Removes duplicate .cdf files in the provided directory, keeping only the one with the highest version number.
+
+    Parameters
+    ----------
+    path : string, optional
+        Directory in which the .cdf files are. If None, current working directory will be used. By default None.
+
+    Returns
+    -------
+    deleted_files : list
+        List of deleted duplicate .cdf files.
+
+    Examples
+    --------
+    >>> from seppy.util import remove_duplicate_cdf_files
+    >>> deleted_files = remove_duplicate_cdf_files('/Users/johndoe/data/psp')
+    >>> print(deleted_files)
+    ['/Users/johndoe/data/psp/psp_isois-epihi_l2-het-rates60_20210401_v1.cdf',
+     '/Users/johndoe/data/psp/psp_isois-epihi_l2-het-rates60_20210402_v1.cdf']
+    """
+    if not path:
+        path = os.getcwd()
+    if path[-1] is not os.sep:
+        path += os.sep
+    all_cdf = glob.glob(f'{path}*.cdf')
+    print(f'Removing duplicate .cdf files in {path}') 
+    deleted_files = []
+    for cdf in tqdm(all_cdf):
+        cdf_wo_v = cdf.strip(cdf.split('_')[-1])
+        cdf_duplicates = glob.glob(f'{cdf_wo_v}*')
+        if len(cdf_duplicates) > 1:
+            cdf_duplicates.sort(reverse=True)
+            for dup in cdf_duplicates[1:]:
+                deleted_files.append(dup)
+                os.remove(dup)
+    return deleted_files
