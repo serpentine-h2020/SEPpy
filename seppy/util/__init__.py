@@ -507,8 +507,7 @@ def remove_duplicate_cdf_files(path=None):
     >>> deleted_files = remove_duplicate_cdf_files('/Users/johndoe/data/psp')
     Removing duplicate .cdf files in /Users/johndoe/data/psp/
     >>> print(deleted_files)
-    ['/Users/johndoe/data/psp/psp_isois-epihi_l2-het-rates60_20210401_v1.cdf',
-     '/Users/johndoe/data/psp/psp_isois-epihi_l2-het-rates60_20210402_v1.cdf']
+    []
     """
     if not path:
         path = os.getcwd()
