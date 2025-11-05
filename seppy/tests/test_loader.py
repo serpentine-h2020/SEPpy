@@ -42,7 +42,7 @@ def test_juice_radem_load_without_resample():
     assert "PROTONS_4" in df.columns
     assert df.shape == (1440, 64)
     assert df['PROTONS_5'].sum() == 51
-    assert energies['LABEL_PROTONS'][0][0] == 'P-Stack_Bin_1'
+    assert energies['LABEL_PROTONS'][0] == 'P-Stack_Bin_1'
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
@@ -53,7 +53,7 @@ def test_juice_radem_load_wit_resample():
     assert "PROTONS_4" in df.columns
     assert df.shape == (24, 64)
     assert df['PROTONS_5'].sum() == pytest.approx(np.float64(0.8500000000000001))
-    assert energies['LABEL_PROTONS'][0][0] == 'P-Stack_Bin_1'
+    assert energies['LABEL_PROTONS'][0] == 'P-Stack_Bin_1'
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
