@@ -92,7 +92,8 @@ def juice_radem_download(date, path=None):
 
 
 def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp='center'):
-    """Loads JUICE/RADEM cruise science data and returns it as Pandas dataframe
+    """Loads JUICE/RADEM cruise science data and returns it as Pandas DataFrame.
+    Note that the data is provided in counts and not converted to physical units (as of Nov 2025).
 
     Parameters
     ----------
@@ -111,6 +112,10 @@ def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp
     -------
     df : Pandas DataFrame
         DataFrame containing the JUICE/RADEM data
+    energies_dict : dict
+        Dictionary containing the JUICE/RADEM data energy and label information
+    metadata_dict : dict
+        Dictionary containing the JUICE/RADEM data metadata
     """
 
     # Generate list of dates between startdate and enddate
@@ -149,7 +154,9 @@ def juice_radem_load_metadata(filename):
 
     Returns
     -------
-    meta_dict : dict
+    energies_dict : dict
+        Dictionary containing the JUICE/RADEM data energy and label information
+    metadata_dict : dict
         Dictionary containing the JUICE/RADEM data metadata
     """
 
