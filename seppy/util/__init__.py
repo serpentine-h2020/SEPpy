@@ -331,10 +331,10 @@ def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
         datetime.datetime: inferred injection time.
     '''
 
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
 
-    if not type(sw_speed)==u.quantity.Quantity:
+    if type(sw_speed) is not u.quantity.Quantity:
         sw_speed = sw_speed * u.km/u.s
 
     mass_dict = {'p': const.m_p,
@@ -363,7 +363,7 @@ def energy2speed(species, kinetic_energy):
     Returns:
         astropy units: relativistic particle speed.
     '''
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return calc_particle_speed(mass_dict[species], kinetic_energy)
@@ -380,7 +380,7 @@ def speed2energy(species, speed):
     Returns:
         astropy units: kinetic energy
     '''
-    if not type(speed)==u.quantity.Quantity:
+    if type(speed) is not u.quantity.Quantity:
         speed = speed * u.m/u.s
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     gamma = 1/np.sqrt(1-speed**2/const.c**2)
@@ -399,7 +399,7 @@ def speed2momentum(species, speed):
     Returns:
         astropy units: relativistic particle momentum
     '''
-    if not type(speed)==u.quantity.Quantity:
+    if type(speed) is not u.quantity.Quantity:
         speed = speed * u.m/u.s
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return mass_dict[species] * speed
@@ -416,9 +416,9 @@ def energy2momentum(species, kinetic_energy):
     Returns:
         astropy units: relativistic particle momentum
     '''
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
-    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    # mass_dict = {'p': const.m_p, 'e': const.m_e}
     return speed2momentum(species, energy2speed(species, kinetic_energy))
 
 
@@ -438,7 +438,7 @@ def intensity2psd(species, kinetic_energy, intensity):
         import astropy.units as u
         f = intensity2psd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
     '''
-    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity or type(intensity) is not u.quantity.Quantity:
         print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
         return
     else:
@@ -463,7 +463,7 @@ def intensity2vsd(species, kinetic_energy, intensity):
         import astropy.units as u
         f = intensity2vsd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
     '''
-    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity or type(intensity) is not u.quantity.Quantity:
         print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
         return
     else:
