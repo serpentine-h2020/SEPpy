@@ -92,8 +92,8 @@ def juice_radem_download(date, path=None):
 
 
 def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp='center'):
-    """Loads JUICE/RADEM cruise science data and returns it as Pandas DataFrame.
-    Note that the data is provided in counts and not converted to physical units (as of Nov 2025).
+    """Download & load JUICE/RADEM cruise science data and returns it as Pandas DataFrame (and metadata dictionaries).
+    Note that the data is provided in counts and not converted to physical units (as of Nov 2025); also the instrument configuration changes over time.
 
     Parameters
     ----------
@@ -150,7 +150,7 @@ def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp
 
 
 def juice_radem_load_metadata(filename):
-    """Loads JUICE/RADEM cruise science data metadata and returns it as a dictionary
+    """Load JUICE/RADEM cruise science data metadata and return it as a dictionary
 
     Returns
     -------
