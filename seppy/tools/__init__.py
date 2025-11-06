@@ -143,6 +143,9 @@ class Event:
                        "bg_mean": self.bg_mean
                        }
 
+        if self.data_level == 'l3' and self.spacecraft != 'bepi':
+            raise Warning("Data level 'l3' is only supported for BepiColombo/SIXS-P data!")
+
         # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
         # because now it has to be run inside self.print_energies() to make sure that either
         # self.current_df, self.current_df_i or self.current_df_e exists, because print_energies() needs column
