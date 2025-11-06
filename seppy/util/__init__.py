@@ -87,6 +87,13 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     -------
     df : pd.DataFrame or Series, depending on the input
     """
+    # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
+    delta_resample = pd.to_timedelta(resample)
+    delta_original = df.index[1] - df.index[0]
+    if delta_resample < delta_original:
+        custom_warning(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. Be careful when resampling to a higher time resolution!")
+    elif delta_resample == delta_original:
+        custom_warning(f"Your resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should not average in this case, as it could offset the position of the timestamps!")
     try:
         df = df.resample(resample, origin=origin, label="left").mean()
         if pos_timestamp == 'start':
@@ -96,7 +103,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
         # if pos_timestamp == 'stop' or pos_timestamp == 'end':
         #     df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample))
     except ValueError:
-        raise ValueError(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
+        raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
     return df
 
