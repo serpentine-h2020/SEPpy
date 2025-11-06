@@ -64,8 +64,13 @@ radio_dict = {
     # "WIND (Coming soon!)": ("wind", "WIND")  # TODO: re-add when supported!
 }
 
-# Drop-downs for dynamic particle spectrum:
 spacecraft_drop = widgets.Dropdown(options=list_of_sc,
+                                   description="Spacecraft:",
+                                   disabled=False,
+                                   value="Solar Orbiter"
+                                   )
+
+spacecraft_drop2 = widgets.Dropdown(options=[sc for sc in list_of_sc if sc not in ["BepiColombo"]],
                                    description="Spacecraft:",
                                    disabled=False,
                                    value="Solar Orbiter"
@@ -85,7 +90,6 @@ species_drop = widgets.Dropdown(options=species_dict[(spacecraft_drop.value, sen
                                 description="Species:",
                                 disabled=False,
                                 )
-
 
 # A button to enable radio spectrum (Leave this out for now, sincde it doesn't work in the server as of 2022-09-30)
 radio_button = widgets.Checkbox(value=False,
