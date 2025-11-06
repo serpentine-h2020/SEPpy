@@ -7,7 +7,7 @@ A library to run the interactive user interface in SEP event onset determination
 import ipywidgets as widgets
 
 # a list of available spacecraft:
-list_of_sc = ["PSP", "SOHO", "Solar Orbiter", "STEREO-A", "STEREO-B", "Wind"]
+list_of_sc = ["BepiColombo", "PSP", "SOHO", "Solar Orbiter", "STEREO-A", "STEREO-B", "Wind"]
 
 stereo_instr = ["HET", "SEPT"]  # ["LET", "SEPT", "HET"]
 solo_instr = ["EPT", "HET", "STEP"]
@@ -20,7 +20,7 @@ sensor_dict = {
     "STEREO-A": stereo_instr,
     "STEREO-B": stereo_instr,
     "Solar Orbiter": solo_instr,
-    "Bepicolombo": bepi_instr,
+    "BepiColombo": bepi_instr,
     "SOHO": soho_instr,
     "PSP": psp_instr,
     "Wind": wind_instr
@@ -33,7 +33,7 @@ view_dict = {
                                 "Pixel 11", "Pixel 12", "Pixel 13", "Pixel 14", "Pixel 15"),
     ("Solar Orbiter", "EPT"): ("sun", "asun", "north", "south"),
     ("Solar Orbiter", "HET"): ("sun", "asun", "north", "south"),
-    ("Bepicolombo", "SIXS-P"): (0, 1, 2, 3, 4),
+    ("BepiColombo", "SIXS-P"): ('0', '1', '2', '3'),
     ("PSP", "isois-epihi"): ("A", "B"),
     ("PSP", "isois-epilo"): ('3', '7'),  # ('0', '1', '2', '3', '4', '5', '6', '7')
     ("Wind", "3DP"): ('omnidirectional', 'sector 0', 'sector 1', 'sector 2', 'sector 3', 'sector 4', 'sector 5', 'sector 6', 'sector 7')
@@ -49,7 +49,7 @@ species_dict = {
     ("Solar Orbiter", "STEP"): ("ions",),  # , "electrons"),
     ("Solar Orbiter", "EPT"): ("ions", "electrons"),
     ("Solar Orbiter", "HET"): ("protons", "electrons"),
-    ("Bepicolombo", "SIXS-P"): ("protons", "electrons"),
+    ("BepiColombo", "SIXS-P"): ("protons", "electrons"),
     ("SOHO", "ERNE-HED"): ("protons",),
     ("SOHO", "EPHIN"): ("electrons",),
     ("PSP", "isois-epihi"): ("protons", "electrons"),
@@ -68,6 +68,7 @@ radio_dict = {
 spacecraft_drop = widgets.Dropdown(options=list_of_sc,
                                    description="Spacecraft:",
                                    disabled=False,
+                                   value="Solar Orbiter"
                                    )
 
 sensor_drop = widgets.Dropdown(options=sensor_dict[spacecraft_drop.value],
@@ -149,6 +150,8 @@ def confirm_input(event_date: int, data_path: str, plot_path: str):
     print(f"Data_path: {data_path}")
     print(f"Plot_path: {plot_path}")
 
+    if spacecraft_drop.value == "BepiColombo":
+        spacecraft_drop_value = "bepi"
     if spacecraft_drop.value == "Solar Orbiter":
         spacecraft_drop_value = "solo"
     elif spacecraft_drop.value == "STEREO-A":
