@@ -1,5 +1,6 @@
 import os
 import datetime
+import sunpy
 import warnings
 import matplotlib.pyplot as plt
 import matplotlib.colors as cl
@@ -31,6 +32,15 @@ warnings.filterwarnings(action="ignore",
                         message="The input coordinates to pcolormesh are interpreted as cell centers, but are not monotonically increasing or \
                         decreasing. This may lead to incorrectly calculated cell edges, in which case, please supply explicit cell edges to pcolormesh.",
                         category=UserWarning)
+
+# omit some warnings
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+warnings.filterwarnings(action='ignore', message='All-NaN slice encountered', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='invalid value encountered in divide', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='No units provided for variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='astropy did not recognize units of', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='The variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+
 
 STEREO_SEPT_VIEWINGS = ("sun", "asun", "north", "south")
 WIND_3DP_VIEWINGS = ("omnidirectional", '0', '1', '2', '3', '4', '5', '6', '7')
