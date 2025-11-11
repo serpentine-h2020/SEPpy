@@ -144,7 +144,6 @@ def update_radio_options(val):
 
 
 def confirm_input(event_date: int, data_path: str, plot_path: str):
-
     print("You've chosen the following options:")
     print(f"Spacecraft: {spacecraft_drop.value}")
     print(f"Sensor: {sensor_drop.value}")
