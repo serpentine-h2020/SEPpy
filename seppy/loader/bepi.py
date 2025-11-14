@@ -157,7 +157,8 @@ def bepi_sixsp_l3_loader(startdate, enddate=None, resample=None, path=None, pos_
 
         # optional resampling:
         if isinstance(resample, str):
-            df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+            if len(df) > 0:
+                df = resample_df(df, resample, pos_timestamp=pos_timestamp)
     else:
         df = []
 
