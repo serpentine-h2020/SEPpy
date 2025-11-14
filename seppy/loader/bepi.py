@@ -56,14 +56,14 @@ def bepi_sixsp_download(date, path=None):
     return downloaded_file
 
 
-def bepi_sixsp_l3_loader(startdate, enddate, resample=None, path=None, pos_timestamp='center'):
+def bepi_sixsp_l3_loader(startdate, enddate=None, resample=None, path=None, pos_timestamp='center'):
     """Loads BepiColombo/SIXS-P level 3 data and returns it as Pandas dataframe together with a dictionary providing the energy ranges per channel
 
     Parameters
     ----------
     startdate : str or datetime-like
         start date
-    enddate : str or datetime-like
+    enddate : str or datetime-like, optional
         end date
     resample : str, optional
         resample frequency in format understandable by Pandas, e.g. '1min', by
@@ -109,9 +109,14 @@ def bepi_sixsp_l3_loader(startdate, enddate, resample=None, path=None, pos_times
 
     if not path:
         path = sunpy.config.get('downloads', 'download_dir') + os.sep
-    # create list of files to load:
+    #
+    if not enddate:
+        enddate = startdate
     startdate = sunpy.time.parse_time(startdate).to_datetime()
     enddate = sunpy.time.parse_time(enddate).to_datetime()
+    if startdate.date() == enddate.date():
+        enddate = enddate + pd.Timedelta('1D')
+    # create list of files to load:
     dates = pd.date_range(start=startdate.replace(day=1), end=enddate, freq='MS')
     filelist = []
     for i, doy in enumerate(dates.month):
@@ -136,6 +141,9 @@ def bepi_sixsp_l3_loader(startdate, enddate, resample=None, path=None, pos_times
         df.index = pd.to_datetime(df['TimeUTC'])
         df.index.name = 'TimeUTC'
         df.drop(['TimeUTC'], inplace=True, axis=1)
+
+        # shrink dataframe to requested time interval
+        df = df[(df.index >= pd.to_datetime(startdate, utc=True)) & (df.index <=  pd.to_datetime(enddate, utc=True))]
 
         # replace bad data with np.nan:
         # df = df.replace(-9999.900, np.nan)
