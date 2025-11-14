@@ -15,12 +15,15 @@ from seppy.loader.wind import wind3dp_load
 
 def test_bepi_sixs_load_online():
     startdate = dt.datetime(2020, 10, 9, 12, 0)
-    enddate = "2020/12/10 22:00:00"
-    df, meta = bepi_sixsp_l3_loader(startdate=startdate, enddate=enddate, resample="10min", path=None, pos_timestamp='center')
-    #
+    df, meta = bepi_sixsp_l3_loader(startdate=startdate, resample="10min", path=None, pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (8212, 309)
-    assert df['Side2_P2'].mean() == pytest.approx(np.float64(0.1928595238095238))
+    assert df.shape == (0, 309)
+    #
+    startdate = dt.datetime(2020, 10, 19, 12, 0)
+    df, meta = bepi_sixsp_l3_loader(startdate=startdate, resample="10min", path=None, pos_timestamp='center')
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (78, 309)
+    assert df['Side2_P2'].mean() == pytest.approx(np.float64(0.3066333333333333))
     assert len(meta) == 48
     assert meta['Side0_Electron_Bins_str']['E4'] == '278 keV'
 
