@@ -91,9 +91,9 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     delta_resample = pd.to_timedelta(resample)
     delta_original = df.index[1] - df.index[0]
     if delta_resample < delta_original:
-        custom_warning(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. Be careful when resampling to a higher time resolution!")
+        raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
     elif delta_resample == delta_original:
-        custom_warning(f"Your resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should not average in this case, as it could offset the position of the timestamps!")
+        custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
     try:
         df = df.resample(resample, origin=origin, label="left").mean()
         if pos_timestamp == 'start':
