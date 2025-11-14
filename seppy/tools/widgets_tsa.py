@@ -70,11 +70,6 @@ spacecraft_drop = widgets.Dropdown(options=list_of_sc,
                                    value="Solar Orbiter"
                                    )
 
-spacecraft_drop2 = widgets.Dropdown(options=[sc for sc in list_of_sc if sc not in ["BepiColombo"]],
-                                   description="Spacecraft:",
-                                   disabled=False,
-                                   value="Solar Orbiter"
-                                   )
 
 sensor_drop = widgets.Dropdown(options=sensor_dict[spacecraft_drop.value],
                                description="Sensor:",
