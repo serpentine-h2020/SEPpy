@@ -73,7 +73,6 @@ def test_juice_radem_load_wit_resample():
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning:sunpy")
 def test_psp_load_online():
     df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
                               enddate="2021/06/01", path=None, resample="1min")
