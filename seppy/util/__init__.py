@@ -89,7 +89,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     """
     # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
     delta_resample = pd.to_timedelta(resample)
-    delta_original = (df.index[-1] - df.index[-2]).ceil('s')  # round to full seconds to avoid weirdness
+    delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
     if delta_resample < delta_original:
         raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
     elif delta_resample == delta_original:
