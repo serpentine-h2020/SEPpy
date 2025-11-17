@@ -6,10 +6,22 @@ import datetime
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
+import sunpy
+import warnings
 
 
 # switch to non-plotting matplotlib backend to avoid showing all the figures:
 plt.switch_backend("Agg")
+
+
+# omit some warnings
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+warnings.filterwarnings(action='ignore', message='All-NaN slice encountered', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='invalid value encountered in divide', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!', category=UserWarning)
+warnings.filterwarnings(action='ignore', message='No units provided for variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='astropy did not recognize units of', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='The variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
 
 
 def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
