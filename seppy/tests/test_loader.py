@@ -2,6 +2,8 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import pytest
+import sunpy
+import warnings
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.bepi import bepi_sixsp_l3_loader
@@ -11,6 +13,17 @@ from seppy.loader.soho import soho_load
 from seppy.loader.solo import mag_load
 from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
+
+
+# omit some warnings
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+warnings.filterwarnings(action='ignore', message='All-NaN slice encountered', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='invalid value encountered in divide', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!', category=UserWarning)
+warnings.filterwarnings(action='ignore', message='No units provided for variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='astropy did not recognize units of', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='The variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+
 
 
 def test_bepi_sixs_load_online():
@@ -119,24 +132,24 @@ def test_psp_load_online():
 
 def test_soho_ephin_load_online():
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                         path=None, resample="1min", pos_timestamp='center')
+                         path=None, resample="2min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (1145, 14)
+    assert df.shape == (573, 14)
     assert meta['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
-    assert np.sum(np.isnan(df['E1300'])) == 444
+    assert np.sum(np.isnan(df['E1300'])) == 219
 
 
 def test_soho_ephin_load_offline():
     fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                         path=path, resample="1min", pos_timestamp=None)
+                         path=path, resample="2min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (1145, 14)
+    assert df.shape == (573, 14)
     assert meta['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
-    assert np.sum(np.isnan(df['E1300'])) == 444
+    assert np.sum(np.isnan(df['E1300'])) == 219
 
 
 def test_soho_erne_load_online():
