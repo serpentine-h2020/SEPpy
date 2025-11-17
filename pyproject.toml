@@ -87,6 +87,14 @@ python_files = [
   "test.py",
   "tests.py",
 ]
+filterwarnings = [
+  "ignore:All-NaN slice encountered:RuntimeWarning:",
+  "ignore:invalid value encountered in divide:RuntimeWarning:",
+  "ignore:SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!:UserWarning:",
+  "ignore:No units provided for variable:sunpy.util.SunpyUserWarning:sunpy.io._cdf",
+  "ignore:The variable:sunpy.util.SunpyUserWarning:sunpy.io._cdf",
+  "ignore:astropy did not recognize units of:sunpy.util.SunpyUserWarning:sunpy.io._cdf",
+]
 
 [tool.coverage.run]
 omit = [

@@ -15,17 +15,6 @@ from seppy.loader.stereo import stereo_load
 from seppy.loader.wind import wind3dp_load
 
 
-# omit some warnings
-warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
-warnings.filterwarnings(action='ignore', message='All-NaN slice encountered', category=RuntimeWarning)
-warnings.filterwarnings(action='ignore', message='invalid value encountered in divide', category=RuntimeWarning)
-warnings.filterwarnings(action='ignore', message='SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!', category=UserWarning)
-warnings.filterwarnings(action='ignore', message='No units provided for variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
-warnings.filterwarnings(action='ignore', message='astropy did not recognize units of', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
-warnings.filterwarnings(action='ignore', message='The variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
-
-
-
 def test_bepi_sixs_load_online():
     startdate = dt.datetime(2020, 10, 9, 12, 0)
     df, meta = bepi_sixsp_l3_loader(startdate=startdate, resample="10min", path=None, pos_timestamp='center')
