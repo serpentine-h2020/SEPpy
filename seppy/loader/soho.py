@@ -63,7 +63,7 @@ def _get_metadata(dataset, path_to_cdf):
         channels_dict_df_p = pd.DataFrame(cdf.varget('P_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_p['lower_E'] = cdf.varget("P_energy")-cdf.varget("P_energy_delta")
         channels_dict_df_p['upper_E'] = cdf.varget("P_energy")+cdf.varget("P_energy_delta")
-        channels_dict_df_p['DE'] = cdf.varget("P_energy_delta")
+        channels_dict_df_p['DE'] = 2*cdf.varget("P_energy_delta")  # obtain FULL width of energy channel!
         # channels_dict_df_p['mean_E'] = np.sqrt(channels_dict_df_p['upper_E'] * channels_dict_df_p['lower_E'])
         channels_dict_df_p['mean_E'] = cdf.varget("P_energy")
 
