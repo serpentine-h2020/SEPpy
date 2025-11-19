@@ -56,14 +56,16 @@ def _get_metadata(dataset, path_to_cdf):
         channels_dict_df_He = pd.DataFrame(cdf.varget('He_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_He['lower_E'] = cdf.varget("He_energy")-cdf.varget("He_energy_delta")
         channels_dict_df_He['upper_E'] = cdf.varget("He_energy")+cdf.varget("He_energy_delta")
-        channels_dict_df_He['DE'] = cdf.varget("He_energy_delta")
+        channels_dict_df_He['He_energy_delta'] = cdf.varget("He_energy_delta")
+        channels_dict_df_He['DE'] = cdf.varget("He_energy_delta")*2  # obtain FULL width of energy channel!
         # channels_dict_df_He['mean_E'] = np.sqrt(channels_dict_df_He['upper_E'] * channels_dict_df_He['lower_E'])
         channels_dict_df_He['mean_E'] = cdf.varget("He_energy")
 
         channels_dict_df_p = pd.DataFrame(cdf.varget('P_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_p['lower_E'] = cdf.varget("P_energy")-cdf.varget("P_energy_delta")
         channels_dict_df_p['upper_E'] = cdf.varget("P_energy")+cdf.varget("P_energy_delta")
-        channels_dict_df_p['DE'] = 2*cdf.varget("P_energy_delta")  # obtain FULL width of energy channel!
+        channels_dict_df_p['P_energy_delta'] = cdf.varget("P_energy_delta")
+        channels_dict_df_p['DE'] = cdf.varget("P_energy_delta")*2  # obtain FULL width of energy channel!
         # channels_dict_df_p['mean_E'] = np.sqrt(channels_dict_df_p['upper_E'] * channels_dict_df_p['lower_E'])
         channels_dict_df_p['mean_E'] = cdf.varget("P_energy")
 
@@ -146,6 +148,8 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
             df = data.to_dataframe()
 
             metadata = _get_metadata(dataset, downloaded_files[0])
+            if dataset.upper() == 'SOHO_ERNE-HED_L2-1MIN' or dataset.upper() == 'SOHO_ERNE-LED_L2-1MIN':
+                custom_warning(f'The format of "channels_dict_df_p" in the the metadata for {dataset} has been changed providing the full width of energy channels for DE (instead of the half)!')
 
             # remove this (i.e. following lines) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
