@@ -1397,13 +1397,13 @@ class Event:
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_SEPT(self.current_df_i,
-                                                 self.current_i_energies,
+                                                 self.current_i_energies['channels_dict_df_p'],
                                                  channels)
                     elif self.species == 'e':
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_SEPT(self.current_df_e,
-                                                 self.current_e_energies,
+                                                 self.current_e_energies['channels_dict_df_e'],
                                                  channels)
 
             except KeyError:
