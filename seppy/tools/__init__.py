@@ -2411,9 +2411,9 @@ class Event:
             # STEREO/SEPT energies come in two different objects
             if self.sensor == "sept":
                 if self.species in ("electron", 'e'):
-                    energy_df = self.current_e_energies
+                    energy_df = self.current_e_energies['channels_dict_df_e']
                 else:
-                    energy_df = self.current_i_energies
+                    energy_df = self.current_i_energies['channels_dict_df_p']
 
                 energy_ranges = energy_df["ch_strings"].values
 
