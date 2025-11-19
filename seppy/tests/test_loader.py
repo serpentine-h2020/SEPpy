@@ -2,8 +2,6 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import pytest
-import sunpy
-import warnings
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.bepi import bepi_sixsp_l3_loader
@@ -192,7 +190,7 @@ def test_stereo_sept_load_online():
                            path=None, resample="1min", pos_timestamp='center', sept_viewing='north')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
-    assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'
+    assert meta['channels_dict_df_e'].ch_strings[meta['channels_dict_df_e'].index==2].values[0] == '45.0-55.0 keV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['ch_2'])) == 371
 
@@ -205,7 +203,7 @@ def test_stereo_sept_load_offline():
                            path=path, resample="1min", pos_timestamp=None, sept_viewing='sun')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
-    assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'
+    assert meta['channels_dict_df_e'].ch_strings[meta['channels_dict_df_e'].index==2].values[0] == '45.0-55.0 keV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['ch_2'])) == 371
 
