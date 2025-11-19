@@ -17,7 +17,7 @@ To create/update the baseline images, run the following command from the base pa
 pytest --mpl-generate-path=seppy/tests/baseline seppy/tests/test_tools.py
 
 To run the tests locally, go to the base directory of the repository and run:
-pytest -ra --mpl --mpl-baseline-path=baseline --mpl-baseline-relative --mpl-generate-summary=html
+pytest -ra --mpl --mpl-baseline-path=baseline --mpl-baseline-relative --mpl-generate-summary=html seppy/tests/test_tools.py
 """
 
 
