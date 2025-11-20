@@ -2436,7 +2436,7 @@ class Event:
                 # Choose only the first 4 channels (E150, E300, E1300 and E3000)
                 # These are the only electron channels (rest are p and He), and we
                 # use only electron data here.
-                energy_ranges = [val for val in self.current_energies.values()][:4]
+                energy_ranges = [val for val in self.current_energies['energy_labels'].values()][:4]
             if self.sensor.lower() in ("ephin-5", "ephin-15"):
                 energy_ranges = [value for _, value in self.current_energies.items()]
 
