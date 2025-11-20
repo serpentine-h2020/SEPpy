@@ -14,7 +14,7 @@ import warnings
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 
-from seppy.util import resample_df
+from seppy.util import custom_notification, custom_warning, resample_df
 
 
 logger = pooch.get_logger()
@@ -283,8 +283,13 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
             delta_e = 0.2 * e_mean
         e_low = e_mean - delta_e
         e_high = e_mean + delta_e
-        energies = pd.concat([e_mean, delta_e, e_low, e_high], axis=1, keys=['mean_E', 'DE', 'lower_E', 'upper_E'])
+        energies = pd.concat([e_mean, delta_e, 2*delta_e, e_low, e_high], axis=1, keys=['mean_E', 'delta_e', 'DE', 'lower_E', 'upper_E'])
         energies['Bins_Text']= np.around(e_low/1e3, 2).astype('string') +' - '+ np.around(e_high/1e3, 2).astype('string') + ' keV'
+
+        for col in ['mean_E', 'delta_e', 'DE', 'lower_E', 'upper_E']:
+            energies[col] = energies[col]/1e6  # convert energies to MeV
+
+        custom_warning('The energy values in the metadata are now provided as MeV (previously eV)! Also DE is now 2*delta_e (previously just delta_e). Please adapt your scripts accordingly!')
 
         meta = {'channels_dict_df': energies,
                 'ENERGY_UNITS': metacdf.varattsget('ENERGY')['UNITS'],
