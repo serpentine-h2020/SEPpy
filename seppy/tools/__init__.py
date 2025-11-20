@@ -2554,11 +2554,12 @@ class Event:
             if energy_unit == "keV":
                 lower_bounds, higher_bounds = lower_bounds * 1e3, higher_bounds * 1e3
 
-            elif energy_unit == "MeV":
+            elif energy_unit == "MeV" or energy_unit == "MeV/n":
                 lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
 
             # This only happens with ephin, which has MeV as the unit of energy (Christian?)
             # Jan: It works fine with EPHIN, and we should NOT have a catch-all else here, as it may hide bugs with other instruments. I added a raise instead.
+            # Jan 2: Ok, so this did apply for STEP which has "MeV/n"! Added this above
             else:
                 # lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
                 raise ValueError("Unknown energy unit encountered when extracting channel energy values. Please report this issue!")
