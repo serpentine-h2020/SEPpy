@@ -2557,9 +2557,11 @@ class Event:
             elif energy_unit == "MeV":
                 lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
 
-            # This only happens with ephin, which has MeV as the unit of energy
+            # This only happens with ephin, which has MeV as the unit of energy (Christian?)
+            # Jan: It works fine with EPHIN, and we should NOT have a catch-all else here, as it may hide bugs with other instruments. I added a raise instead.
             else:
-                lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
+                # lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
+                raise ValueError("Unknown energy unit encountered when extracting channel energy values. Please report this issue!")
 
             return lower_bounds, higher_bounds
 
