@@ -121,7 +121,7 @@ def test_soho_ephin_load_online():
                          path=None, resample="2min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (573, 14)
-    assert meta['E1300'] == '0.67 - 10.4 MeV'
+    assert meta['energy_labels']['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['E1300'])) == 219
 
@@ -133,7 +133,7 @@ def test_soho_ephin_load_offline():
                          path=path, resample="2min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (573, 14)
-    assert meta['E1300'] == '0.67 - 10.4 MeV'
+    assert meta['energy_labels']['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['E1300'])) == 219
 

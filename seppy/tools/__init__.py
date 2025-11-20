@@ -1434,7 +1434,7 @@ class Event:
                             print("No multi-channel support for SOHO/EPHIN included yet! Select only one single channel.")
                     if self.species == 'e':
                         df_flux = self.current_df_e[f'E{channels}']
-                        en_channel_string = self.current_energies[f'E{channels}']
+                        en_channel_string = self.current_energies['energy_labels'][f'E{channels}']
 
                 if self.sensor in ("ephin-5", "ephin-15"):
                     if isinstance(channels, list):

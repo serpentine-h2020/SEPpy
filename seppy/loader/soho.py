@@ -428,7 +428,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
     else:
         df = []
 
-    meta = {'E150': '0.25 - 0.7 MeV',
+    energies = {'E150': '0.25 - 0.7 MeV',
             'E300': cs_e300,
             'E1300': cs_e1300,
             'E3000': '4.80 - 10.4 MeV',
@@ -441,6 +441,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             'H25': cs_he25,
             'H41': '40.9 - 53.0 MeV/n',
             'INT': '>25 MeV integral'}
+    meta = {'energy_labels': energies}
 
     return df, meta
 
