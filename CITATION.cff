@@ -37,7 +37,7 @@ authors:
   family-names: Vainio
   affiliation: University of Turku
   orcid: https://orcid.org/0000-0002-3298-2067
-version: 0.2.1
+version: 0.4.0
 date-released: 2025-04-24
 repository-code: https://github.com/serpentine-h2020/SEPpy
 license: BSD-3-Clause
