@@ -17,7 +17,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import resample_df
+from seppy.util import custom_notification, custom_warning, resample_df
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -137,11 +137,11 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
     echannels = {'bins': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
                  'ch_strings': ch_strings,
                  'DE': [0.0100, 0.0100, 0.0100, 0.0100, 0.0200, 0.0200, 0.0200, 0.0200, 0.0300, 0.0300, 0.0300, 0.0400, 0.0400, 0.0400, 0.0500],
-                 'mean_E': mean_E}
+                 'mean_E': np.array(mean_E)/1000.}
     pchannels = {'bins': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
                  'ch_strings': ['84.1-92.7 keV', '92.7-101.3 keV', '101.3-110.0 keV', '110.0-118.6 keV', '118.6-137.0 keV', '137.0-155.8 keV', '155.8-174.6 keV', '174.6-192.6 keV', '192.6-219.5 keV', '219.5-246.4 keV', '246.4-273.4 keV', ' 273.4-312.0 keV', '312.0-350.7 keV', '350.7-389.5 keV', '389.5-438.1 keV', '438.1-496.4 keV', '496.4-554.8 keV', ' 554.8-622.9 keV', '622.9-700.7 keV', '700.7-788.3 keV', '788.3-875.8 keV', '875.8- 982.8 keV', '982.8-1111.9 keV', '1111.9-1250.8 keV', '1250.8-1399.7 keV', '1399.7-1578.4 keV', '1578.4-1767.0 keV', '1767.0-1985.3 keV', '1985.3-2223.6 keV', '2223.6-6500.0 keV'],
                  'DE': [0.0086, 0.0086, 0.0087, 0.0086, 0.0184, 0.0188, 0.0188, 0.018, 0.0269, 0.0269, 0.027, 0.0386, 0.0387, 0.0388, 0.0486, 0.0583, 0.0584, 0.0681, 0.0778, 0.0876, 0.0875, 0.107, 0.1291, 0.1389, 0.1489, 0.1787, 0.1886, 0.2183, 0.2383, 4.2764],
-                 'mean_E': [88.30, 96.90, 105.56, 114.22, 127.47, 146.10, 164.93, 183.38, 205.61, 232.56, 259.55, 292.06, 330.78, 369.59, 413.09, 466.34, 524.79, 587.86, 660.66, 743.21, 830.90, 927.76, 1045.36, 1179.31, 1323.16, 1486.37, 1670.04, 1872.97, 2101.07, 3801.76]}
+                 'mean_E': np.array([88.30, 96.90, 105.56, 114.22, 127.47, 146.10, 164.93, 183.38, 205.61, 232.56, 259.55, 292.06, 330.78, 369.59, 413.09, 466.34, 524.79, 587.86, 660.66, 743.21, 830.90, 927.76, 1045.36, 1179.31, 1323.16, 1486.37, 1670.04, 1872.97, 2101.07, 3801.76])/1000.}
     # :channel dicts from Nina
 
     if species == 'ele':
@@ -163,6 +163,11 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
                 [f'ch_{i}' for i in channels_dict_df.index] + \
                 [f'err_ch_{i}' for i in channels_dict_df.index] + \
                 ['integration_time']
+
+    if species == 'ele':
+        meta = {'channels_dict_df_e': channels_dict_df}
+    elif species == 'ion':
+        meta = {'channels_dict_df_p': channels_dict_df}
 
     if not path:
         path = sunpy.config.get('downloads', 'download_dir') + os.sep
@@ -208,10 +213,12 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
         # optional resampling:
         if isinstance(resample, str):
             df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+        
+        custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
     else:
         df = []
 
-    return df, channels_dict_df
+    return df, meta
 
 
 # def _download_metafile(dataset, path=None):

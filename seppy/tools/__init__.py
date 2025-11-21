@@ -1,5 +1,6 @@
 import os
 import datetime
+import sunpy
 import warnings
 import matplotlib.pyplot as plt
 import matplotlib.colors as cl
@@ -12,6 +13,7 @@ from matplotlib import rcParams
 from matplotlib.dates import DateFormatter
 from matplotlib.ticker import ScalarFormatter
 from matplotlib.offsetbox import AnchoredText
+from seppy.loader.bepi import bepi_sixsp_l3_loader
 from seppy.loader.psp import calc_av_en_flux_PSP_EPIHI, calc_av_en_flux_PSP_EPILO, psp_isois_load
 from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
 from seppy.loader.solo import epd_load
@@ -30,6 +32,15 @@ warnings.filterwarnings(action="ignore",
                         message="The input coordinates to pcolormesh are interpreted as cell centers, but are not monotonically increasing or \
                         decreasing. This may lead to incorrectly calculated cell edges, in which case, please supply explicit cell edges to pcolormesh.",
                         category=UserWarning)
+
+# omit some warnings
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+warnings.filterwarnings(action='ignore', message='All-NaN slice encountered', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='invalid value encountered in divide', category=RuntimeWarning)
+warnings.filterwarnings(action='ignore', message='No units provided for variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='astropy did not recognize units of', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+warnings.filterwarnings(action='ignore', message='The variable', category=sunpy.util.SunpyUserWarning, module='sunpy.io._cdf')
+
 
 STEREO_SEPT_VIEWINGS = ("sun", "asun", "north", "south")
 WIND_3DP_VIEWINGS = ("omnidirectional", '0', '1', '2', '3', '4', '5', '6', '7')
@@ -58,15 +69,15 @@ class Event:
         end_date : datetime or str
             End date for data loading
         spacecraft : str
-            Selected spacecraft; supported are 'PSP', 'SOHO', 'Solar Orbiter',
-            'STEREO-A', 'STEREO-B', 'Wind'
+            Selected spacecraft; supported are 'BepiColombo', 'PSP', 'SOHO',
+            'Solar Orbiter', 'STEREO-A', 'STEREO-B', 'Wind'
         sensor : str
             Selected instrument. Supported options depend on spacecraft
         species : str
             Selected species. Depending on instrument, this could be
             'electrons', 'protons', or 'ions'
         data_level : str
-            Selected data level. Usually 'l2'.
+            Selected data level. Usually 'l2', sometime 'l3'.
         data_path : str
             Full local path where the downloaded data should be stored.
         viewing : str, optional
@@ -81,6 +92,8 @@ class Event:
             number with np.nan, by default None
         """
 
+        if spacecraft == "BepiColombo":
+            spacecraft = "bepi"
         if spacecraft == "Solar Orbiter":
             spacecraft = "solo"
         if spacecraft == "STEREO-A":
@@ -129,6 +142,9 @@ class Event:
                        "fig": self.fig,
                        "bg_mean": self.bg_mean
                        }
+
+        if self.data_level == 'l3' and self.spacecraft != 'bepi':
+            raise Warning("Data level 'l3' is only supported for BepiColombo/SIXS-P data!")
 
         # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
         # because now it has to be run inside self.print_energies() to make sure that either
@@ -425,14 +441,27 @@ class Event:
                 return df, meta
 
         if self.spacecraft.lower() == 'bepi':
-            df, meta = bepi_sixs_load(startdate=self.start_date,
-                                      enddate=self.end_date,
-                                      side=viewing,
-                                      path=self.data_path,
-                                      pos_timestamp='center')
-            df_i = df[[f"P{i}" for i in range(1, 10)]]
-            df_e = df[[f"E{i}" for i in range(1, 8)]]
-            return df_i, df_e, meta
+            if self.data_level.lower() == 'l2':
+                df, meta = bepi_sixs_load(startdate=self.start_date,
+                                          enddate=self.end_date,
+                                          side=viewing,
+                                          path=self.data_path,
+                                          pos_timestamp='center')
+                if len(df) > 0:
+                    df_i = df[[f"P{i}" for i in range(1, 10)]]
+                    df_e = df[[f"E{i}" for i in range(1, 8)]]
+                else:
+                    df_i = pd.DataFrame()
+                    df_e = pd.DataFrame()
+                return df_i, df_e, meta
+            elif self.data_level.lower() == 'l3':
+                df, meta = bepi_sixsp_l3_loader(startdate=self.start_date,
+                                                enddate=self.end_date,
+                                                resample=None,
+                                                path=self.data_path,
+                                                pos_timestamp='center')
+                return df, meta
+                    
 
     def load_all_viewing(self):
         """
@@ -546,17 +575,54 @@ class Event:
                 # self.current_i_energies = self.meta
 
         if self.spacecraft.lower() == 'bepi':
-            self.df_i_0, self.df_e_0, self.energies_0 =\
-                self.load_data(self.spacecraft, self.sensor, viewing='0', data_level='None')
-            self.df_i_1, self.df_e_1, self.energies_1 =\
-                self.load_data(self.spacecraft, self.sensor, viewing='1', data_level='None')
-            self.df_i_2, self.df_e_2, self.energies_2 =\
-                self.load_data(self.spacecraft, self.sensor, viewing='2', data_level='None')
-            # side 3 and 4 should not be used for SIXS, but they can be activated by uncommenting the following lines
-            # self.df_i_3, self.df_e_3, self.energies_3 =\
-            #     self.load_data(self.spacecraft, self.sensor, viewing='3', data_level='None')
-            # self.df_i_4, self.df_e_4, self.energies_4 =\
-            #     self.load_data(self.spacecraft, self.sensor, viewing='4', data_level='None')
+            if self.data_level.lower() == 'l2':
+                custom_warning('BepiColombo L2 data is not yet publicly available! You need to manual provide the files, or access the L3 data instead by using "data_level='+"'l3'"+'" above!')
+                self.df_i_0, self.df_e_0, self.energies_0 =\
+                    self.load_data(self.spacecraft, self.sensor, viewing='0', data_level=self.data_level)
+                self.df_i_1, self.df_e_1, self.energies_1 =\
+                    self.load_data(self.spacecraft, self.sensor, viewing='1', data_level=self.data_level)
+                self.df_i_2, self.df_e_2, self.energies_2 =\
+                    self.load_data(self.spacecraft, self.sensor, viewing='2', data_level=self.data_level)
+                self.df_i_3, self.df_e_3, self.energies_3 =\
+                    self.load_data(self.spacecraft, self.sensor, viewing='3', data_level=self.data_level)
+                # side 4 should not be used for SIXS (resp. it's not in the L3 data), but they can be activated by uncommenting the following lines
+                # self.df_i_4, self.df_e_4, self.energies_4 =\
+                #     self.load_data(self.spacecraft, self.sensor, viewing='4', data_level=self.data_level)
+            elif self.data_level.lower() == 'l3':
+                self.df, self.meta =\
+                    self.load_data(self.spacecraft, self.sensor, viewing=self.viewing, data_level=self.data_level)
+
+                def get_sixs_l3_channels(side, species):
+                    columns = [k for k in self.df.columns if k.startswith(f'Side{side}_{species.upper()}')]
+                    columns = [c for c in columns if not (c.endswith('plus') or c.endswith('minus') or c.endswith('err') or c.endswith('A') or 'PE' in c)]
+                    return columns
+
+                if len(self.df) > 0:
+                    self.df_i_0, self.df_e_0, self.energies_0 =\
+                        self.df[get_sixs_l3_channels(0, 'p')], self.df[get_sixs_l3_channels(0, 'e')], {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side0')]}
+                    self.df_i_1, self.df_e_1, self.energies_1 =\
+                        self.df[get_sixs_l3_channels(1, 'p')], self.df[get_sixs_l3_channels(1, 'e')], {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side1')]}
+                    self.df_i_2, self.df_e_2, self.energies_2 =\
+                        self.df[get_sixs_l3_channels(2, 'p')], self.df[get_sixs_l3_channels(2, 'e')], {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side2')]}
+                    self.df_i_3, self.df_e_3, self.energies_3 =\
+                        self.df[get_sixs_l3_channels(3, 'p')], self.df[get_sixs_l3_channels(3, 'e')], {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side3')]}
+                    # self.df_i_4, self.df_e_4, self.energies_4 =\
+                    #     self.df[get_sixs_l3_channels(4, 'p')], self.df[get_sixs_l3_channels(4, 'e')], {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side4')]}
+
+                    # Old way of getting the channels, before the function get_sixs_l3_channels() was created
+                    # self.df_i_0, self.df_e_0, self.energies_0 =\
+                    #     self.df.filter(like='Side0_P'), self.df.filter(like='Side0_E'), {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side0')]}
+                    # self.df_i_1, self.df_e_1, self.energies_1 =\
+                    #     self.df.filter(like='Side1_P'), self.df.filter(like='Side1_E'), {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side1')]}
+                    # self.df_i_2, self.df_e_2, self.energies_2 =\
+                    #     self.df.filter(like='Side2_P'), self.df.filter(like='Side2_E'), {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side2')]}
+                    # self.df_i_3, self.df_e_3, self.energies_3 =\
+                    #     self.df.filter(like='Side3_P'), self.df.filter(like='Side3_E'), {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side3')]}
+                    # # self.df_i_4, self.df_e_4, self.energies_4 =\
+                    # #     self.df.filter(like='Side4_P'), self.df.filter(like='Side4_E'), {key: self.meta[key] for key in [k for k in self.meta.keys() if k.startswith('Side4')]}
+                else:
+                    raise Exception("No BepiColombo/SIXS L3 data found for the given time range!")
+
 
     def choose_data(self, viewing):
         """
@@ -688,11 +754,11 @@ class Event:
                 self.current_df_i = self.df_i_2
                 self.current_df_e = self.df_e_2
                 self.current_energies = self.energies_2
-            # side 3 and 4 should not be used for SIXS, but they can be activated by uncommenting the following lines
-            # elif(viewing == '3'):
-            #     self.current_df_i = self.df_i_3
-            #     self.current_df_e = self.df_e_3
-            #     self.current_energies = self.energies_3
+            elif(viewing == '3'):
+                self.current_df_i = self.df_i_3
+                self.current_df_e = self.df_e_3
+                self.current_energies = self.energies_3
+            # side 4 should not be used for SIXS, but they can be activated by uncommenting the following lines
             # elif(viewing == '4'):
             #     self.current_df_i = self.df_i_4
             #     self.current_df_e = self.df_e_4
@@ -983,6 +1049,7 @@ class Event:
             flux_series = df_flux[channel]
         if self.spacecraft.lower() == 'bepi':
             flux_series = df_flux  # [channel]
+            flux_series.index = flux_series.index.tz_localize(None)
         date = flux_series.index
 
         if ylim is None:
@@ -1001,10 +1068,11 @@ class Event:
             avg_start, avg_end = windowrange[0], windowrange[1]
 
         if xlim is None:
-
             xlim = [date[0], date[-1]]
-
         else:
+            # # add UTC timezone info if not present
+            # if not xlim[0].tzinfo and date[0].tzinfo == datetime.timezone.utc:
+            #     xlim = [pd.to_datetime(xl, utc=True) for xl in xlim]
 
             df_flux = df_flux[xlim[0]:xlim[-1]]
 
@@ -1329,13 +1397,13 @@ class Event:
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_SEPT(self.current_df_i,
-                                                 self.current_i_energies,
+                                                 self.current_i_energies['channels_dict_df_p'],
                                                  channels)
                     elif self.species == 'e':
 
                         df_flux, en_channel_string =\
                             calc_av_en_flux_SEPT(self.current_df_e,
-                                                 self.current_e_energies,
+                                                 self.current_e_energies['channels_dict_df_e'],
                                                  channels)
 
             except KeyError:
@@ -1366,7 +1434,7 @@ class Event:
                             print("No multi-channel support for SOHO/EPHIN included yet! Select only one single channel.")
                     if self.species == 'e':
                         df_flux = self.current_df_e[f'E{channels}']
-                        en_channel_string = self.current_energies[f'E{channels}']
+                        en_channel_string = self.current_energies['energy_labels'][f'E{channels}']
 
                 if self.sensor in ("ephin-5", "ephin-15"):
                     if isinstance(channels, list):
@@ -1411,21 +1479,35 @@ class Event:
                     en_channel_string = self.current_e_energies['channels_dict_df']['Bins_Text'][f'ENERGY_{channels}']
 
         if self.spacecraft.lower() == 'bepi':
-            if type(channels) is list:
-                if len(channels) == 1:
-                    # convert single-element "channels" list to integer
-                    channels = channels[0]
-                    if self.species == 'e':
-                        df_flux = self.current_df_e[f'E{channels}']
-                        en_channel_string = self.current_energies['Energy_Bin_str'][f'E{channels}']
-                    if self.species in ['p', 'i']:
-                        df_flux = self.current_df_i[f'P{channels}']
-                        en_channel_string = self.current_energies['Energy_Bin_str'][f'P{channels}']
-                else:
-                    if self.species == 'e':
-                        df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_e, channels, self.species)
-                    if self.species in ['p', 'i']:
-                        df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_i, channels, self.species)
+            if self.data_level == 'l2':
+                if type(channels) is list:
+                    if len(channels) == 1:
+                        # convert single-element "channels" list to integer
+                        channels = channels[0]
+                        if self.species == 'e':
+                            df_flux = self.current_df_e[f'E{channels}']
+                            en_channel_string = self.current_energies['Energy_Bin_str'][f'E{channels}']
+                        if self.species in ['p', 'i']:
+                            df_flux = self.current_df_i[f'P{channels}']
+                            en_channel_string = self.current_energies['Energy_Bin_str'][f'P{channels}']
+                    else:
+                        if self.species == 'e':
+                            df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_e, channels, self.species)
+                        if self.species in ['p', 'i']:
+                            df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_i, channels, self.species)
+            elif self.data_level == 'l3':
+                if type(channels) is list:
+                    if len(channels) > 1:
+                            raise Exception("No multi-channel support for BepiColombo/SIXS-P L3 included yet! Select only one single channel.")
+                    elif len(channels) == 1:
+                        channels = channels[0]
+                if self.species == 'e':
+                    df_flux = self.current_df_e[f'Side{self.viewing}_E{channels}']
+                    en_channel_string = self.current_energies[f'Side{self.viewing}_Electron_Bins_str'][f'E{channels}']
+                if self.species in ['p', 'i']:
+                    df_flux = self.current_df_i[f'Side{self.viewing}_P{channels}']
+                    en_channel_string = self.current_energies[f'Side{self.viewing}_Proton_Bins_str'][f'P{channels}']
+
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -1589,6 +1671,9 @@ class Event:
 
         # Check that the data that was loaded is valid. If not, abort with warning.
         self.validate_data()
+
+        if self.spacecraft == "bepi":
+            raise NotImplementedError("BepiColombo/SIXS-P not yet implemented!")
 
         if self.spacecraft == "solo":
 
@@ -2010,6 +2095,9 @@ class Event:
         # Check that the data that was loaded is valid. If not, abort with warning.
         self.validate_data()
 
+        if self.spacecraft == "bepi":
+            raise NotImplementedError("BepiColombo/SIXS-P not yet implemented!")
+
         if self.spacecraft == "solo":
             if self.sensor == "step":
 
@@ -2323,9 +2411,9 @@ class Event:
             # STEREO/SEPT energies come in two different objects
             if self.sensor == "sept":
                 if self.species in ("electron", 'e'):
-                    energy_df = self.current_e_energies
+                    energy_df = self.current_e_energies['channels_dict_df_e']
                 else:
-                    energy_df = self.current_i_energies
+                    energy_df = self.current_i_energies['channels_dict_df_p']
 
                 energy_ranges = energy_df["ch_strings"].values
 
@@ -2348,7 +2436,7 @@ class Event:
                 # Choose only the first 4 channels (E150, E300, E1300 and E3000)
                 # These are the only electron channels (rest are p and He), and we
                 # use only electron data here.
-                energy_ranges = [val for val in self.current_energies.values()][:4]
+                energy_ranges = [val for val in self.current_energies['energy_labels'].values()][:4]
             if self.sensor.lower() in ("ephin-5", "ephin-15"):
                 energy_ranges = [value for _, value in self.current_energies.items()]
 
@@ -2400,70 +2488,83 @@ class Event:
             if self.species == 'p':
                 energy_ranges = np.array(self.meta_i["channels_dict_df"]["Bins_Text"])
 
+        if self.spacecraft == "bepi":
+            if self.species == 'e':
+                energy_ranges = [value for key, value in self.meta[f'Side{self.viewing}_Electron_Bins_str'].items()]
+            if self.species == 'p':
+                energy_ranges = [value for key, value in self.meta[f'Side{self.viewing}_Proton_Bins_str'].items()]
+
         # Check what to return before running calculations
         if returns == "str":
             return energy_ranges
+        else:
+            # add bepi L3 support below?
+            if self.spacecraft == "bepi":
+                raise NotImplementedError("BepiColombo/SIXS-P not yet implemented!")
 
-        # From this line onward we extract the numerical values from low and high boundaries, and return floats, not strings
-        lower_bounds, higher_bounds = [], []
-        for energy_str in energy_ranges:
+            # From this line onward we extract the numerical values from low and high boundaries, and return floats, not strings
+            lower_bounds, higher_bounds = [], []
+            for energy_str in energy_ranges:
 
-            # Sometimes there is no hyphen, but then it's not a range of energies
-            try:
-                lower_bound, temp = energy_str.split('-')
-            except ValueError:
-                continue
-
-            # Generalize a bit here, since temp.split(' ') may yield a variety of different lists
-            components = temp.split(' ')
-            try:
-
-                # PSP meta strings can have up to 4 spaces
-                if self.spacecraft == "psp":
-                    higher_bound, energy_unit = components[-2], components[-1]
-
-                # SOHO/ERNE meta string has space, high value, space, energy_str
-                elif self.spacecraft == "soho" and self.sensor == "erne":
-                    higher_bound, energy_unit = components[1], components[-1]
-
-                # Normal meta strs have two components: bounds and the energy unit
-                else:
-                    higher_bound, energy_unit = components
-
-            # It could be that the strings are not in a standard format, so check if
-            # there is an empty space before the second energy value
-            except ValueError:
-
+                # Sometimes there is no hyphen, but then it's not a range of energies
                 try:
-                    _, higher_bound, energy_unit = components
+                    lower_bound, temp = energy_str.split('-')
+                except ValueError:
+                    continue
 
-                # It could even be that for some godforsaken reason there are empty spaces
-                # between the numbers themselves, so take care of that too
+                # Generalize a bit here, since temp.split(' ') may yield a variety of different lists
+                components = temp.split(' ')
+                try:
+
+                    # PSP meta strings can have up to 4 spaces
+                    if self.spacecraft == "psp":
+                        higher_bound, energy_unit = components[-2], components[-1]
+
+                    # SOHO/ERNE meta string has space, high value, space, energy_str
+                    elif self.spacecraft == "soho" and self.sensor == "erne":
+                        higher_bound, energy_unit = components[1], components[-1]
+
+                    # Normal meta strs have two components: bounds and the energy unit
+                    else:
+                        higher_bound, energy_unit = components
+
+                # It could be that the strings are not in a standard format, so check if
+                # there is an empty space before the second energy value
                 except ValueError:
 
-                    if components[-1] not in ["keV", "MeV"]:
-                        higher_bound, energy_unit = components[1], components[2]
-                    else:
-                        higher_bound, energy_unit = components[1]+components[2], components[-1]
+                    try:
+                        _, higher_bound, energy_unit = components
 
-            lower_bounds.append(float(lower_bound))
-            higher_bounds.append(float(higher_bound))
+                    # It could even be that for some godforsaken reason there are empty spaces
+                    # between the numbers themselves, so take care of that too
+                    except ValueError:
 
-        # Transform lists to numpy arrays for performance and convenience
-        lower_bounds, higher_bounds = np.asarray(lower_bounds), np.asarray(higher_bounds)
+                        if components[-1] not in ["keV", "MeV"]:
+                            higher_bound, energy_unit = components[1], components[2]
+                        else:
+                            higher_bound, energy_unit = components[1]+components[2], components[-1]
 
-        # Finally before returning the lists, make sure that the unit of energy is eV
-        if energy_unit == "keV":
-            lower_bounds, higher_bounds = lower_bounds * 1e3, higher_bounds * 1e3
+                lower_bounds.append(float(lower_bound))
+                higher_bounds.append(float(higher_bound))
 
-        elif energy_unit == "MeV":
-            lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
+            # Transform lists to numpy arrays for performance and convenience
+            lower_bounds, higher_bounds = np.asarray(lower_bounds), np.asarray(higher_bounds)
 
-        # This only happens with ephin, which has MeV as the unit of energy
-        else:
-            lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
+            # Finally before returning the lists, make sure that the unit of energy is eV
+            if energy_unit == "keV":
+                lower_bounds, higher_bounds = lower_bounds * 1e3, higher_bounds * 1e3
 
-        return lower_bounds, higher_bounds
+            elif energy_unit == "MeV" or energy_unit == "MeV/n":
+                lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
+
+            # This only happens with ephin, which has MeV as the unit of energy (Christian?)
+            # Jan: It works fine with EPHIN, and we should NOT have a catch-all else here, as it may hide bugs with other instruments. I added a raise instead.
+            # Jan 2: Ok, so this did apply for STEP which has "MeV/n"! Added this above
+            else:
+                # lower_bounds, higher_bounds = lower_bounds * 1e6, higher_bounds * 1e6
+                raise ValueError("Unknown energy unit encountered when extracting channel energy values. Please report this issue!")
+
+            return lower_bounds, higher_bounds
 
     def calculate_particle_speeds(self):
         """
@@ -2560,6 +2661,9 @@ class Event:
 
         if self.sensor == "3dp":
             channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
+        
+        if self.sensor == 'sixs-p' and self.data_level == 'l3':
+            channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
@@ -2573,6 +2677,8 @@ class Event:
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
+        if self.spacecraft == 'bepi' and self.data_level == 'l3':
+            column_names = ("Channel", "Effective energy")
         column_data = {
             column_names[0]: channel_numbers,
             column_names[1]: energy_strs}

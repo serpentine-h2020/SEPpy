@@ -15,6 +15,14 @@ seppy.loader.bepi
    :undoc-members:
    :show-inheritance:
 
+seppy.loader.juice 
+=================
+
+.. automodule:: seppy.loader.juice
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 seppy.loader.psp
 ================
 

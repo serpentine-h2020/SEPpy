@@ -1,5 +1,7 @@
 
 import datetime
+import glob
+import os
 import warnings
 
 import astropy.constants as const
@@ -9,6 +11,7 @@ import pandas as pd
 import psutil
 import sunpy.sun.constants as sconst
 from sunpy.coordinates import get_horizons_coord
+from tqdm.auto import tqdm
 
 # Utilities toolbox, contains helpful functions
 
@@ -84,6 +87,13 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     -------
     df : pd.DataFrame or Series, depending on the input
     """
+    # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
+    delta_resample = pd.to_timedelta(resample)
+    delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
+    if delta_resample < delta_original:
+        raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
+    elif delta_resample == delta_original:
+        custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
     try:
         df = df.resample(resample, origin=origin, label="left").mean()
         if pos_timestamp == 'start':
@@ -93,7 +103,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
         # if pos_timestamp == 'stop' or pos_timestamp == 'end':
         #     df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample))
     except ValueError:
-        raise ValueError(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
+        raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
     return df
 
@@ -331,10 +341,10 @@ def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
         datetime.datetime: inferred injection time.
     '''
 
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
 
-    if not type(sw_speed)==u.quantity.Quantity:
+    if type(sw_speed) is not u.quantity.Quantity:
         sw_speed = sw_speed * u.km/u.s
 
     mass_dict = {'p': const.m_p,
@@ -363,7 +373,7 @@ def energy2speed(species, kinetic_energy):
     Returns:
         astropy units: relativistic particle speed.
     '''
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return calc_particle_speed(mass_dict[species], kinetic_energy)
@@ -380,7 +390,7 @@ def speed2energy(species, speed):
     Returns:
         astropy units: kinetic energy
     '''
-    if not type(speed)==u.quantity.Quantity:
+    if type(speed) is not u.quantity.Quantity:
         speed = speed * u.m/u.s
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     gamma = 1/np.sqrt(1-speed**2/const.c**2)
@@ -399,7 +409,7 @@ def speed2momentum(species, speed):
     Returns:
         astropy units: relativistic particle momentum
     '''
-    if not type(speed)==u.quantity.Quantity:
+    if type(speed) is not u.quantity.Quantity:
         speed = speed * u.m/u.s
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return mass_dict[species] * speed
@@ -416,9 +426,9 @@ def energy2momentum(species, kinetic_energy):
     Returns:
         astropy units: relativistic particle momentum
     '''
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
-    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    # mass_dict = {'p': const.m_p, 'e': const.m_e}
     return speed2momentum(species, energy2speed(species, kinetic_energy))
 
 
@@ -438,7 +448,7 @@ def intensity2psd(species, kinetic_energy, intensity):
         import astropy.units as u
         f = intensity2psd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
     '''
-    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity or type(intensity) is not u.quantity.Quantity:
         print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
         return
     else:
@@ -463,7 +473,7 @@ def intensity2vsd(species, kinetic_energy, intensity):
         import astropy.units as u
         f = intensity2vsd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
     '''
-    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity or type(intensity) is not u.quantity.Quantity:
         print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
         return
     else:
@@ -482,3 +492,43 @@ def jupyterhub_data_path(path_org, path_hub='/home/jovyan/data'):
         return path_hub
     else:
         return path_org
+
+
+def remove_duplicate_cdf_files(path=None):
+    """
+    Removes duplicate .cdf files in the provided directory, keeping only the one with the highest version number.
+
+    Parameters
+    ----------
+    path : string, optional
+        Directory in which the .cdf files are. If None, current working directory will be used. By default None.
+
+    Returns
+    -------
+    deleted_files : list
+        List of deleted duplicate .cdf files.
+
+    Examples
+    --------
+    >>> from seppy.util import remove_duplicate_cdf_files
+    >>> deleted_files = remove_duplicate_cdf_files('/Users/johndoe/data/psp')
+    Removing duplicate .cdf files in /Users/johndoe/data/psp/
+    >>> print(deleted_files)
+    []
+    """
+    if not path:
+        path = os.getcwd()
+    if path[-1] is not os.sep:
+        path += os.sep
+    all_cdf = glob.glob(f'{path}*.cdf')
+    print(f'Removing duplicate .cdf files in {path}') 
+    deleted_files = []
+    for cdf in tqdm(all_cdf):
+        cdf_wo_v = cdf.strip(cdf.split('_')[-1])
+        cdf_duplicates = glob.glob(f'{cdf_wo_v}*')
+        if len(cdf_duplicates) > 1:
+            cdf_duplicates.sort(reverse=True)
+            for dup in cdf_duplicates[1:]:
+                deleted_files.append(dup)
+                os.remove(dup)
+    return deleted_files

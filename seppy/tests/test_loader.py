@@ -5,6 +5,7 @@ import pytest
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.bepi import bepi_sixsp_l3_loader
+from seppy.loader.juice import juice_radem_load
 from seppy.loader.psp import psp_isois_load
 from seppy.loader.soho import soho_load
 from seppy.loader.solo import mag_load
@@ -14,14 +15,49 @@ from seppy.loader.wind import wind3dp_load
 
 def test_bepi_sixs_load_online():
     startdate = dt.datetime(2020, 10, 9, 12, 0)
-    enddate = "2020/12/10 22:00:00"
-    df, meta = bepi_sixsp_l3_loader(startdate=startdate, enddate=enddate, resample="10min", path=None, pos_timestamp='center')
-    #
+    df, meta = bepi_sixsp_l3_loader(startdate=startdate, resample="10min", path=None, pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (8212, 309)
-    assert df['Side2_P2'].mean() == pytest.approx(np.float64(0.1928595238095238))
+    assert df.shape == (0, 309)
+    #
+    startdate = dt.datetime(2020, 10, 19, 12, 0)
+    df, meta = bepi_sixsp_l3_loader(startdate=startdate, resample="10min", path=None, pos_timestamp='center')
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (78, 309)
+    assert df['Side2_P2'].mean() == pytest.approx(np.float64(0.3066333333333333))
     assert len(meta) == 48
     assert meta['Side0_Electron_Bins_str']['E4'] == '278 keV'
+
+
+def test_juice_radem_no_files_downloaded():
+    df, energies, metadata = juice_radem_load(startdate=dt.datetime(2020, 1, 1), enddate=dt.datetime(2020, 1, 1), path="/tmp")
+
+    # Assert: empty dataframe and empty dicts
+    assert isinstance(df, pd.DataFrame)
+    assert df.empty
+    assert energies == {}
+    assert metadata == {}
+
+
+def test_juice_radem_load_without_resample():
+    df, energies, metadata = juice_radem_load(startdate=dt.datetime(2025, 1, 1), enddate=dt.datetime(2025, 1, 1), resample=None, path=None)
+    assert "TIME_OBT" not in df.columns
+    assert pd.api.types.is_datetime64_any_dtype(df["TIME_UTC"])
+    assert "PROTONS_4" in df.columns
+    assert df.shape == (1440, 64)
+    assert df['PROTONS_5'].sum() == 51
+    assert energies['LABEL_PROTONS'][0] == 'P-Stack_Bin_1'
+    assert metadata['PROTONS']['FILLVAL'] == 4294967295
+
+
+def test_juice_radem_load_wit_resample():
+    df, energies, metadata = juice_radem_load(startdate=dt.datetime(2025, 1, 1), enddate=dt.datetime(2025, 1, 1), resample='1h', path=None, pos_timestamp="start")
+    assert "TIME_OBT" not in df.columns
+    assert pd.api.types.is_datetime64_any_dtype(df["TIME_UTC"])
+    assert "PROTONS_4" in df.columns
+    assert df.shape == (24, 64)
+    assert df['PROTONS_5'].sum() == pytest.approx(np.float64(0.8500000000000001))
+    assert energies['LABEL_PROTONS'][0] == 'P-Stack_Bin_1'
+    assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
 def test_psp_load_online():
@@ -82,24 +118,24 @@ def test_psp_load_online():
 
 def test_soho_ephin_load_online():
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                         path=None, resample="1min", pos_timestamp='center')
+                         path=None, resample="2min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (1145, 14)
-    assert meta['E1300'] == '0.67 - 10.4 MeV'
+    assert df.shape == (573, 14)
+    assert meta['energy_labels']['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
-    assert np.sum(np.isnan(df['E1300'])) == 444
+    assert np.sum(np.isnan(df['E1300'])) == 219
 
 
 def test_soho_ephin_load_offline():
     fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                         path=path, resample="1min", pos_timestamp=None)
+                         path=path, resample="2min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
-    assert df.shape == (1145, 14)
-    assert meta['E1300'] == '0.67 - 10.4 MeV'
+    assert df.shape == (573, 14)
+    assert meta['energy_labels']['E1300'] == '0.67 - 10.4 MeV'
     # Check that fillvals are replaced by NaN
-    assert np.sum(np.isnan(df['E1300'])) == 444
+    assert np.sum(np.isnan(df['E1300'])) == 219
 
 
 def test_soho_erne_load_online():
@@ -154,7 +190,7 @@ def test_stereo_sept_load_online():
                            path=None, resample="1min", pos_timestamp='center', sept_viewing='north')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
-    assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'
+    assert meta['channels_dict_df_e'].ch_strings[meta['channels_dict_df_e'].index==2].values[0] == '45.0-55.0 keV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['ch_2'])) == 371
 
@@ -167,7 +203,7 @@ def test_stereo_sept_load_offline():
                            path=path, resample="1min", pos_timestamp=None, sept_viewing='sun')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (371, 30)
-    assert meta.ch_strings[meta.index==2].values[0] == '45.0-55.0 keV'
+    assert meta['channels_dict_df_e'].ch_strings[meta['channels_dict_df_e'].index==2].values[0] == '45.0-55.0 keV'
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['ch_2'])) == 371
 
