@@ -19,7 +19,8 @@ from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
 from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df, \
+                       k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
 
 
@@ -946,7 +947,7 @@ class Event:
         sigma = np.nanstd(background)
         return [mean_value, sigma]
 
-    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time):
+    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time, k_model:str=None):
         """
         :meta private:
         """
@@ -958,14 +959,15 @@ class Event:
         sigma = ma_sigma[1]
         md = ma + self.x_sigma*sigma
 
-        # Choose the correct k_parameter to use
+        # Choose the correct k_parameter to use:
         if k_model is None:
             k_param = k_parameter(mu=ma, sigma=sigma, sigma_multiplier=self.x_sigma)
         elif k_model=="legacy":
+            print("Using the legacy definition for the k-parameter.")
             k_param = k_legacy(mu=ma, sigma=sigma, sigma_multiplier=self.x_sigma)
-        # Input value for k_param was something strange
+        # Input value for k_param was something strange:
         else:
-            raise ValueError(f"Unidentified input for parameter k_model: {k_model}")
+            raise ValueError(f"Unidentified input for parameter k_model: {k_model}. Leave to None to use the standard k-parameter, or input 'legacy' if you want to use the old definition.")
 
         # choose h, the variable dictating the "hastiness" of onset alert
         h = 2 if k_param>1 else 1
@@ -1013,7 +1015,7 @@ class Event:
 
     def onset_analysis(self, df_flux, windowstart, windowlen, windowrange, channels_dict,
                        channel='flux', cusum_window=30, yscale='log',
-                       ylim=None, xlim=None):
+                       ylim=None, xlim=None, k_model:str=None):
         """
         :meta private:
         """
@@ -1072,7 +1074,7 @@ class Event:
         background_stats = self.mean_value(avg_start, avg_end, flux_series)
         onset_stats =\
             self.onset_determination(background_stats, flux_series,
-                                     cusum_window, avg_end)
+                                     cusum_window, avg_end, k_model=k_model)
 
         if not isinstance(onset_stats[-1], pd._libs.tslibs.nattype.NaTType):
 
