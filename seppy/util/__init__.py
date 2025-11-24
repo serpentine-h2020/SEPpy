@@ -29,6 +29,64 @@ def custom_warning(message):
     return
 
 
+def k_parameter(mu:float, sigma:float, sigma_multiplier:int|float) -> float:
+    """
+    The standard version of k for the z-standardized intensity CUSUM.
+
+    Parameters:
+    -----------
+    mu : {float, np.ndarray} 
+                    The mean of the background.
+    sigma : {float, np.ndarray} 
+                    The standard deviation of the background.
+    sigma_multiplier : {int,float} 
+                    The multiplier for mu_{d} != 0.
+
+    Returns:
+    --------
+    k_param : {float, np.ndarray} Type depends on the input type.
+                    A valid k_parameter value (k >= 0).
+    """
+    if sigma_multiplier == 0:
+        raise ValueError("sigma_multiplier may not be 0!")
+
+    # Let's not divide by zero.
+    # Only do this check if mu and sigma are singular values, numpy will take
+    # care of the cases with arrays.
+    if not isinstance(mu, (list, np.ndarray)):
+        if mu==0 or sigma==0:
+            return 0
+
+    nominator = sigma_multiplier
+    denominator = np.log(1 + (sigma_multiplier*sigma)/mu)
+
+    k_param = (nominator/denominator) - (mu/sigma)
+
+    if not isinstance(k_param, (int, float, np.int64, np.float64, np.longdouble)):
+        return k_param
+
+    return k_param if k_param >= 0 else 0
+
+
+def k_legacy(mu:float, sigma:float, sigma_multiplier:float) -> float:
+    """
+    The old standard k-parameter for SEPpy.
+    """
+    if sigma_multiplier == 0:
+        raise ValueError("sigma_multiplier may not be 0!")
+
+    # Let's not divide by zero
+    if not isinstance(mu, (list, np.ndarray)):
+        if mu==0:
+            return 0
+
+    nominator = sigma_multiplier
+    denominator = np.log(1 + (sigma_multiplier*sigma)/mu)
+
+    # In legacy SEPpy, k is rounded to the nearest integer
+    return np.round(nominator/denominator)
+
+
 def resample_df(df, resample, pos_timestamp="center", origin="start"):
     """
     Resamples a Pandas Dataframe or Series to a new frequency.

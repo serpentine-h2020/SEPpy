@@ -19,7 +19,8 @@ from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_HET as calc_av_en_flux_ST_HET
 from seppy.loader.stereo import calc_av_en_flux_SEPT, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df, \
+                       k_parameter, k_legacy
 
 
 # This is to get rid of this specific warning:
@@ -885,7 +886,31 @@ class Event:
 
         return [mean_value, sigma]
 
-    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time):
+    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time, k_model:str=None):
+        """
+        A function that determines the onset time using a modified Poisson-CUSUM scheme, given 
+        the method parameters.
+
+        Parameters:
+        -----------
+        ma_sigma : {list|tuple} The mean and the standard deviation of the background, precalculated.
+        flux_series : {pd.Series} Time-indexed intensity values.
+        cusum_window : {int} The amount of consecutive warning signals required before an onset is identified.
+        bg_end_time : {pd.Datetime} The timestamp at which the background ends.
+        k_model : {str|None} Leave to None to use the standard k-parameter. Input 'legacy' to use the
+                             old version for k (backwards-compatibility and testing purposes).
+
+        Returns:
+        -----------
+        [ma, md, k_param, norm_channel, cusum, onset_time] : {list}
+        where:
+        ma : {float} The mean of the background
+        md : {float} Mean + n*std of background
+        k_param : {float} The k-parameter, calculated from background mu and sigma.
+        norm_channel : {np.ndarray} The z-normalized intensity.
+        cusum : {np.ndarray} The CUSUM function for the event.
+        onset_time : {pd.Datetime} The timestamp for the onset time, or pd.NaT if no onset found.
+        """
 
         flux_series = flux_series[bg_end_time:]
 
@@ -895,25 +920,17 @@ class Event:
         sigma = ma_sigma[1]
         md = ma + self.x_sigma*sigma
 
-        # k may get really big if sigma is large in comparison to mean
-        try:
-
-            k = (md-ma)/(np.log(md)-np.log(ma))
-            k_round = round(k/sigma)
-
-        except ValueError:
-
-            # First ValueError I encountered was due to ma=md=2.0 -> k = "0/0"
-            k_round = 1
+        # Choose the correct k_parameter to use
+        if k_model is None:
+            k_param = k_parameter(mu=ma, sigma=sigma, sigma_multiplier=self.x_sigma)
+        elif k_model=="legacy":
+            k_param = k_legacy(mu=ma, sigma=sigma, sigma_multiplier=self.x_sigma)
+        # Input value for k_param was something strange
+        else:
+            raise ValueError(f"Unidentified input for parameter k_model: {k_model}")
 
         # choose h, the variable dictating the "hastiness" of onset alert
-        if k < 1.0:
-
-            h = 1
-
-        else:
-
-            h = 2
+        h = 2 if k_param>1 else 1
 
         alert = 0
         cusum = np.zeros(len(flux_series))
@@ -928,7 +945,7 @@ class Event:
             norm_channel[i] = (flux_series.iloc[i]-ma)/sigma
 
             # calculate the value for ith cusum entry
-            cusum[i] = max(0, norm_channel[i] - k_round + cusum[i-1])
+            cusum[i] = max(0, norm_channel[i] - k_param + cusum[i-1])
 
             # check if cusum[i] is above threshold h,
             # if it is -> increment alert
@@ -948,14 +965,13 @@ class Event:
                 break
 
         # ma = mu_a = background average
-        # md = mu_d = background average + 2*sigma
-        # k_round = integer value of k, that is the reference value to
-        # poisson cumulative sum
+        # md = mu_d = background average + n*sigma
+        # k_param = the k-parameter of the modified CUSUM function
         # h = 1 or 2,describes the hastiness of onset alert
+        # cusum = the cusum function
         # onset_time = the time of the onset
-        # S = the cusum function
 
-        return [ma, md, k_round, norm_channel, cusum, onset_time]
+        return [ma, md, k_param, norm_channel, cusum, onset_time]
 
     def onset_analysis(self, df_flux, windowstart, windowlen, windowrange, channels_dict,
                        channel='flux', cusum_window=30, yscale='log',
