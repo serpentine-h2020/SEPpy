@@ -14,7 +14,7 @@ import warnings
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 
-from seppy.util import resample_df
+from seppy.util import custom_notification, custom_warning, resample_df
 
 
 logger = pooch.get_logger()
@@ -44,23 +44,19 @@ def wind3dp_download_fido(dataset, startdate, enddate, path=None, max_conn=5):
 
     Parameters
     ----------
-    dataset : {str}
-        Name of Wind/3DP dataset:
-        - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often
-            at 24 sec
-        - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV,
-            often at 24 sec
-        - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often
-            at 24 sec
-        - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV,
-            often at 24 sec
-    startdate, enddate : {datetime or str}
+    dataset : str
+        Name of Wind/3DP dataset: \n
+            - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often at 24 sec \n
+            - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV, often at 24 sec \n
+            - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often at 24 sec \n
+            - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV, often at 24 sec \n
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or
         "standard" datetime string (e.g., "2021/04/15") (enddate must always be
         later than startdate)
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    max_conn : {int}, optional
+    max_conn : int, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
     Returns
@@ -140,15 +136,11 @@ def wind3dp_download(dataset, startdate, enddate, path=None, **kwargs):
     Parameters
     ----------
     dataset : {str}
-        Name of Wind/3DP dataset:
-        - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often
-            at 24 sec
-        - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV,
-            often at 24 sec
-        - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often
-            at 24 sec
-        - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV,
-            often at 24 sec
+        Name of Wind/3DP dataset: \n
+            - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often at 24 sec \n
+            - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV, often at 24 sec \n
+            - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often at 24 sec \n
+            - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV, often at 24 sec
     startdate, enddate : {datetime or str}
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or
         "standard" datetime string (e.g., "2021/04/15") (enddate must always be
@@ -241,29 +233,29 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
 
     Parameters
     ----------
-    dataset : {str}
-        Name of Wind/3DP dataset:
-        - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often
-            at 24 sec
-        - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV,
-            often at 24 sec
-        - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often
-            at 24 sec
-        - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV,
-            often at 24 sec
-    startdate, enddate : {datetime or str}
+    dataset : str
+        Name of Wind/3DP dataset: \n
+            - 'WI_SFSP_3DP': Electron omnidirectional fluxes 27 keV - 520 keV, often at 24 sec \n
+            - 'WI_SFPD_3DP': Electron energy-angle distributions 27 keV to 520 keV, often at 24 sec \n
+            - 'WI_SOSP_3DP': Proton omnidirectional fluxes 70 keV - 6.8 MeV, often at 24 sec \n
+            - 'WI_SOPD_3DP': Proton energy-angle distributions 70 keV - 6.8 MeV, often at 24 sec \n
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or
         "standard" datetime string (e.g., "2021/04/15") (enddate must always be
         later than startdate)
-    resample : {str}, optional
+    resample : str, optional
         Frequency to which the original data (~24 seconds) is resamepled. Pandas
-        frequency (e.g., '1min' or '1h') or None, by default "1min"
-    multi_index : {bool}, optional
+        frequency (e.g., '1min' or '1h') or None, by default "1min".
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
+    multi_index : bool, optional
         Provide output for pitch-angle resolved data as Pandas Dataframe with
         multiindex, by default True
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    threshold : {int or float}, optional
+    threshold : int or float, optional
         Replace all FLUX values above 'threshold' with np.nan, by default None
 
     Returns
@@ -291,8 +283,13 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
             delta_e = 0.2 * e_mean
         e_low = e_mean - delta_e
         e_high = e_mean + delta_e
-        energies = pd.concat([e_mean, delta_e, e_low, e_high], axis=1, keys=['mean_E', 'DE', 'lower_E', 'upper_E'])
+        energies = pd.concat([e_mean, delta_e, 2*delta_e, e_low, e_high], axis=1, keys=['mean_E', 'delta_e', 'DE', 'lower_E', 'upper_E'])
         energies['Bins_Text']= np.around(e_low/1e3, 2).astype('string') +' - '+ np.around(e_high/1e3, 2).astype('string') + ' keV'
+
+        for col in ['mean_E', 'delta_e', 'DE', 'lower_E', 'upper_E']:
+            energies[col] = energies[col]/1e6  # convert energies to MeV
+
+        custom_warning('Wind/3DP: The energy values in the metadata are now provided as MeV (previously eV)! Also DE is now 2*delta_e (previously just delta_e). Please adapt your scripts accordingly!')
 
         meta = {'channels_dict_df': energies,
                 'ENERGY_UNITS': metacdf.varattsget('ENERGY')['UNITS'],

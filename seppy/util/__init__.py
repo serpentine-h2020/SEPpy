@@ -1,27 +1,48 @@
 
 import datetime
-import psutil
+import glob
+import os
 import warnings
 
 import astropy.constants as const
 import astropy.units as u
 import numpy as np
 import pandas as pd
+import psutil
 import sunpy.sun.constants as sconst
 from sunpy.coordinates import get_horizons_coord
+from tqdm.auto import tqdm
 
 # Utilities toolbox, contains helpful functions
 
 
 def custom_formatwarning(message, *args, **kwargs):
+    """
+    :meta private:
+    """
     # ignore everything except the message
-    FAIL = '\033[91m'
+    RED = '\033[91m'
     ENDC = '\033[0m'
     BOLD = "\033[1m"
-    return BOLD+FAIL+'WARNING: '+ENDC+ str(message) + '\n'
+    return BOLD+RED+'WARNING: '+ENDC+ str(message) + '\n'
+
+
+def custom_formatnotification(message, *args, **kwargs):
+    """
+    :meta private:
+    """
+    # ignore everything except the message
+    YELLOW = '\033[93m'
+    ENDC = '\033[0m'
+    BOLD = "\033[1m"
+    _yllw_str = '\x1b[38;5;226m'
+    return BOLD+YELLOW+'NOTE: '+ENDC+ str(message) + '\n'
 
 
 def custom_warning(message):
+    """
+    :meta private:
+    """
     formatwarning_orig = warnings.formatwarning
     warnings.formatwarning = custom_formatwarning
     warnings.warn(message)
@@ -29,70 +50,27 @@ def custom_warning(message):
     return
 
 
-def k_parameter(mu:float, sigma:float, sigma_multiplier:int|float) -> float:
+def custom_notification(message):
     """
-    The standard version of k for the z-standardized intensity CUSUM.
-
-    Parameters:
-    -----------
-    mu : {float, np.ndarray} 
-                    The mean of the background.
-    sigma : {float, np.ndarray} 
-                    The standard deviation of the background.
-    sigma_multiplier : {int,float} 
-                    The multiplier for mu_{d} != 0.
-
-    Returns:
-    --------
-    k_param : {float, np.ndarray} Type depends on the input type.
-                    A valid k_parameter value (k >= 0).
+    :meta private:
     """
-    if sigma_multiplier == 0:
-        raise ValueError("sigma_multiplier may not be 0!")
-
-    # Let's not divide by zero.
-    # Only do this check if mu and sigma are singular values, numpy will take
-    # care of the cases with arrays.
-    if not isinstance(mu, (list, np.ndarray)):
-        if mu==0 or sigma==0:
-            return 0
-
-    nominator = sigma_multiplier
-    denominator = np.log(1 + (sigma_multiplier*sigma)/mu)
-
-    k_param = (nominator/denominator) - (mu/sigma)
-
-    if not isinstance(k_param, (int, float, np.int64, np.float64, np.longdouble)):
-        return k_param
-
-    return k_param if k_param >= 0 else 0
-
-
-def k_legacy(mu:float, sigma:float, sigma_multiplier:float) -> float:
-    """
-    The old standard k-parameter for SEPpy.
-    """
-    if sigma_multiplier == 0:
-        raise ValueError("sigma_multiplier may not be 0!")
-
-    # Let's not divide by zero
-    if not isinstance(mu, (list, np.ndarray)):
-        if mu==0:
-            return 0
-
-    nominator = sigma_multiplier
-    denominator = np.log(1 + (sigma_multiplier*sigma)/mu)
-
-    # In legacy SEPpy, k is rounded to the nearest integer
-    return np.round(nominator/denominator)
+    formatwarning_orig = warnings.formatwarning
+    warnings.formatwarning = custom_formatnotification
+    warnings.warn(message)
+    warnings.formatwarning = formatwarning_orig
+    return
 
 
 def resample_df(df, resample, pos_timestamp="center", origin="start"):
     """
-    Resamples a Pandas Dataframe or Series to a new frequency.
+    Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
+    just a simple wrapper around the pandas resample function that is
+    calculating the mean of the data in the new time bins. This is not
+    necessarily the correct way to resample data, depending on the data type
+    (for example for errors)!
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     df : pd.DataFrame or pd.Series
             The dataframe or series to resample
     resample : str
@@ -105,10 +83,17 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
             input dataframe/series (‘start’), or at the start of the day
             (‘start_day’)
 
-    Returns:
-    ----------
+    Returns
+    -------
     df : pd.DataFrame or Series, depending on the input
     """
+    # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
+    delta_resample = pd.to_timedelta(resample)
+    delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
+    if delta_resample < delta_original:
+        raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
+    elif delta_resample == delta_original:
+        custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
     try:
         df = df.resample(resample, origin=origin, label="left").mean()
         if pos_timestamp == 'start':
@@ -118,7 +103,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
         # if pos_timestamp == 'stop' or pos_timestamp == 'end':
         #     df.index = df.index + pd.tseries.frequencies.to_offset(pd.Timedelta(resample))
     except ValueError:
-        raise ValueError(f"Your 'resample' option of [{resample}] doesn't seem to be a proper Pandas frequency!")
+        raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
     return df
 
@@ -128,14 +113,14 @@ def flux2series(flux, dates, cadence=None):
     Converts an array of observed particle flux + timestamps into a pandas series
     with the desired cadence.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     flux: an array of observed particle fluxes
     dates: an array of corresponding dates/times
     cadence: str - desired spacing between the series elements e.g. '1s' or '5min'
 
-    Returns:
-    ----------
+    Returns
+    -------
     flux_series: Pandas Series object indexed by the resampled cadence
     """
 
@@ -153,6 +138,9 @@ def flux2series(flux, dates, cadence=None):
 
 
 def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
+    """
+    :meta private:
+    """
     # side is the index of the file here
     try:
         try:
@@ -184,6 +172,9 @@ def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
 
 
 def bepi_sixs_load(startdate, enddate, side, path, pos_timestamp='center'):
+    """
+    :meta private:
+    """
     dates = pd.date_range(startdate, enddate)
 
     # read files into Pandas dataframes:
@@ -204,7 +195,7 @@ def bepi_sixs_load(startdate, enddate, side, path, pos_timestamp='center'):
 
 def calc_av_en_flux_sixs(df, channel, species):
     """
-    This function averages the flux of two energy channels of BepiColombo/SIXS into a combined energy channel
+    This function averages the flux of two energy channels of BepiColombo/SIXS-P into a combined energy channel
     channel numbers counted from 1
 
     Parameters
@@ -222,6 +213,8 @@ def calc_av_en_flux_sixs(df, channel, species):
         channel-averaged flux
     en_channel_string: str
         string containing the energy information of combined channel
+
+    :meta private:
     """
 
     # define constant geometric factors
@@ -348,10 +341,10 @@ def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
         datetime.datetime: inferred injection time.
     '''
 
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
 
-    if not type(sw_speed)==u.quantity.Quantity:
+    if type(sw_speed) is not u.quantity.Quantity:
         sw_speed = sw_speed * u.km/u.s
 
     mass_dict = {'p': const.m_p,
@@ -380,7 +373,7 @@ def energy2speed(species, kinetic_energy):
     Returns:
         astropy units: relativistic particle speed.
     '''
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return calc_particle_speed(mass_dict[species], kinetic_energy)
@@ -397,7 +390,7 @@ def speed2energy(species, speed):
     Returns:
         astropy units: kinetic energy
     '''
-    if not type(speed)==u.quantity.Quantity:
+    if type(speed) is not u.quantity.Quantity:
         speed = speed * u.m/u.s
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     gamma = 1/np.sqrt(1-speed**2/const.c**2)
@@ -416,7 +409,7 @@ def speed2momentum(species, speed):
     Returns:
         astropy units: relativistic particle momentum
     '''
-    if not type(speed)==u.quantity.Quantity:
+    if type(speed) is not u.quantity.Quantity:
         speed = speed * u.m/u.s
     mass_dict = {'p': const.m_p, 'e': const.m_e}
     return mass_dict[species] * speed
@@ -433,9 +426,9 @@ def energy2momentum(species, kinetic_energy):
     Returns:
         astropy units: relativistic particle momentum
     '''
-    if not type(kinetic_energy)==u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity:
         kinetic_energy = kinetic_energy * u.MeV
-    mass_dict = {'p': const.m_p, 'e': const.m_e}
+    # mass_dict = {'p': const.m_p, 'e': const.m_e}
     return speed2momentum(species, energy2speed(species, kinetic_energy))
 
 
@@ -455,7 +448,7 @@ def intensity2psd(species, kinetic_energy, intensity):
         import astropy.units as u
         f = intensity2psd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
     '''
-    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity or type(intensity) is not u.quantity.Quantity:
         print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
         return
     else:
@@ -480,7 +473,7 @@ def intensity2vsd(species, kinetic_energy, intensity):
         import astropy.units as u
         f = intensity2vsd('e', 48*u.keV, 1e4/(u.cm**2 * u.sr * u.s * u.MeV))
     '''
-    if type(kinetic_energy)!=u.quantity.Quantity or type(intensity)!=u.quantity.Quantity:
+    if type(kinetic_energy) is not u.quantity.Quantity or type(intensity) is not u.quantity.Quantity:
         print("All physical inputs have to be defined in astropy units! Run 'help(intensity2psd)' for an example.")
         return
     else:
@@ -499,3 +492,43 @@ def jupyterhub_data_path(path_org, path_hub='/home/jovyan/data'):
         return path_hub
     else:
         return path_org
+
+
+def remove_duplicate_cdf_files(path=None):
+    """
+    Removes duplicate .cdf files in the provided directory, keeping only the one with the highest version number.
+
+    Parameters
+    ----------
+    path : string, optional
+        Directory in which the .cdf files are. If None, current working directory will be used. By default None.
+
+    Returns
+    -------
+    deleted_files : list
+        List of deleted duplicate .cdf files.
+
+    Examples
+    --------
+    >>> from seppy.util import remove_duplicate_cdf_files
+    >>> deleted_files = remove_duplicate_cdf_files('/Users/johndoe/data/psp')
+    Removing duplicate .cdf files in /Users/johndoe/data/psp/
+    >>> print(deleted_files)
+    []
+    """
+    if not path:
+        path = os.getcwd()
+    if path[-1] is not os.sep:
+        path += os.sep
+    all_cdf = glob.glob(f'{path}*.cdf')
+    print(f'Removing duplicate .cdf files in {path}') 
+    deleted_files = []
+    for cdf in tqdm(all_cdf):
+        cdf_wo_v = cdf.strip(cdf.split('_')[-1])
+        cdf_duplicates = glob.glob(f'{cdf_wo_v}*')
+        if len(cdf_duplicates) > 1:
+            cdf_duplicates.sort(reverse=True)
+            for dup in cdf_duplicates[1:]:
+                deleted_files.append(dup)
+                os.remove(dup)
+    return deleted_files

@@ -6,12 +6,26 @@ import datetime
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
+import pytest
+
+
+"""
+Install dependencies for tests:
+pip install flake8 pytest pytest-doctestplus pytest-cov pytest-mpl
+
+To create/update the baseline images, run the following command from the base package dir:
+pytest --mpl-generate-path=seppy/tests/baseline seppy/tests/test_tools.py
+
+To run the tests locally, go to the base directory of the repository and run:
+pytest -ra --mpl --mpl-baseline-path=baseline --mpl-baseline-relative --mpl-generate-summary=html seppy/tests/test_tools.py
+"""
 
 
 # switch to non-plotting matplotlib backend to avoid showing all the figures:
 plt.switch_backend("Agg")
 
 
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     startdate = datetime.date(2020, 9, 21)
     enddate = datetime.date(2020, 9, 21)
@@ -49,7 +63,10 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     Event1.tsa_plot('Pixel averaged', selection=(0, 4, 1), resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Solar Orbiter STEP, ions'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     startdate = datetime.date(2022, 1, 9)
     enddate = datetime.date(2022, 1, 9)
@@ -90,7 +107,10 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     Event1.tsa_plot('Pixel 8', selection=(0, 4, 1), resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Solar Orbiter STEP, ions'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_SOLO_HET_online():
     startdate = datetime.date(2022, 11, 8)
     enddate = datetime.date(2022, 11, 8)
@@ -129,7 +149,10 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     Event1.tsa_plot('north', selection=None, resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Solar Orbiter HET, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_SOLO_EPT_online():
     startdate = datetime.date(2022, 6, 6)
     enddate = datetime.date(2022, 6, 6)
@@ -150,14 +173,14 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     # viewing "north", combined channel, electrons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
-    flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[1, 4], resample_period="5min", yscale='log', cusum_window=30)
+    flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[5, 10], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
     assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)  # onset_stats[5] == pd.Timestamp('2021-10-28 15:31:59.492059')
     assert not onset_found
-    assert peak_time.isoformat().split('.')[0] == '2022-06-06T23:02:31'
-    assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0334 - 0.0439 MeV electrons\n5min averaging, viewing: NORTH'
+    assert peak_time.isoformat().split('.')[0] == '2022-06-06T01:32:31'
+    assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0439 - 0.0682 MeV electrons\n5min averaging, viewing: NORTH'
 
     # test dynamic spectrum:
     Event1.dynamic_spectrum(view='sun')
@@ -168,7 +191,10 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     Event1.tsa_plot('sun', selection=(0, 4, 1), resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Solar Orbiter EPT, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
@@ -207,7 +233,10 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     Event1.tsa_plot('A', selection=(0, 4, 1), resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Parker Solar Probe ISOIS-EPIHI, protons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_PSP_ISOIS_EPILO_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
@@ -244,7 +273,10 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPILO_e_online():
     Event1.tsa_plot('3', selection=(0, 4, 1), resample='1min')
     assert plt.figure(1).get_axes()[0].get_title() == 'Parker Solar Probe ISOIS-EPILO, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_Wind_3DP_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
@@ -282,7 +314,10 @@ def test_onset_spectrum_tsa_Wind_3DP_p_online():
     Event1.tsa_plot('omnidirectional', selection=(0, 4, 1), resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'Wind 3DP, protons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_Wind_3DP_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
@@ -320,7 +355,10 @@ def test_onset_spectrum_tsa_Wind_3DP_e_online():
     Event1.tsa_plot('sector 3', selection=(0, 4, 1), resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'Wind 3DP, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_STEREOB_HET_p_online():
     startdate = datetime.date(2006, 12, 13)
     enddate = datetime.date(2006, 12, 14)
@@ -348,7 +386,10 @@ def test_onset_spectrum_tsa_STEREOB_HET_p_online():
     Event1.tsa_plot(None, selection=None, resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'STEREO-B HET, protons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_STEREOB_HET_e_online():
     startdate = datetime.date(2006, 12, 13)
     enddate = datetime.date(2006, 12, 14)
@@ -376,7 +417,10 @@ def test_onset_spectrum_tsa_STEREOB_HET_e_online():
     Event1.tsa_plot(None, selection=None, resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'STEREO-B HET, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
@@ -404,7 +448,10 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     Event1.tsa_plot(view="north", selection=None, resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'STEREO-A SEPT, protons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
@@ -432,7 +479,10 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
     Event1.tsa_plot(view="asun", selection=None, resample=None)
     assert plt.figure(1).get_axes()[0].get_title() == 'STEREO-A SEPT, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 28)
@@ -467,7 +517,10 @@ def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     Event1.tsa_plot(None, selection=(0, 4, 1), resample='5min')
     assert plt.figure(1).get_axes()[0].get_title() == 'SOHO EPHIN, electrons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_spectrum_tsa_SOHO_ERNE_online():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
@@ -496,7 +549,10 @@ def test_onset_spectrum_tsa_SOHO_ERNE_online():
     Event1.tsa_plot(None, selection=(0, 4, 1), resample='5min')
     assert plt.figure(1).get_axes()[0].get_title() == 'SOHO ERNE, protons'
 
+    return fig
 
+
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_tsa_SOHO_ERNE_offline():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
@@ -520,6 +576,8 @@ def test_onset_tsa_SOHO_ERNE_offline():
     Event1.tsa_plot(None, selection=(0, 4, 1), resample='5min')
     assert plt.figure(1).get_axes()[0].get_title() == 'SOHO ERNE, protons'
 
+    return fig
+
 
 def test_dynamic_spectrum_SOHO_ERNE_offline():
     startdate = datetime.date(2021, 10, 28)
@@ -533,6 +591,7 @@ def test_dynamic_spectrum_SOHO_ERNE_offline():
     assert Event1.fig.get_axes()[0].get_title() == 'SOHO/ERNE protons, 2021-10-28'
 
 
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_onset_Bepi_SIXS_offline():
     startdate = datetime.date(2023, 7, 19)
     enddate = datetime.date(2023, 7, 19)
@@ -550,3 +609,5 @@ def test_onset_Bepi_SIXS_offline():
     assert not onset_found
     assert peak_time.isoformat().split('.')[0] == '2023-07-19T02:25:30'
     assert fig.get_axes()[0].get_title() == 'BEPI/SIXS 106 keV electrons\n1min averaging, viewing: 1'
+
+    return fig

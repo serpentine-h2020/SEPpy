@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import cdflib
+import copy
 import glob
 import os
 import pooch
@@ -16,7 +17,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import resample_df
+from seppy.util import custom_notification, custom_warning, resample_df
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -95,7 +96,11 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
     viewing : str
         'sun', 'asun', 'north', 'south' - viewing direction of instrument
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     path : str, optional
         local path where the files are/should be stored, by default None
     all_columns : boolean, optional
@@ -132,11 +137,11 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
     echannels = {'bins': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
                  'ch_strings': ch_strings,
                  'DE': [0.0100, 0.0100, 0.0100, 0.0100, 0.0200, 0.0200, 0.0200, 0.0200, 0.0300, 0.0300, 0.0300, 0.0400, 0.0400, 0.0400, 0.0500],
-                 'mean_E': mean_E}
+                 'mean_E': np.array(mean_E)/1000.}
     pchannels = {'bins': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
                  'ch_strings': ['84.1-92.7 keV', '92.7-101.3 keV', '101.3-110.0 keV', '110.0-118.6 keV', '118.6-137.0 keV', '137.0-155.8 keV', '155.8-174.6 keV', '174.6-192.6 keV', '192.6-219.5 keV', '219.5-246.4 keV', '246.4-273.4 keV', ' 273.4-312.0 keV', '312.0-350.7 keV', '350.7-389.5 keV', '389.5-438.1 keV', '438.1-496.4 keV', '496.4-554.8 keV', ' 554.8-622.9 keV', '622.9-700.7 keV', '700.7-788.3 keV', '788.3-875.8 keV', '875.8- 982.8 keV', '982.8-1111.9 keV', '1111.9-1250.8 keV', '1250.8-1399.7 keV', '1399.7-1578.4 keV', '1578.4-1767.0 keV', '1767.0-1985.3 keV', '1985.3-2223.6 keV', '2223.6-6500.0 keV'],
                  'DE': [0.0086, 0.0086, 0.0087, 0.0086, 0.0184, 0.0188, 0.0188, 0.018, 0.0269, 0.0269, 0.027, 0.0386, 0.0387, 0.0388, 0.0486, 0.0583, 0.0584, 0.0681, 0.0778, 0.0876, 0.0875, 0.107, 0.1291, 0.1389, 0.1489, 0.1787, 0.1886, 0.2183, 0.2383, 4.2764],
-                 'mean_E': [88.30, 96.90, 105.56, 114.22, 127.47, 146.10, 164.93, 183.38, 205.61, 232.56, 259.55, 292.06, 330.78, 369.59, 413.09, 466.34, 524.79, 587.86, 660.66, 743.21, 830.90, 927.76, 1045.36, 1179.31, 1323.16, 1486.37, 1670.04, 1872.97, 2101.07, 3801.76]}
+                 'mean_E': np.array([88.30, 96.90, 105.56, 114.22, 127.47, 146.10, 164.93, 183.38, 205.61, 232.56, 259.55, 292.06, 330.78, 369.59, 413.09, 466.34, 524.79, 587.86, 660.66, 743.21, 830.90, 927.76, 1045.36, 1179.31, 1323.16, 1486.37, 1670.04, 1872.97, 2101.07, 3801.76])/1000.}
     # :channel dicts from Nina
 
     if species == 'ele':
@@ -158,6 +163,11 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
                 [f'ch_{i}' for i in channels_dict_df.index] + \
                 [f'err_ch_{i}' for i in channels_dict_df.index] + \
                 ['integration_time']
+
+    if species == 'ele':
+        meta = {'channels_dict_df_e': channels_dict_df}
+    elif species == 'ion':
+        meta = {'channels_dict_df_p': channels_dict_df}
 
     if not path:
         path = sunpy.config.get('downloads', 'download_dir') + os.sep
@@ -203,10 +213,12 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
         # optional resampling:
         if isinstance(resample, str):
             df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+        
+        custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
     else:
         df = []
 
-    return df, channels_dict_df
+    return df, meta
 
 
 # def _download_metafile(dataset, path=None):
@@ -296,40 +308,44 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
 
     Parameters
     ----------
-    instrument : {str}
-        Name of STEREO instrument:
-        - 'HET': STEREO IMPACT/HET Level 1 Data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_HET
-        - 'LET': STEREO IMPACT/LET Level 1 Data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_LET
-        - 'MAG': STEREO IMPACT/MAG Magnetic Field Vectors (RTN or SC => mag_coord)
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_RTN
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_SC
-        - 'MAGB': STEREO IMPACT/MAG Burst Mode (~0.03 sec) Magnetic Field Vectors (RTN or SC => mag_coord)
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_RTN
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_SC
-       - 'MAGPLASMA': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L2_MAGPLASMA_1M
-        - 'SEPT': STEREO IMPACT/SEPT Level 2 Data
-    startdate, enddate : {datetime or str}
+    instrument : str
+        Name of STEREO instrument: \n
+            - 'HET': STEREO IMPACT/HET Level 1 Data \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_HET \n
+            - 'LET': STEREO IMPACT/LET Level 1 Data \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_LET \n
+            - 'MAG': STEREO IMPACT/MAG Magnetic Field Vectors (RTN or SC => mag_coord) \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_RTN \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAG_SC \n
+            - 'MAGB': STEREO IMPACT/MAG Burst Mode (~0.03 sec) Magnetic Field Vectors (RTN or SC => mag_coord) \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_RTN \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L1_MAGB_SC \n
+            - 'MAGPLASMA': STEREO IMPACT/MAG Magnetic Field and PLASTIC Solar Wind Plasma Level 2 Data \n
+              https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#STA_L2_MAGPLASMA_1M \n
+            - 'SEPT': STEREO IMPACT/SEPT Level 2 Data
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
-    spacecraft : {str}, optional
+    spacecraft : str, optional
         Name of STEREO spacecraft: 'ahead' or 'behind', by default 'ahead'
-    mag_coord : {str}, optional
+    mag_coord : str, optional
         Coordinate system for MAG: 'RTN' or 'SC', by default 'RTN'
-    sept_species : {str}, optional
+    sept_species : str, optional
         Particle species for SEPT: 'e'lectrons or 'p'rotons (resp. ions), by default 'e'
-    sept_viewing : {str}, optional
+    sept_viewing : str, optional
         Viewing direction for SEPT: 'sun', 'asun', 'north', or 'south', by default 'sun'
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    resample : {str}, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
-    pos_timestamp : {str}, optional
+    resample : str, optional
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
+    pos_timestamp : str, optional
         change the position of the timestamp: 'center' or 'start' of the accumulation interval,
         or 'original' to do nothing, by default 'center'.
-    max_conn : {int}, optional
+    max_conn : int, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
 
@@ -502,7 +518,7 @@ def calc_av_en_flux_SEPT(df, channels_dict_df, avg_channels):
     return avg_flux, new_ch_string
 
 
-def calc_av_en_flux_HET(df, channels_dict_df, avg_channels, species):
+def calc_av_en_flux_ST_HET(df, channels_dict_df, avg_channels, species):
     """
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
@@ -533,3 +549,7 @@ def calc_av_en_flux_HET(df, channels_dict_df, avg_channels, species):
     new_ch_string = f'{energy_low} - {energy_up} MeV'
 
     return avg_flux, new_ch_string
+
+
+# for backwards compatibility
+calc_av_en_flux_HET = copy.copy(calc_av_en_flux_ST_HET)

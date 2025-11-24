@@ -1,0 +1,9 @@
+ipython
+nbsphinx
+nbsphinx_link
+numpydoc
+sphinx
+sphinx-automodapi
+sphinx-copybutton
+sphinx_rtd_theme
+-e .

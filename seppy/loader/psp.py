@@ -2,7 +2,7 @@
 
 import copy
 import os
-import warnings
+# import warnings
 
 import cdflib
 import numpy as np
@@ -14,7 +14,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import resample_df
+from seppy.util import custom_warning, resample_df
 
 # Not needed atm as units are skipped in the modified read_cdf
 # if hasattr(sunpy, "__version__") and Version(sunpy.__version__) >= Version("5.0.0"):
@@ -192,39 +192,44 @@ def _get_cdf_vars(cdf):
 
 def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_threshold=None, path=None, resample=None, all_columns=False):
     """
-    Downloads CDF files via SunPy/Fido from CDAWeb for CELIAS, EPHIN, ERNE onboard SOHO
+    Downloads CDF files via SunPy/Fido from CDAWeb for ISOIS onboard PSP
+
     Parameters
     ----------
-    dataset : {str}
-        Name of PSP dataset:
-            - 'PSP_ISOIS-EPIHI_L2-HET-RATES60'
-            - 'PSP_ISOIS-EPIHI_L2-HET-RATES3600' (higher coverage than 'RATES60' before mid-2021)
-            - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60'
-            - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60'
-            - 'PSP_ISOIS-EPILO_L2-PE'
+    dataset : str
+        Name of PSP dataset: \n
+            - 'PSP_ISOIS-EPIHI_L2-HET-RATES60' \n
+            - 'PSP_ISOIS-EPIHI_L2-HET-RATES3600' (higher coverage than 'RATES60' before mid-2021) \n
+            - 'PSP_ISOIS-EPIHI_L2-LET1-RATES60' \n
+            - 'PSP_ISOIS-EPIHI_L2-LET2-RATES60' \n
+            - 'PSP_ISOIS-EPILO_L2-PE' \n
             - 'PSP_ISOIS-EPILO_L2-IC'
-    startdate, enddate : {datetime or str}
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
     epilo_channel : string
         'E', 'F', 'G' (for 'EPILO PE'), or 'C', 'D', 'P', 'R', 'T' (for 'EPILO IC').
         EPILO chan, by default 'F'
-    epilo_threshold : {int or float}, optional
+    epilo_threshold : int or float, optional
         Replace ALL flux/countrate values above 'epilo_threshold' with np.nan, by default None.
         Only works for Electron count rates in 'PSP_ISOIS-EPILO_L2-PE' dataset
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    resample : {str}, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
-    all_columns : {boolean}, optional
+    resample : str, optional
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
+    all_columns : boolean, optional
         Whether to return all columns of the datafile for EPILO (or skip
         usually unneeded columns for better performance), by default False
     Returns
     -------
-    df : {Pandas dataframe}
+    df : Pandas dataframe
         See links above for the different datasets for a description of the dataframe columns
-    energies_dict : {dictionary}
-        Dictionary containing energy information.
+    energies_dict : dictionary
+        Dictionary containing energy information. \n
         NOTE: For EPIHI energy values are only loaded from the first day of the interval!
         For EPILO energy values are the mean of the whole loaded interval.
     """
@@ -244,7 +249,7 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
             if os.path.exists(f) and os.path.getsize(f) == 0:
                 os.remove(f)
             if not os.path.exists(f):
-                downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=1)
+                _downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=1)
 
         # loading for EPIHI
         if dataset.split('-')[1] == 'EPIHI_L2':
@@ -306,7 +311,7 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
                     energies_dict["H_FLUX_UNITS"] = cdf.varattsget('C_H_Flux')['UNITS']
                     energies_dict["Electrons_Rate_UNITS"] = cdf.varattsget('C_Electrons_Rate')['UNITS']
                 except ValueError:
-                    raise Warning(f"Can't obtain UNITS from metadata. Possibly an unsupported dataset is loaded!")
+                    raise Warning("Can't obtain UNITS from metadata. Possibly an unsupported dataset is loaded!")
 
         # loading for EPILO
         if dataset.split('-')[1] == 'EPILO_L2':
@@ -415,7 +420,7 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
             species_str = 'H'
             flux_key = 'H_Flux'
     en_str = energies[f'{species_str}_ENERGY_LABL']
-    if type(en_channel) == list:
+    if type(en_channel) is list:
         energy_low = en_str[en_channel[0]].flat[0].split('-')[0]
         energy_up = en_str[en_channel[-1]].flat[0].split('-')[-1]
         en_channel_string = energy_low + '-' + energy_up
@@ -493,16 +498,16 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
         if species.lower() in ['p', 'protons', 'i', 'ions', 'h']:
             species_str = 'H'
             flux_key = 'H_Flux'
-    if type(en_channel) == int:
+    if type(en_channel) is int:
         en_channel = [en_channel]
-    if type(viewing) == int:
+    if type(viewing) is int:
         viewing = [viewing]
 
     df_out = pd.DataFrame()
-    flux_out_all = {}
+    # flux_out_all = {}
     en_channel_string_all = []
     for view in viewing:
-        if type(en_channel) == list:
+        if type(en_channel) is list:
             # energy = en_dict[f'{species_str}_Chan{chan}_Energy'].filter(like=f'_P{view}').values
             energy = en_dict[f'{species_str}_Chan{chan}_Energy'][en_dict[f'{species_str}_Chan{chan}_Energy'].keys().str.endswith(f'_P{view}')].values
             # energy_low = energy - en_dict[f'{species_str}_Chan{chan}_Energy_DELTAMINUS'].filter(like=f'_P{view}').values
@@ -544,11 +549,9 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
 
     # check if not all elements of en_channel_string_all are the same:
     if len(en_channel_string_all) != en_channel_string_all.count(en_channel_string_all[0]):
-        print("You are combining viewing directions that have different energies. This is strongly advised against!")
+        custom_warning(f"PSP/EPI-Lo {mode.upper()}: You are combining viewing directions that have different energies. This is strongly advised against!")
         print(en_channel_string_all)
-        return df_out2, en_channel_string_all[0]
-    else:
-        return df_out2, en_channel_string_all[0]
+    return df_out2, en_channel_string_all[0]
 
 
 psp_load = copy.copy(psp_isois_load)
@@ -584,15 +587,15 @@ def _read_cdf_psp(fname, index_key, ignore_vars=[]):
     ----------
     Space Physics Guidelines for CDF https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html
     """
-    import astropy.units as u
+    # import astropy.units as u
     from cdflib.epochs import CDFepoch
     from sunpy import log
-    from sunpy.timeseries import GenericTimeSeries
+    # from sunpy.timeseries import GenericTimeSeries
     from sunpy.util.exceptions import warn_user
     cdf = cdflib.CDF(str(fname))
     # Extract the time varying variables
     cdf_info = cdf.cdf_info()
-    meta = cdf.globalattsget()
+    # meta = cdf.globalattsget()
     if hasattr(cdflib, "__version__") and Version(cdflib.__version__) >= Version("1.0.0"):
         all_var_keys = cdf_info.rVariables + cdf_info.zVariables
     else:
@@ -619,7 +622,7 @@ def _read_cdf_psp(fname, index_key, ignore_vars=[]):
     # TODO: use to_astropy_time() instead here when we drop pandas in timeseries
     index = CDFepoch.to_datetime(index)
     # df = pd.DataFrame(index=pd.DatetimeIndex(name=index_key, data=index))
-    units = {}
+    # units = {}
     df_dict = {}
 
     for var_key in var_keys:

@@ -15,7 +15,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import custom_warning, resample_df
+from seppy.util import custom_notification, custom_warning, resample_df
 
 
 logger = pooch.get_logger()
@@ -56,14 +56,16 @@ def _get_metadata(dataset, path_to_cdf):
         channels_dict_df_He = pd.DataFrame(cdf.varget('He_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_He['lower_E'] = cdf.varget("He_energy")-cdf.varget("He_energy_delta")
         channels_dict_df_He['upper_E'] = cdf.varget("He_energy")+cdf.varget("He_energy_delta")
-        channels_dict_df_He['DE'] = cdf.varget("He_energy_delta")
+        channels_dict_df_He['He_energy_delta'] = cdf.varget("He_energy_delta")
+        channels_dict_df_He['DE'] = cdf.varget("He_energy_delta")*2  # obtain FULL width of energy channel!
         # channels_dict_df_He['mean_E'] = np.sqrt(channels_dict_df_He['upper_E'] * channels_dict_df_He['lower_E'])
         channels_dict_df_He['mean_E'] = cdf.varget("He_energy")
 
         channels_dict_df_p = pd.DataFrame(cdf.varget('P_E_label').flatten(), columns=['ch_strings'])
         channels_dict_df_p['lower_E'] = cdf.varget("P_energy")-cdf.varget("P_energy_delta")
         channels_dict_df_p['upper_E'] = cdf.varget("P_energy")+cdf.varget("P_energy_delta")
-        channels_dict_df_p['DE'] = cdf.varget("P_energy_delta")
+        channels_dict_df_p['P_energy_delta'] = cdf.varget("P_energy_delta")
+        channels_dict_df_p['DE'] = cdf.varget("P_energy_delta")*2  # obtain FULL width of energy channel!
         # channels_dict_df_p['mean_E'] = np.sqrt(channels_dict_df_p['upper_E'] * channels_dict_df_p['lower_E'])
         channels_dict_df_p['mean_E'] = cdf.varget("P_energy")
 
@@ -78,35 +80,38 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
 
     Parameters
     ----------
-    dataset : {str}
-        Name of SOHO dataset:
-        - 'SOHO_COSTEP-EPHIN_L2-1MIN': SOHO COSTEP-EPHIN Level2 1 minute data
-            https://www.ieap.uni-kiel.de/et/ag-heber/costep/data.php
-            http://ulysses.physik.uni-kiel.de/costep/level2/rl2/
-        - 'SOHO_COSTEP-EPHIN_L3I-1MIN': SOHO COSTEP-EPHIN Level3 intensity 1 minute data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_COSTEP-EPHIN_L3I-1MIN
-        - 'SOHO_ERNE-LED_L2-1MIN': SOHO ERNE-LED Level2 1 minute data - VERY OFTEN NO DATA!
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-LED_L2-1MIN
-        - 'SOHO_ERNE-HED_L2-1MIN': SOHO ERNE-HED Level2 1 minute data
-            https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-HED_L2-1MIN
-    startdate, enddate : {datetime or str}
+    dataset : str
+        Name of SOHO dataset: \n
+        - 'SOHO_COSTEP-EPHIN_L2-1MIN': SOHO COSTEP-EPHIN Level2 1 minute data \n
+          https://www.ieap.uni-kiel.de/et/ag-heber/costep/data.php \n
+        - 'SOHO_COSTEP-EPHIN_L3I-1MIN': SOHO COSTEP-EPHIN Level3 intensity 1 minute data \n
+          https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_COSTEP-EPHIN_L3I-1MIN \n
+        - 'SOHO_ERNE-LED_L2-1MIN': SOHO ERNE-LED Level2 1 minute data - VERY OFTEN NO DATA! \n
+          https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-LED_L2-1MIN \n
+        - 'SOHO_ERNE-HED_L2-1MIN': SOHO ERNE-HED Level2 1 minute data \n
+          https://cdaweb.gsfc.nasa.gov/misc/NotesS.html#SOHO_ERNE-HED_L2-1MIN
+    startdate, enddate : datetime or str
         Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)) or "standard"
         datetime string (e.g., "2021/04/15") (enddate must always be later than startdate)
-    path : {str}, optional
+    path : str, optional
         Local path for storing downloaded data, by default None
-    resample : {str}, optional
-        Resample frequency in format understandable by Pandas, e.g. '1min', by default None
-    pos_timestamp : {str}, optional
+    resample : str, optional
+        Resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
+    pos_timestamp : str, optional
         change the position of the timestamp: 'center' or 'start' of the accumulation interval,
         or 'original' to do nothing, by default 'center'.
-    max_conn : {int}, optional
+    max_conn : int, optional
         The number of parallel download slots used by Fido.fetch, by default 5
 
     Returns
     -------
-    df : {Pandas dataframe}
+    df : Pandas dataframe
         See links above for the different datasets for a description of the dataframe columns
-    metadata : {dict}
+    metadata : dict
         Dictionary containing different metadata, e.g., energy channels
     """
     # Catch old default value for pos_timestamp
@@ -143,6 +148,11 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
             df = data.to_dataframe()
 
             metadata = _get_metadata(dataset, downloaded_files[0])
+            if dataset.upper() == 'SOHO_ERNE-HED_L2-1MIN' or dataset.upper() == 'SOHO_ERNE-LED_L3I-1MIN':
+                custom_warning(f'The format of "channels_dict_df_p" in the metadata for {dataset} has been changed providing the full width of energy channels for DE (instead of the half)!')
+            elif dataset.upper() == 'SOHO_ERNE-LED_L2-1MIN':
+                custom_warning(f'The format of the metadata for {dataset} has been changed. The previous metadata is now provided in meta["energy_labels"]!')
+
 
             # remove this (i.e. following lines) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
@@ -178,7 +188,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
     return df, metadata
 
 
-def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor='HET'):
+def calc_av_en_flux_ERNE(df, channels_dict_df, avg_channels, species='p', sensor='HED'):
     """
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
@@ -267,7 +277,11 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
     enddate : str
         end date
     resample : str, optional
-        resample frequency in format understandable by Pandas, e.g. '1min', by default None
+        resample frequency in format understandable by Pandas, e.g. '1min', by default None.
+        Note that this is just a simple wrapper around thepandas
+        resample function that is calculating the mean of the data in the new
+        time bins. This is not necessarily the correct way to resample data,
+        depending on the data type (for example for errors)!
     path : str, optional
         local path where the files are/should be stored, by default None
     all_columns : boolean, optional
@@ -342,15 +356,16 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
                                   'H41 GM', 'H41 GR', 'H41 S1', 'H41 S23',
                                   'Spare 1', 'Spare 2', 'Spare 3'])
 
-        # Proton and helium measurements need to be corrected for effects determined post-launch,
+        # TODO: Proton and helium measurements need to be corrected for effects determined post-launch,
         # cf. chapter 2.3 of https://www.ieap.uni-kiel.de/et/ag-heber/costep/materials/L2_spec_ephin.pdf
         # Until this correction has been implemented here, these data products are set to -9e9.
         # Setting use_uncorrected_data_on_own_risk=True skips this replacement, so that the uncorrected
         # data can be obtained at own risk!
         if use_uncorrected_data_on_own_risk:
             # warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
-            custom_warning("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            custom_warning("SOHO/EPHIN proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
         else:
+            custom_notification("SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!")
             df.P4 = -9e9
             df.P8 = -9e9
             df.P25 = -9e9
@@ -392,7 +407,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_he25 = '25 - 53 MeV/n'
         if max(fmodes)==2:
             # warnings.warn('Careful: EPHIN ring off!')
-            custom_warning('Careful: EPHIN ring off!')
+            custom_warning('SOHO/EPHIN ring is off! This means high risk of contaminated measurements!')
 
         # failure mode D since 4 Oct 2017:
         # dates[-1].date() is enddate, used to catch cases when enddate is a string
@@ -402,7 +417,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             # dates[0].date() is startdate, used to catch cases when startdate is a string
             if dates[0].date() <= dt.date(2017, 10, 4):
                 # warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
-                custom_warning('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                custom_warning('SOHO/EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
 
         # careful!
         # adjusting the position of the timestamp manually.
@@ -416,7 +431,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
     else:
         df = []
 
-    meta = {'E150': '0.25 - 0.7 MeV',
+    energies = {'E150': '0.25 - 0.7 MeV',
             'E300': cs_e300,
             'E1300': cs_e1300,
             'E3000': '4.80 - 10.4 MeV',
@@ -429,6 +444,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             'H25': cs_he25,
             'H41': '40.9 - 53.0 MeV/n',
             'INT': '>25 MeV integral'}
+    meta = {'energy_labels': energies}
 
     return df, meta
 
