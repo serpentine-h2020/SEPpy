@@ -299,7 +299,136 @@ def _get_metadata(dataset, path_to_cdf):
 
         metadata.update({'channels_dict_df_e': channels_dict_df_e})
         metadata.update({'channels_dict_df_p': channels_dict_df_p})
+    if dataset[-3:].upper()=='LET':
+        # Lets hope the parameter names and values are always the same...
+        # Let first only keep the proton unsectered data, which is the standard data product
+        # Following the code format before, text, units and fillval are needed for the metadata
+        #
+        # First the  unsec data: i.e., the standard LET data product
+        unsec_name = []
+        for var in cdf.cdf_info().zVariables:
+            if 'unsec' in var:
+                unsec_name.append(var)
+        metadata = {}
+
+        for var in unsec_name:
+            metadata.update({var: cdf.varattsget(var)['CATDESC']})
+            metadata.update({var+'_UNITS': cdf.varattsget(var)['UNITS']})
+            metadata.update({var+'_FILLVAL': cdf.varattsget(var)['FILLVAL']})
+            metadata.update({var+'_Bins_Text': cdf.varget(cdf.varattsget(var)['DEPEND_1'])})
+
+            channels_dict_df_p = pd.DataFrame(metadata[var+'_Bins_Text'], columns=['ch_strings'])
+            channels_dict_df_p['lower_E'] = channels_dict_df_p.ch_strings.apply(lambda x: float((x.split('-')[0]).strip()))
+            channels_dict_df_p['upper_E'] = channels_dict_df_p.ch_strings.apply(lambda x: float((x.split('-')[1]).split()[0].strip()))
+            channels_dict_df_p['DE'] = channels_dict_df_p['upper_E'] - channels_dict_df_p['lower_E']
+            channels_dict_df_p['mean_E'] = np.sqrt(channels_dict_df_p['upper_E'] * channels_dict_df_p['lower_E'])   
+            metadata.update({'channels_dict_df_'+var: channels_dict_df_p})
+        #sec data, only load proton data, others are not very commonly used
+        sec_name = ['H_Lo_sec_flux', 'H_Hi_sec_flux', 'H_VLo_sec_flux', 'H_Lo_sec_cnts', 'H_Hi_sec_cnts', 'H_VLo_sec_cnts']
+        for var in sec_name:
+            metadata.update({var: cdf.varattsget(var)['CATDESC']})
+            metadata.update({var+'_UNITS': cdf.varattsget(var)['UNITS']})
+            metadata.update({var+'_FILLVAL': cdf.varattsget(var)['FILLVAL']})
+        metadata.update({'H_Lo_sec_flux_Energy_Bins': [4,6]})
+        metadata.update({'H_Hi_sec_flux_Energy_Bins': [6,12]})
+        metadata.update({'H_VLo_sec_flux_Energy_Bins': [1.8,3.6]})
+        metadata.update({'H_Lo_sec_cnts_Energy_Bins': [4,6]})
+        metadata.update({'H_Hi_sec_cnts_Energy_Bins': [6,12]})
+        metadata.update({'H_VLo_sec_cnts_Energy_Bins': [1.8,3.6]})
+        metadata.update({'H_sec_flux_Energy_Bins':[[1.8,3.6],[4,6],[6,12]]})
     return metadata
+
+def let(df_let, metadata, species='p', type='unsec', count_rate=False, flux=True):
+    """
+    Extract LET data from dataframe returned by stereo_load,
+    Here are the available species:
+    species : str
+        'H'/'P' for protons (default) ;
+        'He' for helium ions;
+        'He4' for helium-4 ions;
+        'He3' for helium-3 ions;
+        and more
+    type : str
+        'unsec' for unsectered (default);
+        'sec' for sectered; proton implemented
+        'summed' for summed sectered and unsectered; TODO
+    count_rate : bool, optional, returen count rates instead of fluxes, by default False
+    flux : bool, optional, return fluxes instead of count rates, by default True
+    Returns
+    -------
+    df_let_species : Pandas dataframe
+        dataframe with either 16 channels of proton or 16 channels of helium ion fluxes and their respective uncertainties
+        or other species if added in future
+
+    ------
+    usage example:
+    df_let, metadata = stereo_load('LET', '2022-01-01', '2022-01-03', spacecraft='ahead', path=None)
+    df_let_p = let(df_let, metadata, species='p', type='unsec', flux=True) 
+    """
+    _default_species = ['H', 'He', 'He4', 'He3','C','N','O','Ne','Mg','Al','Si','S','Ar','Ca','Fe','Ni']
+    _default_species_lower = [s.lower() for s in _default_species]
+    if type =='unsec':
+        if species.lower() == 'p' or species.lower() == 'h':
+            nametag = 'H_unsec_flux' if flux else 'H_unsec_cnts'
+            col_names = [nametag+'_' + str(i) for i in range(0, 12)]
+        elif species.lower() in _default_species_lower:
+            _name =  _default_species[_default_species_lower.index(species.lower())]
+            nametag = _name+'_unsec_flux' if flux else _name+'_unsec_cnts'
+            DEPEND_1 = metadata[nametag+'_Bins_Text']
+            col_names = [nametag+'_' + str(i) for i in range(0, len(DEPEND_1))]
+        else:
+            print('these speciese are not mearured by LET, available species are:', _default_species)
+        df_let_species = df_let[col_names]
+        df_let_species.attrs['Bins']= metadata['channels_dict_df_'+nametag]
+        return df_let_species
+    if type =='sec':
+        if species.lower() == 'p' or species.lower() == 'h':
+            nametag = 'H_Lo_sec_flux' if flux else 'H_Lo_sec_cnts'
+            col_names = [nametag+'_' + str(i) for i in range(0, 16)]
+            nametag = 'H_Hi_sec_flux' if flux else 'H_Hi_sec_cnts'
+            col_names += [nametag+'_' + str(i) for i in range(0, 16)]
+            nametag = 'H_VLo_sec_flux' if flux else 'H_VLo_sec_cnts'
+            col_names += [nametag+'_' + str(i) for i in range(0, 16)]
+        df_let_species = df_let[col_names]
+        df_let_species.attrs['Bins']= metadata['H_sec_flux_Energy_Bins']
+        return df_let_species
+
+
+
+def het(df_het, metadata, species='e'):
+    """
+    Extract HET data from dataframe returned by stereo_load,
+    Here are the available species:
+    species : str
+        'e' for electrons (default) ;
+        'p' or 'h' for protons;
+    Returns
+    -------
+    df_het_species : Pandas dataframe
+    ------
+    usage example:
+    df_het, metadata = stereo_load('HET', '2022-01-01', '2022-01-03', spacecraft='ahead', path=None)
+    df_het_e = het(df_het, metadata, species='e')
+    """
+    if species.lower() == 'e':
+        nametag = 'Electron' 
+        col_names = []
+    elif species.lower() == 'p' or species.lower() == 'h':
+        nametag = 'Proton'
+    else:
+        print('these speciese are not mearured by HET, available species are: e, p (or h)')
+    col_names = []
+    for key in df_het.columns:
+        if nametag in key:
+            col_names.append(key)
+    df_het_species = df_het[col_names]
+    if species.lower() == 'e':
+        df_het_species.attrs['Bins']= metadata['channels_dict_df_e']
+        df_het_species.attrs['Units']= metadata['Electron_Flux_UNITS']
+    if species.lower() == 'p' or species.lower() == 'h':
+        df_het_species.attrs['Bins']= metadata['channels_dict_df_p']
+        df_het_species.attrs['Units']= metadata['Proton_Flux_UNITS']
+    return df_het_species
 
 
 def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='RTN', sept_species='e', sept_viewing=None, path=None, resample=None, pos_timestamp='center', max_conn=5):
