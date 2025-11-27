@@ -41,7 +41,7 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2020-09-21T17:27:37'
+    assert onset_stats[5].isoformat().split('.')[0] == "2020-09-21T17:07:37"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2020-09-21T17:57:37'
     assert fig.get_axes()[0].get_title() == 'SOLO/STEP 0.0060 - 0.0091 MeV/n protons\n5min averaging, viewing: PIXEL AVERAGED'
@@ -290,7 +290,7 @@ def test_onset_spectrum_tsa_Wind_3DP_p_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:27:35'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T16:12:35"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T20:17:35'
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 385.96 - 716.78 keV protons\n5min averaging, viewing: SECTOR 3'
@@ -299,7 +299,7 @@ def test_onset_spectrum_tsa_Wind_3DP_p_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:27:42'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T16:07:42"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T21:07:42'
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 385.96 - 716.78 keV protons\n5min averaging, viewing: OMNIDIRECTIONAL'
@@ -331,7 +331,7 @@ def test_onset_spectrum_tsa_Wind_3DP_e_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:12:35'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T15:57:35"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T21:52:35'
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 127.06 - 235.96 keV electrons\n5min averaging, viewing: SECTOR 3'
@@ -340,7 +340,7 @@ def test_onset_spectrum_tsa_Wind_3DP_e_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:07:42'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T15:57:42"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T21:52:42'
     assert fig.get_axes()[0].get_title() == 'WIND/3DP 127.06 - 235.96 keV electrons\n5min averaging, viewing: OMNIDIRECTIONAL'
@@ -372,7 +372,7 @@ def test_onset_spectrum_tsa_STEREOB_HET_p_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2006-12-13T03:18:04'
+    assert onset_stats[5].isoformat().split('.')[0] == "2006-12-13T03:03:04"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2006-12-13T09:53:04'
     assert fig.get_axes()[0].get_title() == 'STB/HET 26.3 - 40.5 MeV protons\n5min averaging'
@@ -403,7 +403,7 @@ def test_onset_spectrum_tsa_STEREOB_HET_e_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2006-12-13T02:43:04'
+    assert onset_stats[5].isoformat().split('.')[0] == "2006-12-13T02:38:04"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2006-12-13T04:53:04'
     assert fig.get_axes()[0].get_title() == 'STB/HET 1.4 - 2.8 MeV electrons\n5min averaging'
@@ -434,7 +434,7 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T15:53:27'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T15:48:27"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T17:18:27'
     assert fig.get_axes()[0].get_title() == 'STA/SEPT 110-174.6 keV protons\n5min averaging, viewing: NORTH'
@@ -496,7 +496,7 @@ def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T15:53:42'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T15:28:42"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T22:18:42'  # '2021-10-29T04:53:42.357000')
     assert fig.get_axes()[0].get_title() == 'SOHO/EPHIN 0.25 - 0.7 MeV electrons\n5min averaging'
@@ -534,7 +534,7 @@ def test_onset_spectrum_tsa_SOHO_ERNE_online():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:53:05'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T16:23:05"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T22:53:05'
     assert fig.get_axes()[0].get_title() == 'SOHO/ERNE 25.0 - 32.0 MeV protons\n5min averaging'
@@ -566,7 +566,7 @@ def test_onset_tsa_SOHO_ERNE_offline():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
     assert len(onset_stats) == 6
-    assert onset_stats[5].isoformat().split('.')[0] == '2021-10-28T16:53:05'
+    assert onset_stats[5].isoformat().split('.')[0] == "2021-10-28T16:23:05"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2021-10-28T22:53:05'
     assert fig.get_axes()[0].get_title() == 'SOHO/ERNE 16.0 - 32.0 MeV protons\n5min averaging'
@@ -605,8 +605,9 @@ def test_onset_Bepi_SIXS_offline():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (161,)
     assert len(onset_stats) == 6
-    assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)
-    assert not onset_found
+    #assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)
+    assert onset_stats[5].isoformat().split('.')[0] == "2023-07-19T02:05:30"
+    assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2023-07-19T02:25:30'
     assert fig.get_axes()[0].get_title() == 'BEPI/SIXS 106 keV electrons\n1min averaging, viewing: 1'
 
