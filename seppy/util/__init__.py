@@ -61,7 +61,7 @@ def custom_notification(message):
     return
 
 
-def k_parameter(mu:float, sigma:float, sigma_multiplier:int|float) -> float:
+def k_parameter(mu:float, sigma:float, sigma_multiplier:int) -> float:
     """
     The standard version of k for the z-standardized intensity CUSUM.
 
