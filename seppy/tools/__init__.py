@@ -261,11 +261,9 @@ class Event:
 
             self.viewing = sector_direction
 
-    # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
-    # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
-    # are class attributes, and should probably be cleaned up at some point
-    def load_data(self, spacecraft, sensor, viewing, data_level,
-                  autodownload=True, threshold=None):
+
+    def load_data(self, sensor, viewing, data_level,
+                  autodownload=True):
         """
         :meta private:
         """
