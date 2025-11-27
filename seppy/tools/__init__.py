@@ -262,8 +262,8 @@ class Event:
             self.viewing = sector_direction
 
 
-    def load_data(self, sensor, viewing, data_level,
-                  autodownload=True):
+    def load_data(self, spacecraft, sensor, viewing, data_level,
+                  autodownload=True, threshold=None):
         """
         :meta private:
         """
