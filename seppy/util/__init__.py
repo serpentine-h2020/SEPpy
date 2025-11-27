@@ -108,10 +108,15 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     try:
         # Handle DataFrame input
         if isinstance(df, pd.DataFrame):
+            # save column order
+            df_columns = df.columns
+            #
             agg_dict = {col: sqrt_sum_squares for col in cols_unc}
             for col in df.columns.difference(cols_unc):
                 agg_dict[col] = 'mean'
             df = df.resample(resample, origin=origin, label="left").agg(agg_dict)
+            # restore column order
+            df = df[df_columns]
         # Handle Series input
         elif isinstance(df, pd.Series):
             if df.name in cols_unc:
