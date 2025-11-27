@@ -61,7 +61,7 @@ def custom_notification(message):
     return
 
 
-def resample_df(df, resample, pos_timestamp="center", origin="start"):
+def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[]):
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
     just a simple wrapper around the pandas resample function that is
@@ -80,13 +80,24 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
             the start of it
     origin : str, default 'start'
             Controls if the origin of resampling is at the first entry of the
-            input dataframe/series (‘start’), or at the start of the day
-            (‘start_day’)
+            input dataframe/series ('start'), or at the start of the day
+            ('start_day')
+    cols_unc : list, default []
+            List of columns in the dataframe (or name of the series) that
+            contain uncertainties. These columns will be resampled using a
+            custom function (sqrt of the sum of squares divided by number of
+            samples in the bin) instead of just the arithmetic mean.
 
     Returns
     -------
     df : pd.DataFrame or Series, depending on the input
     """
+    # Define custom aggregation function for uncertainties, which calculates the
+    # sqrt of the sum of squares divided by number of samples in the bin
+    def sqrt_sum_squares(series):
+        # TODO: What about NaNs?
+        return np.sqrt(np.sum(series**2)) / len(series)
+    #
     # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
     delta_resample = pd.to_timedelta(resample)
     delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
@@ -95,7 +106,19 @@ def resample_df(df, resample, pos_timestamp="center", origin="start"):
     elif delta_resample == delta_original:
         custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
     try:
-        df = df.resample(resample, origin=origin, label="left").mean()
+        # Handle DataFrame input
+        if isinstance(df, pd.DataFrame):
+            agg_dict = {col: sqrt_sum_squares for col in cols_unc}
+            for col in df.columns.difference(cols_unc):
+                agg_dict[col] = 'mean'
+            df = df.resample(resample, origin=origin, label="left").agg(agg_dict)
+        # Handle Series input
+        elif isinstance(df, pd.Series):
+            if df.name in cols_unc:
+                df = df.resample(resample, origin=origin, label="left").agg(sqrt_sum_squares)
+            else:
+                df = df.resample(resample, origin=origin, label="left").mean()  # This is actually the original functionality before adding cols_unc
+        # Adjust timestamp position
         if pos_timestamp == 'start':
             df.index = df.index
         else:
