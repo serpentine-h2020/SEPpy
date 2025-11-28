@@ -61,6 +61,26 @@ def custom_notification(message):
     return
 
 
+def sqrt_sum_squares(series):
+    """
+    Custom aggregation function for uncertainties, which calculates the
+    sqrt of the sum of squares divided by number of samples in the bin
+
+    Parameters
+    ----------
+    series : pd.Series
+        The series to aggregate
+
+    Returns
+    -------
+    float
+        Sqrt of sum of squares divided by number of samples
+    """
+
+    # TODO: What about NaNs?
+    return np.sqrt(np.sum(series**2)) / len(series)
+
+
 def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[]):
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
@@ -92,12 +112,6 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     -------
     df : pd.DataFrame or Series, depending on the input
     """
-    # Define custom aggregation function for uncertainties, which calculates the
-    # sqrt of the sum of squares divided by number of samples in the bin
-    def sqrt_sum_squares(series):
-        # TODO: What about NaNs?
-        return np.sqrt(np.sum(series**2)) / len(series)
-    #
     # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
     delta_resample = pd.to_timedelta(resample)
     delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
@@ -133,6 +147,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     except ValueError:
         raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
+    custom_warning("Internal function sqrt_sum_squares is not handling NaN values yet!")  # TODO: remove when implemented
     return df
 
 
