@@ -64,6 +64,7 @@ def custom_notification(message):
 def k_parameter(mu:float, sigma:float, sigma_multiplier:int) -> float:
     """
     The standard version of k for the z-standardized intensity CUSUM.
+
     Parameters:
     -----------
     mu : {float, np.ndarray} 
@@ -72,6 +73,7 @@ def k_parameter(mu:float, sigma:float, sigma_multiplier:int) -> float:
                     The standard deviation of the background.
     sigma_multiplier : {int,float} 
                     The multiplier for mu_{d} != 0.
+
     Returns:
     --------
     k_param : {float, np.ndarray} Type depends on the input type.

@@ -19,7 +19,8 @@ from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
 from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df, \
+                       k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
 
 
@@ -260,9 +261,7 @@ class Event:
 
             self.viewing = sector_direction
 
-    # I suggest we at some point erase the arguments ´spacecraft´ and ´threshold´ due to them not being used.
-    # `viewing` and `autodownload` are actually the only necessary input variables for this function, the rest
-    # are class attributes, and should probably be cleaned up at some point
+
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
         """
@@ -946,7 +945,7 @@ class Event:
         sigma = np.nanstd(background)
         return [mean_value, sigma]
 
-    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time):
+    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time, k_model:str=None):
         """
         :meta private:
         """
@@ -958,25 +957,18 @@ class Event:
         sigma = ma_sigma[1]
         md = ma + self.x_sigma*sigma
 
-        # k may get really big if sigma is large in comparison to mean
-        try:
-
-            k = (md-ma)/(np.log(md)-np.log(ma))
-            k_round = round(k/sigma)
-
-        except ValueError:
-
-            # First ValueError I encountered was due to ma=md=2.0 -> k = "0/0"
-            k_round = 1
+        # Choose the correct k_parameter to use:
+        if k_model is None:
+            k_param = k_parameter(mu=ma, sigma=sigma, sigma_multiplier=self.x_sigma)
+        elif k_model=="legacy":
+            print("Using the legacy definition for the k-parameter.")
+            k_param = k_legacy(mu=ma, sigma=sigma, sigma_multiplier=self.x_sigma)
+        # Input value for k_param was something strange:
+        else:
+            raise ValueError(f"Unidentified input for parameter k_model: {k_model}. Leave to None to use the standard k-parameter, or input 'legacy' if you want to use the old definition.")
 
         # choose h, the variable dictating the "hastiness" of onset alert
-        if k < 1.0:
-
-            h = 1
-
-        else:
-
-            h = 2
+        h = 2 if k_param>1 else 1
 
         alert = 0
         cusum = np.zeros(len(flux_series))
@@ -991,7 +983,7 @@ class Event:
             norm_channel[i] = (flux_series.iloc[i]-ma)/sigma
 
             # calculate the value for ith cusum entry
-            cusum[i] = max(0, norm_channel[i] - k_round + cusum[i-1])
+            cusum[i] = max(0, norm_channel[i] - k_param + cusum[i-1])
 
             # check if cusum[i] is above threshold h,
             # if it is -> increment alert
@@ -1011,18 +1003,17 @@ class Event:
                 break
 
         # ma = mu_a = background average
-        # md = mu_d = background average + 2*sigma
-        # k_round = integer value of k, that is the reference value to
-        # poisson cumulative sum
+        # md = mu_d = background average + n*sigma
+        # k_param = the k-parameter of the modified CUSUM function
         # h = 1 or 2,describes the hastiness of onset alert
+        # cusum = the cusum function
         # onset_time = the time of the onset
-        # S = the cusum function
 
-        return [ma, md, k_round, norm_channel, cusum, onset_time]
+        return [ma, md, k_param, norm_channel, cusum, onset_time]
 
     def onset_analysis(self, df_flux, windowstart, windowlen, windowrange, channels_dict,
                        channel='flux', cusum_window=30, yscale='log',
-                       ylim=None, xlim=None):
+                       ylim=None, xlim=None, k_model:str=None):
         """
         :meta private:
         """
@@ -1081,7 +1072,7 @@ class Event:
         background_stats = self.mean_value(avg_start, avg_end, flux_series)
         onset_stats =\
             self.onset_determination(background_stats, flux_series,
-                                     cusum_window, avg_end)
+                                     cusum_window, avg_end, k_model=k_model)
 
         if not isinstance(onset_stats[-1], pd._libs.tslibs.nattype.NaTType):
 
@@ -2597,9 +2588,13 @@ class Event:
 
         return np.array(beta)*const.c.value
 
-    def print_energies(self):
+    def print_energies(self, return_df=False):
         """
         Prints out the channel name / energy range pairs
+
+        Parameter:
+        ---------
+        return_df : {bool} default False. If True, returns the df instead of displaying it.
         """
 
         from IPython.display import display
@@ -2689,11 +2684,13 @@ class Event:
         df = df.set_index(column_names[0])
 
         # Finally display the dataframe such that ALL rows are shown
-        with pd.option_context('display.max_rows', None,
-                               'display.max_columns', None,
-                               ):
-            display(df)
-        return
+        if not return_df:
+            with pd.option_context('display.max_rows', None,
+                                 'display.max_columns', None,
+                                 ):
+                display(df)
+        else:
+            return df
 
     def save_and_update_rcparams(self, plotting_function: str):
         """
