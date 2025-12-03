@@ -370,7 +370,7 @@ def calc_av_en_flux_sixs(df, channel, species):
         ENERGY_PROT_COMB89 = ''  # 35.069 MeV TODO:
         ENERGY_ELEC_COMB56 = ''  # 1.3638 MeV TODO:
         column_name = 'Side2_'
-        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.') TODO:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')  # TODO:
     elif side == '3':
         GEOMFACTOR_PROT8 = 0.6207177970231386  # old value 5.97E-01, updated Dec 3, 2025
         GEOMFACTOR_PROT9 = 2.9545622530653795  # old value 4.09E+00, updated Dec 3, 2025
@@ -381,7 +381,7 @@ def calc_av_en_flux_sixs(df, channel, species):
         ENERGY_PROT_COMB89 = ''  # 35.069 MeV TODO:
         ENERGY_ELEC_COMB56 = ''  # 1.3638 MeV TODO:
         column_name = 'Side3_'
-        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.') TODO:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')  # TODO:
     elif side == '4':
         raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')
 
