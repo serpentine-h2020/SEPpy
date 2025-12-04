@@ -1203,19 +1203,19 @@ class Event:
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
                                       f"Peak flux: {df_flux_peak['flux'].iloc[0]:.2E}",
                                       prop=dict(size=13), frameon=True,
-                                      loc=(4))
+                                      loc='lower right')
             # if(self.spacecraft[:2].lower() == 'st' or self.spacecraft == 'soho' or self.spacecraft == 'wind'):
             else:
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
                                       f"Peak flux: {df_flux_peak.values[0]:.2E}",
                                       prop=dict(size=13), frameon=True,
-                                      loc=(4))
+                                      loc='lower right')
 
         else:
 
             plabel = AnchoredText("No onset found",
                                   prop=dict(size=13), frameon=True,
-                                  loc=(4))
+                                  loc='lower right')
 
         plabel.patch.set_boxstyle("round, pad=0., rounding_size=0.2")
         plabel.patch.set_linewidth(2.0)
