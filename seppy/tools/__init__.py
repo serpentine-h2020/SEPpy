@@ -2659,6 +2659,10 @@ class Event:
         
         if self.sensor == 'sixs-p' and self.data_level == 'l3':
             channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
+        
+        if self.sensor == 'sixs-p' and self.data_level == 'l2':
+            custom_warning("print_energies() is not supporting internal Level-2 data of BepiColombo/SIXS-P!")
+            return
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
