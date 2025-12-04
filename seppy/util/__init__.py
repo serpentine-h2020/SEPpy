@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import psutil
 import sunpy.sun.constants as sconst
+from astropy.utils.data import get_pkg_data_filename
 from sunpy.coordinates import get_horizons_coord
 from tqdm.auto import tqdm
 
@@ -326,7 +327,14 @@ def calc_av_en_flux_sixs(df, channel, species):
             side = df.filter(like='Side').keys()[0][4]
     elif len(df.filter(like='Side').keys()) == 0:
         side = None
-    
+
+    if len(channel) != 2:
+        raise ValueError('Channel parameter has to be a list of two channel numbers, e.g. [5, 6] for combining channels 5 and 6!')
+
+    if (species[0].lower() == 'e' and channel == [5, 6]) or (species[0].lower() == 'p' and channel == [8, 9]):
+        pass
+    else:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination {channel} for {species} not implemented yet.')
 
     # define constant geometric factors
     if not side:
@@ -339,67 +347,38 @@ def calc_av_en_flux_sixs(df, channel, species):
         GEOMFACTOR_ELEC_COMB56 = 0.0972
         ENERGY_PROT_COMB89 = '37 MeV'
         ENERGY_ELEC_COMB56 = '1.4 MeV'
+        if (species[0].lower() == 'p' and channel == [8, 9]):
+            gf_comb = GEOMFACTOR_PROT_COMB89
+            E_comb = ENERGY_PROT_COMB89
+            gf_lower_chan = GEOMFACTOR_PROT8
+            gf_upper_chan = GEOMFACTOR_PROT9
+        elif (species[0].lower() == 'e' and channel == [5, 6]):
+            gf_comb = GEOMFACTOR_ELEC_COMB56
+            E_comb = ENERGY_ELEC_COMB56
+            gf_lower_chan = GEOMFACTOR_ELEC5
+            gf_upper_chan = GEOMFACTOR_ELEC6
         column_name = ''
-    elif side == '0':
-        GEOMFACTOR_PROT8 = 0.6426692644860997  # old value 5.97E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT9 = 4.417831868656601  # old value 4.09E+00, updated Dec 3, 2025
-        GEOMFACTOR_ELEC5 = 0.01902742886064727  # old value 1.99E-02, updated Dec 3, 2025
-        GEOMFACTOR_ELEC6 = 0.1135490379756403  # old value 1.33E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT_COMB89 = 3.654054163586906  # old value 3.34, updated Dec 3, 2025
-        GEOMFACTOR_ELEC_COMB56 = 0.08551070251341733  # old value 0.0972, updated Dec 3, 2025
-        ENERGY_PROT_COMB89 = '37 MeV'  # 37.685 MeV
-        ENERGY_ELEC_COMB56 = '1.33 MeV'  # 1.3275 MeV
-        column_name = 'Side0_'
-    elif side == '1':
-        GEOMFACTOR_PROT8 = 0.6221938878154205  # old value 5.97E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT9 = 2.9687170296087215  # old value 4.09E+00, updated Dec 3, 2025
-        GEOMFACTOR_ELEC5 = 0.01910546786520893  # old value 1.99E-02, updated Dec 3, 2025
-        GEOMFACTOR_ELEC6 = 0.1318902237747132  # old value 1.33E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT_COMB89 = 2.668354225044794  # old value 3.34, updated Dec 3, 2025
-        GEOMFACTOR_ELEC_COMB56 = 0.09343635397442175  # old value 0.0972, updated Dec 3, 2025
-        ENERGY_PROT_COMB89 = '35 MeV'  # 35.069 MeV
-        ENERGY_ELEC_COMB56 = '1.36 MeV'  # 1.3638 MeV
-        column_name = 'Side1_'
-    elif side == '2':
-        GEOMFACTOR_PROT8 = 0.6228600631156037  # old value 5.97E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT9 = 2.9599055009889925  # old value 4.09E+00, updated Dec 3, 2025
-        GEOMFACTOR_ELEC5 = 0.019725349691526606  # old value 1.99E-02, updated Dec 3, 2025
-        GEOMFACTOR_ELEC6 = 0.1334813273024479  # old value 1.33E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT_COMB89 = np.nan  # old value 3.34, updated Dec 3, 2025 TODO:
-        GEOMFACTOR_ELEC_COMB56 = np.nan  # old value 0.0972, updated Dec 3, 2025 TODO:
-        ENERGY_PROT_COMB89 = ''  # 35.069 MeV TODO:
-        ENERGY_ELEC_COMB56 = ''  # 1.3638 MeV TODO:
-        column_name = 'Side2_'
-        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')  # TODO:
-    elif side == '3':
-        GEOMFACTOR_PROT8 = 0.6207177970231386  # old value 5.97E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT9 = 2.9545622530653795  # old value 4.09E+00, updated Dec 3, 2025
-        GEOMFACTOR_ELEC5 = 0.01970122733468188  # old value 1.99E-02, updated Dec 3, 2025
-        GEOMFACTOR_ELEC6 = 0.13358622148857563  # old value 1.33E-01, updated Dec 3, 2025
-        GEOMFACTOR_PROT_COMB89 = np.nan  # old value 3.34, updated Dec 3, 2025 TODO:
-        GEOMFACTOR_ELEC_COMB56 = np.nan  # old value 0.0972, updated Dec 3, 2025 TODO:
-        ENERGY_PROT_COMB89 = ''  # 35.069 MeV TODO:
-        ENERGY_ELEC_COMB56 = ''  # 1.3638 MeV TODO:
-        column_name = 'Side3_'
-        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')  # TODO:
-    elif side == '4':
+    elif side in ['0', '1', '2', '3']:
+        # load in geometric factor and mean energy of combined channels
+        filepath = get_pkg_data_filename(f'data/bepi_sixsp_instrumental_constants/sixsp_side{side}_{species[0].lower()}_combined_gf.csv', package='seppy')
+        tdf = pd.read_csv(filepath, index_col=0).T
+        gf_comb = tdf['GF'][f'{species[0].upper()}{channel[0]}+{species[0].upper()}{channel[1]}']
+        E_comb = f"{tdf['E'][f'{species[0].upper()}{channel[0]}+{species[0].upper()}{channel[1]}']} MeV"
+        # load in geometric factors of individual channels
+        filepath = get_pkg_data_filename(f'data/bepi_sixsp_instrumental_constants/sixsp_side{side}_{species[0].lower()}_gf_en.csv', package='seppy')
+        tdf = pd.read_csv(filepath, index_col=0).T
+        gf_lower_chan = tdf['GF'][f'{species[0].upper()}{channel[0]}']
+        gf_upper_chan = tdf['GF'][f'{species[0].upper()}{channel[1]}']
+        column_name = f'Side{side}_'
+    elif side in ['4']:
         raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')
 
-    if species in ['p', 'protons']:
-        if channel == [8, 9]:
-            countrate = df[f'{column_name}P8'] * GEOMFACTOR_PROT8 + df[f'{column_name}P9'] * GEOMFACTOR_PROT9
-            flux = countrate / GEOMFACTOR_PROT_COMB89
-            en_channel_string = ENERGY_PROT_COMB89
-        else:
-            raise NotImplementedError(f'BepiColombo/SIXS-P channel combination {channel} for protons not implemented yet.')
-
-    if species in ['e', 'electrons']:
-        if channel == [5, 6]:
-            countrate = df[f'{column_name}E5'] * GEOMFACTOR_ELEC5 + df[f'{column_name}E6'] * GEOMFACTOR_ELEC6
-            flux = countrate / GEOMFACTOR_ELEC_COMB56
-            en_channel_string = ENERGY_ELEC_COMB56
-        else:
-            raise NotImplementedError(f'BepiColombo/SIXS-P channel combination {channel} for electrons not implemented yet.')
+    if (species[0].lower() == 'e' and channel == [5, 6]) or (species[0].lower() == 'p' and channel == [8, 9]):
+        countrate = df[f'{column_name}{species[0].upper()}{channel[0]}'] * gf_lower_chan + df[f'{column_name}{species[0].upper()}{channel[1]}'] * gf_upper_chan
+        flux = countrate / gf_comb
+        en_channel_string = E_comb
+    else:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination {channel} for {species} not implemented yet.')
 
     return flux, en_channel_string
 
