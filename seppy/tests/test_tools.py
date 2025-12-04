@@ -598,7 +598,7 @@ def test_onset_Bepi_SIXS_offline():
     fullpath = get_pkg_data_filename('data/test/20230719_side1.csv', package='seppy')
     lpath = Path(fullpath).parent.as_posix()
     # lpath = '/home/jagies/data/bepi/bc_mpo_sixs/data_csv/cruise/sixs-p/raw'
-    Event1 = Event(spacecraft='Bepi', sensor='SIXS', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, viewing='1')
+    Event1 = Event(spacecraft='Bepi', sensor='SIXS-P', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, viewing='1')
     background_range = (datetime.datetime(2023, 7, 19, 0, 30, 0), datetime.datetime(2023, 7, 19, 1, 30, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='1', background_range=background_range, channels=2, resample_period="1min", yscale='log', cusum_window=30)
 
