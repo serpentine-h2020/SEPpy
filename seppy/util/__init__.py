@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import psutil
 import sunpy.sun.constants as sconst
+from astropy.utils.data import get_pkg_data_filename
 from sunpy.coordinates import get_horizons_coord
 from tqdm.auto import tqdm
 
@@ -318,36 +319,66 @@ def calc_av_en_flux_sixs(df, channel, species):
     :meta private:
     """
 
+    # try to extract side info from dataframe column names
+    if len(df.filter(like='Side').keys()) > 0:
+        if len(df.filter(like='Side').keys()) > 10:
+            raise ValueError('Multiple BepiColombo/SIXS-P sides found in dataframe, unable to determine which side to use for channel combination!')
+        else:
+            side = df.filter(like='Side').keys()[0][4]
+    elif len(df.filter(like='Side').keys()) == 0:
+        side = None
+
+    if len(channel) != 2:
+        raise ValueError('Channel parameter has to be a list of two channel numbers, e.g. [5, 6] for combining channels 5 and 6!')
+
+    if (species[0].lower() == 'e' and channel == [5, 6]) or (species[0].lower() == 'p' and channel == [8, 9]):
+        pass
+    else:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination {channel} for {species} not implemented yet.')
+
     # define constant geometric factors
-    GEOMFACTOR_PROT8 = 5.97E-01
-    GEOMFACTOR_PROT9 = 4.09E+00
-    GEOMFACTOR_ELEC5 = 1.99E-02
-    GEOMFACTOR_ELEC6 = 1.33E-01
-    GEOMFACTOR_PROT_COMB89 = 3.34
-    GEOMFACTOR_ELEC_COMB56 = 0.0972
+    if not side:
+        custom_warning('BepiColombo/SIXS-P side could not be determined from dataframe column names (internal level 2 data?). Using old, side-independent geometric factors, which most probably are not accurate anymore!')
+        GEOMFACTOR_PROT8 = 5.97E-01
+        GEOMFACTOR_PROT9 = 4.09E+00
+        GEOMFACTOR_ELEC5 = 1.99E-02
+        GEOMFACTOR_ELEC6 = 1.33E-01
+        GEOMFACTOR_PROT_COMB89 = 3.34
+        GEOMFACTOR_ELEC_COMB56 = 0.0972
+        ENERGY_PROT_COMB89 = '37 MeV'
+        ENERGY_ELEC_COMB56 = '1.4 MeV'
+        if (species[0].lower() == 'p' and channel == [8, 9]):
+            gf_comb = GEOMFACTOR_PROT_COMB89
+            E_comb = ENERGY_PROT_COMB89
+            gf_lower_chan = GEOMFACTOR_PROT8
+            gf_upper_chan = GEOMFACTOR_PROT9
+        elif (species[0].lower() == 'e' and channel == [5, 6]):
+            gf_comb = GEOMFACTOR_ELEC_COMB56
+            E_comb = ENERGY_ELEC_COMB56
+            gf_lower_chan = GEOMFACTOR_ELEC5
+            gf_upper_chan = GEOMFACTOR_ELEC6
+        column_name = ''
+    elif side in ['0', '1', '2', '3']:
+        # load in geometric factor and mean energy of combined channels
+        filepath = get_pkg_data_filename(f'data/bepi_sixsp_instrumental_constants/sixsp_side{side}_{species[0].lower()}_combined_gf.csv', package='seppy')
+        tdf = pd.read_csv(filepath, index_col=0).T
+        gf_comb = tdf['GF'][f'{species[0].upper()}{channel[0]}+{species[0].upper()}{channel[1]}']
+        E_comb = f"{tdf['E'][f'{species[0].upper()}{channel[0]}+{species[0].upper()}{channel[1]}']} MeV"
+        # load in geometric factors of individual channels
+        filepath = get_pkg_data_filename(f'data/bepi_sixsp_instrumental_constants/sixsp_side{side}_{species[0].lower()}_gf_en.csv', package='seppy')
+        tdf = pd.read_csv(filepath, index_col=0).T
+        gf_lower_chan = tdf['GF'][f'{species[0].upper()}{channel[0]}']
+        gf_upper_chan = tdf['GF'][f'{species[0].upper()}{channel[1]}']
+        column_name = f'Side{side}_'
+    elif side in ['4']:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination for Side{side} not implemented yet.')
 
-    if type(channel) is list and len(channel) == 1:
-        channel = channel[0]
-
-    if species in ['p', 'protons']:
-        if channel == [8, 9]:
-            countrate = df['P8'] * GEOMFACTOR_PROT8 + df['P9'] * GEOMFACTOR_PROT9
-            flux = countrate / GEOMFACTOR_PROT_COMB89
-            en_channel_string = '37 MeV'
-        else:
-            print('No valid channel combination selected.')
-            flux = pd.Series()
-            en_channel_string = ''
-
-    if species in ['e', 'electrons']:
-        if channel == [5, 6]:
-            countrate = df['E5'] * GEOMFACTOR_ELEC5 + df['E6'] * GEOMFACTOR_ELEC6
-            flux = countrate / GEOMFACTOR_ELEC_COMB56
-            en_channel_string = '1.4 MeV'
-        else:
-            print('No valid channel combination selected.')
-            flux = pd.Series()
-            en_channel_string = ''
+    if (species[0].lower() == 'e' and channel == [5, 6]) or (species[0].lower() == 'p' and channel == [8, 9]):
+        countrate = df[f'{column_name}{species[0].upper()}{channel[0]}'] * gf_lower_chan + df[f'{column_name}{species[0].upper()}{channel[1]}'] * gf_upper_chan
+        flux = countrate / gf_comb
+        en_channel_string = E_comb
+    else:
+        raise NotImplementedError(f'BepiColombo/SIXS-P channel combination {channel} for {species} not implemented yet.')
 
     return flux, en_channel_string
 

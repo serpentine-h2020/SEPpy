@@ -19,7 +19,7 @@ from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
 from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_warning, flux2series, resample_df, \
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, flux2series, resample_df, \
                        k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
 
@@ -575,7 +575,7 @@ class Event:
 
         if self.spacecraft.lower() == 'bepi':
             if self.data_level.lower() == 'l2':
-                custom_warning('BepiColombo L2 data is not yet publicly available! You need to manual provide the files, or access the L3 data instead by using "data_level='+"'l3'"+'" above!')
+                custom_notification('BepiColombo L2 data is not yet publicly available! You need to manual provide the files, or access the L3 data instead by using "data_level='+"'l3'"+'" above!')
                 self.df_i_0, self.df_e_0, self.energies_0 =\
                     self.load_data(self.spacecraft, self.sensor, viewing='0', data_level=self.data_level)
                 self.df_i_1, self.df_e_1, self.energies_1 =\
@@ -1203,19 +1203,19 @@ class Event:
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
                                       f"Peak flux: {df_flux_peak['flux'].iloc[0]:.2E}",
                                       prop=dict(size=13), frameon=True,
-                                      loc=(4))
+                                      loc='lower right')
             # if(self.spacecraft[:2].lower() == 'st' or self.spacecraft == 'soho' or self.spacecraft == 'wind'):
             else:
                 plabel = AnchoredText(f"Onset time: {str(onset_stats[-1])[:19]}\n"
                                       f"Peak flux: {df_flux_peak.values[0]:.2E}",
                                       prop=dict(size=13), frameon=True,
-                                      loc=(4))
+                                      loc='lower right')
 
         else:
 
             plabel = AnchoredText("No onset found",
                                   prop=dict(size=13), frameon=True,
-                                  loc=(4))
+                                  loc='lower right')
 
         plabel.patch.set_boxstyle("round, pad=0., rounding_size=0.2")
         plabel.patch.set_linewidth(2.0)
@@ -1489,15 +1489,19 @@ class Event:
             elif self.data_level == 'l3':
                 if type(channels) is list:
                     if len(channels) > 1:
-                            raise Exception("No multi-channel support for BepiColombo/SIXS-P L3 included yet! Select only one single channel.")
+                        if self.species == 'e':
+                            df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_e, channels, self.species)
+                        if self.species in ['p', 'i']:
+                            df_flux, en_channel_string = calc_av_en_flux_sixs(self.current_df_i, channels, self.species)
                     elif len(channels) == 1:
                         channels = channels[0]
-                if self.species == 'e':
-                    df_flux = self.current_df_e[f'Side{self.viewing}_E{channels}']
-                    en_channel_string = self.current_energies[f'Side{self.viewing}_Electron_Bins_str'][f'E{channels}']
-                if self.species in ['p', 'i']:
-                    df_flux = self.current_df_i[f'Side{self.viewing}_P{channels}']
-                    en_channel_string = self.current_energies[f'Side{self.viewing}_Proton_Bins_str'][f'P{channels}']
+                if type(channels) is int:
+                    if self.species == 'e':
+                        df_flux = self.current_df_e[f'Side{self.viewing}_E{channels}']
+                        en_channel_string = self.current_energies[f'Side{self.viewing}_Electron_Bins_str'][f'E{channels}']
+                    if self.species in ['p', 'i']:
+                        df_flux = self.current_df_i[f'Side{self.viewing}_P{channels}']
+                        en_channel_string = self.current_energies[f'Side{self.viewing}_Proton_Bins_str'][f'P{channels}']
 
 
         if self.spacecraft.lower() == 'psp':
@@ -2659,6 +2663,10 @@ class Event:
         
         if self.sensor == 'sixs-p' and self.data_level == 'l3':
             channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
+        
+        if self.sensor == 'sixs-p' and self.data_level == 'l2':
+            custom_notification("print_energies() is not supporting internal Level 2 data of BepiColombo/SIXS-P!")
+            return
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)

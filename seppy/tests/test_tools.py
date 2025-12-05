@@ -592,13 +592,13 @@ def test_dynamic_spectrum_SOHO_ERNE_offline():
 
 
 @pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
-def test_onset_Bepi_SIXS_offline():
+def test_onset_Bepi_SIXS_L2_offline():
     startdate = datetime.date(2023, 7, 19)
     enddate = datetime.date(2023, 7, 19)
     fullpath = get_pkg_data_filename('data/test/20230719_side1.csv', package='seppy')
     lpath = Path(fullpath).parent.as_posix()
     # lpath = '/home/jagies/data/bepi/bc_mpo_sixs/data_csv/cruise/sixs-p/raw'
-    Event1 = Event(spacecraft='Bepi', sensor='SIXS', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, viewing='1')
+    Event1 = Event(spacecraft='Bepi', sensor='SIXS-P', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, viewing='1')
     background_range = (datetime.datetime(2023, 7, 19, 0, 30, 0), datetime.datetime(2023, 7, 19, 1, 30, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='1', background_range=background_range, channels=2, resample_period="1min", yscale='log', cusum_window=30)
 
@@ -609,6 +609,29 @@ def test_onset_Bepi_SIXS_offline():
     assert onset_stats[5].isoformat().split('.')[0] == "2023-07-19T02:05:30"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2023-07-19T02:25:30'
-    assert fig.get_axes()[0].get_title() == 'BEPI/SIXS 106 keV electrons\n1min averaging, viewing: 1'
+    assert fig.get_axes()[0].get_title() == 'BEPI/SIXS-P 106 keV electrons\n1min averaging, viewing: 1'
+
+    return fig
+
+
+@pytest.mark.parametrize("viewing, species, channels, resample", [('0', 'electrons', [5, 6], '5min'), ('2', 'protons', [8, 9], '10min'), ('1', 'electrons', 2, None)])
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
+def test_onset_Bepi_SIXS_L3_online(viewing, species, channels, resample):
+    startdate = datetime.date(2023, 2, 17)
+    enddate = datetime.date(2023, 2, 19)
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
+    Event1 = Event(spacecraft='BepiColombo', sensor='SIXS-P', data_level='l3', species=species, start_date=startdate, end_date=enddate, data_path=lpath, viewing=viewing)
+    background_range = (datetime.datetime(2023, 2, 17, 3, 0, 0), datetime.datetime(2023, 2, 17, 19, 0, 0))
+    flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=viewing, background_range=background_range, channels=channels, resample_period=resample, yscale='log', cusum_window=30)
+
+    # assert isinstance(flux, pd.Series)
+    # assert flux.shape == (161,)
+    # assert len(onset_stats) == 6
+    # #assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)
+    # assert onset_stats[5].isoformat().split('.')[0] == "2023-07-19T02:05:30"
+    # assert onset_found
+    # assert peak_time.isoformat().split('.')[0] == '2023-07-19T02:25:30'
+    # assert fig.get_axes()[0].get_title() == 'BEPI/SIXS 106 keV electrons\n1min averaging, viewing: 1'
 
     return fig
