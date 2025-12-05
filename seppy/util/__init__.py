@@ -206,7 +206,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     except ValueError:
         raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
-    custom_warning("Internal function sqrt_sum_squares is not handling NaN values yet!")  # TODO: remove when implemented
+    if len(cols_unc) > 0:
+        custom_warning("Internal function sqrt_sum_squares is not handling NaN values yet!")  # TODO: remove when implemented
     return df
 
 
