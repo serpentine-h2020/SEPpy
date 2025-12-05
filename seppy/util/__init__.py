@@ -140,6 +140,48 @@ def sqrt_sum_squares(series):
     return np.sqrt(np.sum(series**2)) / len(series)
 
 
+def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
+    """
+    Reduces a list by replacing numeric sequences with placeholders.
+    
+    Args:
+        original_list: The list of strings to reduce
+        placeholder: The string to replace numeric parts (default: "xx")
+        seperator: The character used to split the strings (default: "_")
+        
+    Returns:
+        A sorted list of unique patterns
+    """
+    patterns = set()
+    
+    for item in original_list:
+        # Split the string by common delimiters
+        parts = item.split(seperator)
+        
+        # Create a new pattern by replacing numeric parts
+        new_parts = []
+        for part in parts:
+            # Check if this part is purely numeric
+            if part.isdigit():
+                new_parts.append(placeholder)
+            # Check if there's a numeric suffix in the part
+            elif any(c.isdigit() for c in part):
+                # Find where the numbers start
+                for i, char in enumerate(part):
+                    if char.isdigit():
+                        # Replace numeric portion with placeholder
+                        new_parts.append(part[:i] + placeholder)
+                        break
+            else:
+                new_parts.append(part)
+        
+        # Join back the modified parts
+        pattern = '_'.join(new_parts)
+        patterns.add(pattern)
+    
+    return sorted(list(patterns))
+
+
 def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[]):
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
@@ -178,6 +220,25 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
         raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
     elif delta_resample == delta_original:
         custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
+
+    # automatically detect columns with uncertainties if not provided
+    if cols_unc == 'auto':
+        if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
+            if isinstance(df, pd.DataFrame):
+                # if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
+                cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
+            elif isinstance(df, pd.Series):
+                if 'unc' in df.name.lower() or 'error' in df.name.lower():
+                    cols_unc = [df.name]
+            if len(cols_unc) > 0 and cols_unc != 'auto':
+                custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}")
+            else:
+                custom_warning("\nNo columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter.\n")
+        else:  # if type(df.columns) is pd.core.indexes.multi.MultiIndex:
+            cols_unc = []
+            custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
+
+    # resampling
     try:
         # Handle DataFrame input
         if isinstance(df, pd.DataFrame):
