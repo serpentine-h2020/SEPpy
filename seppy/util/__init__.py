@@ -203,11 +203,15 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
             Controls if the origin of resampling is at the first entry of the
             input dataframe/series ('start'), or at the start of the day
             ('start_day')
-    cols_unc : list, default []
+    cols_unc : list, default []  # TODO: change default to 'auto' later?
             List of columns in the dataframe (or name of the series) that
             contain uncertainties. These columns will be resampled using a
             custom function (sqrt of the sum of squares divided by number of
-            samples in the bin) instead of just the arithmetic mean.
+            samples in the bin) instead of just the arithmetic mean. If set to
+            'auto', the function will try to automatically detect columns with
+            uncertainties based on their names (looking for 'uncertainty', 'err',
+            or 'sigma' in the column name). Note that this automatic detection
+            only works for single-level column DataFrames and Series.
 
     Returns
     -------
