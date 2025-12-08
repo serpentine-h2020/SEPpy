@@ -217,6 +217,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     -------
     df : pd.DataFrame or Series, depending on the input
     """
+    if not resample:
+        raise ValueError("Resample period is set to 'None'. No resampling will be applied.")
     # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
     delta_resample = pd.to_timedelta(resample)
     delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
