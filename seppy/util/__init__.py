@@ -137,7 +137,7 @@ def sqrt_sum_squares(series):
     """
 
     # TODO: What about NaNs?
-    return np.sqrt(np.sum(series**2)) / len(series)
+    return np.sqrt(np.nansum(series**2)) / len(series)
 
 
 def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
@@ -226,7 +226,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
         custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
 
     # automatically detect columns with uncertainties if not provided
-    if cols_unc == 'auto':
+    if type(cols_unc) is str and cols_unc == 'auto':
         if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
             if isinstance(df, pd.DataFrame):
                 # if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
