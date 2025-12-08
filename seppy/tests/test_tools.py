@@ -1,7 +1,8 @@
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
+from seppy.loader.stereo import stereo_load
 from seppy.tools import Event
-from seppy.util import jupyterhub_data_path
+from seppy.util import jupyterhub_data_path, resample_df
 import datetime
 import os
 import matplotlib.pyplot as plt
@@ -635,3 +636,38 @@ def test_onset_Bepi_SIXS_L3_online(viewing, species, channels, resample):
     # assert fig.get_axes()[0].get_title() == 'BEPI/SIXS 106 keV electrons\n1min averaging, viewing: 1'
 
     return fig
+
+
+def test_resample_df_sept_online():
+    startdate = datetime.date(2021, 10, 28)
+    enddate = datetime.date(2021, 10, 28)
+    lpath = f"{os.getcwd()}{os.sep}data"
+    lpath = jupyterhub_data_path(lpath)
+    df, meta = stereo_load(instrument='SEPT', startdate=startdate, enddate=enddate, spacecraft='STA',
+                                             sept_species='p', sept_viewing='sun', path=lpath)
+    unc_id = 'err_ch_'
+    cols_unc = df.filter(like=unc_id).columns
+    #
+    resample = '1s'
+    with pytest.raises(ValueError, match=f"Your resample option of '{resample}' is smaller than the original data cadence of '0 days 00:01:00'. This is not supported!"):
+        df_resampled_auto = resample_df(df, resample, cols_unc='auto')
+    #
+    resample = '5min'
+    df_resampled_none = resample_df(df, resample)
+    df_resampled_manu = resample_df(df, resample, cols_unc=cols_unc)
+    df_resampled_auto = resample_df(df, resample, cols_unc='auto')
+    pd.testing.assert_frame_equal(df_resampled_manu, df_resampled_auto)
+    with pytest.raises(AssertionError):
+        pd.testing.assert_frame_equal(df_resampled_none, df_resampled_manu)
+    df_resampled_none.index.freqstr == resample
+    df_resampled_auto.index.freqstr == resample
+    df_resampled_none.err_ch_31.mean() == pytest.approx(0.19295445763888888)
+    df_resampled_auto.err_ch_31.mean() == pytest.approx(0.0879893429380724)
+    df_resampled_none.err_ch_31.max() == pytest.approx(1.038175)
+    df_resampled_auto.err_ch_31.max() == pytest.approx(0.5191970236576863)
+    #
+    resample = None
+    with pytest.raises(ValueError, match="Resample period is set to 'None'. No resampling will be applied."):
+        df_resampled_none = resample_df(df, resample)
+    #
+    return
