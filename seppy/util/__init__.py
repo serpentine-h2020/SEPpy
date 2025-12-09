@@ -223,7 +223,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     delta_resample = pd.to_timedelta(resample)
     # for original data, get each time difference and find the most common one (mode)
     dt_original = df.index.to_series().diff()
-    delta_original = dt_original.mode().iloc[0]
+    delta_original = dt_original.mode().iloc[0].round('s')  # round to full seconds to avoid weirdness
     #
     if delta_resample < delta_original:
         raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
