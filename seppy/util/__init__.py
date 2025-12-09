@@ -221,7 +221,10 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
         raise ValueError("Resample period is set to 'None'. No resampling will be applied.")
     # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
     delta_resample = pd.to_timedelta(resample)
-    delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
+    # for original data, get each time difference and find the most common one (mode)
+    dt_original = df.index.to_series().diff()
+    delta_original = dt_original.mode().iloc[0]
+    #
     if delta_resample < delta_original:
         raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
     elif delta_resample == delta_original:
