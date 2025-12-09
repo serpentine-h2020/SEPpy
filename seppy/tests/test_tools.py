@@ -649,7 +649,7 @@ def test_resample_df_sept_online():
     cols_unc = df.filter(like=unc_id).columns
     #
     resample = '1s'
-    with pytest.raises(ValueError, match=f"Your resample option of '{resample}' is smaller than the original data cadence of '0 days 00:01:00'. This is not supported!"):
+    with pytest.raises(ValueError, match=f"Your resample option of '{resample}' is smaller than the original data cadence of '0 days 00:00:59.961614014'. This is not supported!"):
         df_resampled_auto = resample_df(df, resample, cols_unc='auto')
     #
     resample = '5min'
