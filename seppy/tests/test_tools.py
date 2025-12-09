@@ -669,5 +669,3 @@ def test_resample_df_sept_online():
     resample = None
     with pytest.raises(ValueError, match="Resample period is set to 'None'. No resampling will be applied."):
         df_resampled_none = resample_df(df, resample)
-    #
-    return
