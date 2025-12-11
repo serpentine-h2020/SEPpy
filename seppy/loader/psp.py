@@ -438,7 +438,7 @@ def calc_av_en_flux_PSP_EPIHI(df, energies, en_channel, species, instrument, vie
                 if bins == en_channel[0]:
                     I_all = df[f'{viewing.upper()}_{flux_key}_{bins}'] * DE[bins]
                 else:
-                    I_all = I_all + df[f'{viewing.upper()}_{flux_key}_{bins}'] * DE[bins]
+                    I_all = I_all.add(df[f'{viewing.upper()}_{flux_key}_{bins}'] * DE[bins], fill_value=0)  # to handle possible NaN values
             DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1]+1)])
             flux_out = pd.DataFrame({'flux': I_all/DE_total}, index=df.index)
         else:
@@ -534,7 +534,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
                     if bins == en_channel[0]:
                         I_all = df[f"{flux_key}_Chan{chan}_E{bins}_P{view}"] * DE[bins]
                     else:
-                        I_all = I_all + df[f"{flux_key}_Chan{chan}_E{bins}_P{view}"] * DE[bins]
+                        I_all = I_all.add(df[f"{flux_key}_Chan{chan}_E{bins}_P{view}"] * DE[bins], fill_value=0)  # to handle possible NaN values
                 DE_total = np.sum(DE[(en_channel[0]):(en_channel[-1]+1)])
                 flux_out = pd.DataFrame({f'viewing_{view}': I_all/DE_total}, index=df.index)
             if len(en_channel) == 1:
