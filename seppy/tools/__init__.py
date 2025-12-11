@@ -1248,7 +1248,7 @@ class Event:
         return flux_series, onset_stats, onset_found, df_flux_peak, df_flux_peak.index[0], fig, background_stats[0]
 
     def find_onset(self, viewing, bg_start=None, bg_length=None, background_range=None, resample_period=None,
-                   channels=[0, 1], yscale='log', cusum_window=30, xlim=None, x_sigma=2):
+                   channels=[0, 1], yscale='log', cusum_window=30, xlim=None, x_sigma=2, k_model:str=None):
         """
         This method runs Poisson-CUSUM onset analysis for the Event object.
 
@@ -1274,6 +1274,8 @@ class Event:
                         Panda-compatible datetimes or strings to assert the left and right boundary of the x-axis of the plot.
         x_sigma : int, default 2
                         The multiplier of m_d in the definition of the control parameter k in Poisson-CUSUM method.
+        k_model : {str}, default None
+                        Leave to None to use the current k-parameter. Input 'legacy' to use the old definition for k.
         """
 
         # This check was initially transforming the 'channels' integer to a tuple of len==1, but that
@@ -1546,7 +1548,8 @@ class Event:
 
         flux_series, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean =\
             self.onset_analysis(df_averaged, bg_start, bg_length, background_range,
-                                en_channel_string, yscale=yscale, cusum_window=cusum_window, xlim=xlim)
+                                en_channel_string, yscale=yscale, cusum_window=cusum_window,
+                                xlim=xlim, k_model=k_model)
 
         # At least in the case of solo/ept the peak_flux is a pandas Dataframe, but it should be a Series
         if isinstance(peak_flux, pd.core.frame.DataFrame):
