@@ -476,11 +476,17 @@ def calc_av_en_flux_SEPT(df, channels_dict_df, avg_channels):
     avg_channels : list of int, optional
         averaging channels m to n if [m, n] is provided (both integers), by default None
     """
-
-    # # create Pandas Dataframe from channels_dict:
-    # channels_dict_df = pd.DataFrame.from_dict(channels_dict)
-    # channels_dict_df.index = channels_dict_df.bins
-    # channels_dict_df.drop(columns=['bins'], inplace=True)
+    if type(channels_dict_df) is dict:
+        # find correct channels_dict_df from metadata:
+        channels_dict_df_keys = [k for k in channels_dict_df.keys() if 'channels_dict_df' in k]
+        if len(channels_dict_df_keys) == 1:
+            channels_dict_df = channels_dict_df[channels_dict_df_keys[0]]
+        else:
+            raise ValueError('STEREO/SEPT: Unable to determine correct "channels_dict_df" from metadata!')
+    elif type(channels_dict_df) is pd.DataFrame:
+        pass
+    else:
+        raise ValueError('"channels_dict_df" must be either a dictionary or a Pandas dataframe!')
 
     # calculation of total delta-E for averaging multiple channels:
     if len(avg_channels) > 1:

@@ -137,7 +137,49 @@ def sqrt_sum_squares(series):
     """
 
     # TODO: What about NaNs?
-    return np.sqrt(np.sum(series**2)) / len(series)
+    return np.sqrt(np.nansum(series**2)) / len(series)
+
+
+def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
+    """
+    Reduces a list by replacing numeric sequences with placeholders.
+    
+    Args:
+        original_list: The list of strings to reduce
+        placeholder: The string to replace numeric parts (default: "xx")
+        seperator: The character used to split the strings (default: "_")
+        
+    Returns:
+        A sorted list of unique patterns
+    """
+    patterns = set()
+    
+    for item in original_list:
+        # Split the string by common delimiters
+        parts = item.split(seperator)
+        
+        # Create a new pattern by replacing numeric parts
+        new_parts = []
+        for part in parts:
+            # Check if this part is purely numeric
+            if part.isdigit():
+                new_parts.append(placeholder)
+            # Check if there's a numeric suffix in the part
+            elif any(c.isdigit() for c in part):
+                # Find where the numbers start
+                for i, char in enumerate(part):
+                    if char.isdigit():
+                        # Replace numeric portion with placeholder
+                        new_parts.append(part[:i] + placeholder)
+                        break
+            else:
+                new_parts.append(part)
+        
+        # Join back the modified parts
+        pattern = '_'.join(new_parts)
+        patterns.add(pattern)
+    
+    return sorted(list(patterns))
 
 
 def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[]):
@@ -161,23 +203,51 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
             Controls if the origin of resampling is at the first entry of the
             input dataframe/series ('start'), or at the start of the day
             ('start_day')
-    cols_unc : list, default []
+    cols_unc : list, default []  # TODO: change default to 'auto' later?
             List of columns in the dataframe (or name of the series) that
             contain uncertainties. These columns will be resampled using a
             custom function (sqrt of the sum of squares divided by number of
-            samples in the bin) instead of just the arithmetic mean.
+            samples in the bin) instead of just the arithmetic mean. If set to
+            'auto', the function will try to automatically detect columns with
+            uncertainties based on their names (looking for 'uncertainty', 'err',
+            or 'sigma' in the column name). Note that this automatic detection
+            only works for single-level column DataFrames and Series.
 
     Returns
     -------
     df : pd.DataFrame or Series, depending on the input
     """
+    if not resample:
+        raise ValueError("Resample period is set to 'None'. No resampling will be applied.")
     # check if resample option makes sense (e.g., new frequency is smaller than original frequency)
     delta_resample = pd.to_timedelta(resample)
-    delta_original = (df.index[-1] - df.index[-2]).floor('s')  # round to full seconds to avoid weirdness
+    # for original data, get each time difference and find the most common one (mode)
+    dt_original = df.index.to_series().diff()
+    delta_original = dt_original.mode().iloc[0].round('s')  # round to full seconds to avoid weirdness
+    #
     if delta_resample < delta_original:
         raise ValueError(f"Your resample option of '{resample}' is smaller than the original data cadence of '{delta_original}'. This is not supported!")
     elif delta_resample == delta_original:
         custom_warning(f"\nYour resample option of '{resample}' is equal to the original data cadence of '{delta_original}'. You should only average like this if you know EXACTLY what you are doing, as it could offset the position of the timestamps!\n")
+
+    # automatically detect columns with uncertainties if not provided
+    if type(cols_unc) is str and cols_unc == 'auto':
+        if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
+            if isinstance(df, pd.DataFrame):
+                # if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
+                cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
+            elif isinstance(df, pd.Series):
+                if 'unc' in df.name.lower() or 'error' in df.name.lower():
+                    cols_unc = [df.name]
+            if len(cols_unc) > 0 and cols_unc != 'auto':
+                custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}. Please report this behaviour if you think it is wrong!")
+            else:
+                custom_warning("\nNo columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter. Please report this behaviour if you think it should work automatically.\n")
+        else:  # if type(df.columns) is pd.core.indexes.multi.MultiIndex:
+            cols_unc = []
+            custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
+
+    # resampling
     try:
         # Handle DataFrame input
         if isinstance(df, pd.DataFrame):
@@ -206,7 +276,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     except ValueError:
         raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
-    custom_warning("Internal function sqrt_sum_squares is not handling NaN values yet!")  # TODO: remove when implemented
+    if len(cols_unc) > 0:
+        custom_warning("Internal function sqrt_sum_squares is not handling NaN values yet!")  # TODO: remove when implemented
     return df
 
 
