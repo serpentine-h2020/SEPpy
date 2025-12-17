@@ -2,14 +2,14 @@
 
 import cdflib
 import copy
-import datetime as dt
+# import datetime as dt
 import numpy as np
 import os
 import pandas as pd
 import pooch
 import requests
 import sunpy
-import warnings
+# import warnings
 
 from sunpy.net import Fido
 from sunpy.net import attrs as a
@@ -174,7 +174,7 @@ def wind3dp_download(dataset, startdate, enddate, path=None, **kwargs):
                 downloaded_file = wind3dp_single_download(files[i], path=path)
                 if downloaded_file == []:
                     print('Trying download from CDAWeb...')
-                    downloaded_file = Fido.fetch(result[0][i], path=path)  #, max_conn=max_conn)
+                    downloaded_file = Fido.fetch(result[0][i], path=path)  # , max_conn=max_conn)
 
     except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
@@ -310,11 +310,11 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
                 no_channels = len(df[df.columns[df.columns.str.startswith("ENERGY")]].columns)
                 t_df = [''] * no_channels
                 multi_keys = np.append([f"FLUX_E{i}" for i in range(no_channels)],
-                                       df.drop(df.columns[df.columns.str.startswith(f"FLUX_")], axis=1).columns,
+                                       df.drop(df.columns[df.columns.str.startswith("FLUX_")], axis=1).columns,
                                        )
                 for i in range(no_channels):
                     t_df[i] = df[df.columns[df.columns.str.startswith(f"FLUX_E{i}")]]
-                t_df.extend([df[col] for col in df.drop(df.columns[df.columns.str.startswith(f"FLUX_")], axis=1).columns.values])
+                t_df.extend([df[col] for col in df.drop(df.columns[df.columns.str.startswith("FLUX_")], axis=1).columns.values])
                 df = pd.concat(t_df, axis=1, keys=multi_keys)
             else:
                 print('')
@@ -353,11 +353,11 @@ def _read_cdf_wind3dp(fname, ignore_vars=[]):
     ----------
     Space Physics Guidelines for CDF https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html
     """
-    import astropy.units as u
+    # import astropy.units as u
     from cdflib.epochs import CDFepoch
     from packaging.version import Version
     from sunpy import log
-    from sunpy.timeseries import GenericTimeSeries
+    # from sunpy.timeseries import GenericTimeSeries
     from sunpy.util.exceptions import warn_user
     cdf = cdflib.CDF(str(fname))
     # Extract the time varying variables

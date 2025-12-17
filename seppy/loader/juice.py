@@ -47,11 +47,11 @@ def juice_radem_download(date, path=None):
     # Check if the request was successful
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
-        
+
         # Find all links on the page
         links = soup.find_all('a')
 
-        # Filter for the file link 
+        # Filter for the file link
         fname = None
         for link in links:
             href = link.get('href')

@@ -3,7 +3,7 @@
 import datetime as dt
 import glob
 import os
-import warnings
+# import warnings
 
 import cdflib
 import numpy as np
@@ -119,7 +119,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
         pos_timestamp = 'center'
 
     if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp=='original'):
-        raise ValueError(f'"pos_timestamp" must be either "original", "center", or "start"!')
+        raise ValueError('"pos_timestamp" must be either "original", "center", or "start"!')
 
     if dataset == 'SOHO_COSTEP-EPHIN_L2-1MIN':
         df, metadata = soho_ephin_loader(startdate, enddate, resample=resample, path=path, all_columns=False, pos_timestamp=pos_timestamp)
@@ -152,7 +152,6 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
                 custom_warning(f'The format of "channels_dict_df_p" in the metadata for {dataset} has been changed providing the full width of energy channels for DE (instead of the half)!')
             elif dataset.upper() == 'SOHO_ERNE-LED_L2-1MIN':
                 custom_warning(f'The format of the metadata for {dataset} has been changed. The previous metadata is now provided in meta["energy_labels"]!')
-
 
             # remove this (i.e. following lines) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
@@ -362,7 +361,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
         # Setting use_uncorrected_data_on_own_risk=True skips this replacement, so that the uncorrected
         # data can be obtained at own risk!
         if use_uncorrected_data_on_own_risk:
-            # warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
+            # # warnings.warn("Proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
             custom_warning("SOHO/EPHIN proton and helium data is still uncorrected! Know what you're doing and use at own risk!")
         else:
             custom_notification("SOHO/EPHIN proton and helium data are not supported at the moment and set to negative values of -9e9!")
@@ -406,7 +405,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_p25 = '25 - 53 MeV'
             cs_he25 = '25 - 53 MeV/n'
         if max(fmodes)==2:
-            # warnings.warn('Careful: EPHIN ring off!')
+            # # warnings.warn('Careful: EPHIN ring off!')
             custom_warning('SOHO/EPHIN ring is off! This means high risk of contaminated measurements!')
 
         # failure mode D since 4 Oct 2017:
@@ -416,7 +415,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_e1300 = "0.67 - 10.4 MeV"
             # dates[0].date() is startdate, used to catch cases when startdate is a string
             if dates[0].date() <= dt.date(2017, 10, 4):
-                # warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
+                # # warnings.warn('EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
                 custom_warning('SOHO/EPHIN instrument status (i.e., electron energy channels) changed during selected period (on Oct 4, 2017)!')
 
         # careful!
@@ -432,18 +431,18 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
         df = []
 
     energies = {'E150': '0.25 - 0.7 MeV',
-            'E300': cs_e300,
-            'E1300': cs_e1300,
-            'E3000': '4.80 - 10.4 MeV',
-            'P4': '4.3 - 7.8 MeV',
-            'P8': '7.8 - 25 MeV',
-            'P25': cs_p25,
-            'P41': '41 - 53 MeV',
-            'H4': '4.3 - 7.8 MeV/n',
-            'H8': '7.8 - 25.0 MeV/n',
-            'H25': cs_he25,
-            'H41': '40.9 - 53.0 MeV/n',
-            'INT': '>25 MeV integral'}
+                'E300': cs_e300,
+                'E1300': cs_e1300,
+                'E3000': '4.80 - 10.4 MeV',
+                'P4': '4.3 - 7.8 MeV',
+                'P8': '7.8 - 25 MeV',
+                'P25': cs_p25,
+                'P41': '41 - 53 MeV',
+                'H4': '4.3 - 7.8 MeV/n',
+                'H8': '7.8 - 25.0 MeV/n',
+                'H25': cs_he25,
+                'H41': '40.9 - 53.0 MeV/n',
+                'INT': '>25 MeV integral'}
     meta = {'energy_labels': energies}
 
     return df, meta
@@ -483,7 +482,7 @@ def doy2dt(year, doy):
 #     result = Fido.search(trange, a.Instrument.costep)
 
 #     if result.file_num == 0:
-#         warnings.warn('WARNING: No corresponding data files found at VSO!')
+# #         warnings.warn('WARNING: No corresponding data files found at VSO!')
 #         downloaded_files = []
 #     else:
 #         # get list of file types of results:

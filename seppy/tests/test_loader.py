@@ -86,7 +86,7 @@ def test_psp_load_online():
     assert np.sum(np.isnan(df3['H_Flux_ChanP_E46_P79'])) == 57
     #
     df4, meta4 = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-LET1-RATES60', startdate="2021/05/31",
-                              enddate="2021/06/01", path=None, resample="1min")
+                                enddate="2021/06/01", path=None, resample="1min")
     assert isinstance(df4, pd.DataFrame)
     assert df4.shape == (49, 5728)
     assert meta4['H_ENERGY_LABL'].flatten()[0] == '  0.6 -   0.7 MeV'
@@ -94,7 +94,7 @@ def test_psp_load_online():
     assert np.sum(np.isnan(df4['A_He_Flux_1'])) == 49
     #
     df5, meta5 = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-LET2-RATES60', startdate="2021/05/31",
-                              enddate="2021/06/01", path=None, resample="1min")
+                                enddate="2021/06/01", path=None, resample="1min")
     assert isinstance(df5, pd.DataFrame)
     assert df5.shape == (49, 2770)
     assert meta5['H_ENERGY_LABL'].flatten()[0] == '  0.6 -   0.7 MeV'

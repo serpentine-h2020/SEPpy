@@ -7,12 +7,12 @@ import os
 import pooch
 import requests
 import warnings
-import datetime as dt
+# import datetime as dt
 import numpy as np
 import pandas as pd
 import sunpy
 
-from sunpy import config
+# from sunpy import config
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
@@ -213,7 +213,7 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
         # optional resampling:
         if isinstance(resample, str):
             df = resample_df(df, resample, pos_timestamp=pos_timestamp)
-        
+
         custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
     else:
         df = []
@@ -358,14 +358,14 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
     """
     trange = a.Time(startdate, enddate)
     if trange.min==trange.max:
-        print(f'"startdate" and "enddate" might need to be different!')
+        print('"startdate" and "enddate" might need to be different!')
 
     # Catch old default value for pos_timestamp
     if pos_timestamp is None:
         pos_timestamp = 'center'
 
     if not (pos_timestamp=='center' or pos_timestamp=='start' or pos_timestamp=='original'):
-        raise ValueError(f'"pos_timestamp" must be either "original", "center", or "start"!')
+        raise ValueError('"pos_timestamp" must be either "original", "center", or "start"!')
 
     # find name variations
     if spacecraft.lower()=='a' or spacecraft.lower()=='sta':

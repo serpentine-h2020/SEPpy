@@ -62,17 +62,17 @@ def custom_notification(message):
     return
 
 
-def k_parameter(mu:float, sigma:float, sigma_multiplier:int) -> float:
+def k_parameter(mu: float, sigma: float, sigma_multiplier: int) -> float:
     """
     The standard version of k for the z-standardized intensity CUSUM.
 
     Parameters:
     -----------
-    mu : {float, np.ndarray} 
+    mu : {float, np.ndarray}
                     The mean of the background.
-    sigma : {float, np.ndarray} 
+    sigma : {float, np.ndarray}
                     The standard deviation of the background.
-    sigma_multiplier : {int,float} 
+    sigma_multiplier : {int,float}
                     The multiplier for mu_{d} != 0.
 
     Returns:
@@ -101,7 +101,7 @@ def k_parameter(mu:float, sigma:float, sigma_multiplier:int) -> float:
     return k_param if k_param >= 0 else 0
 
 
-def k_legacy(mu:float, sigma:float, sigma_multiplier:float) -> float:
+def k_legacy(mu: float, sigma: float, sigma_multiplier: float) -> float:
     """
     The old standard k-parameter for SEPpy.
     """
@@ -143,21 +143,21 @@ def sqrt_sum_squares(series):
 def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
     """
     Reduces a list by replacing numeric sequences with placeholders.
-    
+
     Args:
         original_list: The list of strings to reduce
         placeholder: The string to replace numeric parts (default: "xx")
         seperator: The character used to split the strings (default: "_")
-        
+
     Returns:
         A sorted list of unique patterns
     """
     patterns = set()
-    
+
     for item in original_list:
         # Split the string by common delimiters
         parts = item.split(seperator)
-        
+
         # Create a new pattern by replacing numeric parts
         new_parts = []
         for part in parts:
@@ -174,11 +174,11 @@ def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
                         break
             else:
                 new_parts.append(part)
-        
+
         # Join back the modified parts
         pattern = '_'.join(new_parts)
         patterns.add(pattern)
-    
+
     return sorted(list(patterns))
 
 
@@ -333,7 +333,7 @@ def bepicolombo_sixs_stack(path, date, side, pos_timestamp='center'):
             cadence1 = (df.index[1]-df.index[0]).seconds
             cadence2 = (df.index[-1]-df.index[-2]).seconds
             if cadence1 != cadence2:
-                custom_warning("Bepi/SIXS cadence is changing throughout the day; something is wrong!")    
+                custom_warning("Bepi/SIXS cadence is changing throughout the day; something is wrong!")
             df.index = df.index-pd.Timedelta(f'{cadence1/2}s')
         elif pos_timestamp == 'center':
             pass
@@ -724,7 +724,7 @@ def remove_duplicate_cdf_files(path=None):
     if path[-1] is not os.sep:
         path += os.sep
     all_cdf = glob.glob(f'{path}*.cdf')
-    print(f'Removing duplicate .cdf files in {path}') 
+    print(f'Removing duplicate .cdf files in {path}')
     deleted_files = []
     for cdf in tqdm(all_cdf):
         cdf_wo_v = cdf.strip(cdf.split('_')[-1])

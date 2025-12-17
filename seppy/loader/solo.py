@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import datetime as dt
+# import datetime as dt
 import os
 
 import sunpy
-from solo_epd_loader import epd_load
-from solo_epd_loader import epd_load as solo_load
+# from solo_epd_loader import epd_load
+# from solo_epd_loader import epd_load as solo_load
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
@@ -29,7 +29,7 @@ def mag_load(startdate, enddate, level='l2', data_type='normal', frame='rtn', pa
     Parameters
     ----------
     startdate, enddate : {datetime, str, or int}
-        Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)),
+        # # Datetime object (e.g., dt.date(2021,12,31) or dt.datetime(2021,4,15)),
         "standard" datetime string (e.g., "2021/04/15") or integer of the form
         yyyymmdd with empty positions filled with zeros, e.g. '20210415'
         (enddate must always be later than startdate)

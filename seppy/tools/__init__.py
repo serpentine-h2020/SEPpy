@@ -16,12 +16,11 @@ from matplotlib.offsetbox import AnchoredText
 from seppy.loader.bepi import bepi_sixsp_l3_loader
 from seppy.loader.psp import calc_av_en_flux_PSP_EPIHI, calc_av_en_flux_PSP_EPILO, psp_isois_load
 from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
-from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, flux2series, resample_df, \
-                       k_parameter, k_legacy
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, flux2series, resample_df, k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
+from solo_epd_loader import epd_load
 
 
 # This is to get rid of this specific warning:
@@ -261,7 +260,6 @@ class Event:
 
             self.viewing = sector_direction
 
-
     def load_data(self, spacecraft, sensor, viewing, data_level,
                   autodownload=True, threshold=None):
         """
@@ -460,7 +458,6 @@ class Event:
                                                 path=self.data_path,
                                                 pos_timestamp='center')
                 return df, meta
-                    
 
     def load_all_viewing(self):
         """
@@ -622,7 +619,6 @@ class Event:
                 else:
                     raise Exception("No BepiColombo/SIXS L3 data found for the given time range!")
 
-
     def choose_data(self, viewing):
         """
         :meta private:
@@ -753,7 +749,7 @@ class Event:
                 self.current_df_i = self.df_i_2
                 self.current_df_e = self.df_e_2
                 self.current_energies = self.energies_2
-            elif(viewing == '3'):
+            elif viewing == '3':
                 self.current_df_i = self.df_i_3
                 self.current_df_e = self.df_e_3
                 self.current_energies = self.energies_3
@@ -945,7 +941,7 @@ class Event:
         sigma = np.nanstd(background)
         return [mean_value, sigma]
 
-    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time, k_model:str=None):
+    def onset_determination(self, ma_sigma, flux_series, cusum_window, bg_end_time, k_model: str = None):
         """
         :meta private:
         """
@@ -1013,7 +1009,7 @@ class Event:
 
     def onset_analysis(self, df_flux, windowstart, windowlen, windowrange, channels_dict,
                        channel='flux', cusum_window=30, yscale='log',
-                       ylim=None, xlim=None, k_model:str=None):
+                       ylim=None, xlim=None, k_model: str = None):
         """
         :meta private:
         """
@@ -1248,7 +1244,7 @@ class Event:
         return flux_series, onset_stats, onset_found, df_flux_peak, df_flux_peak.index[0], fig, background_stats[0]
 
     def find_onset(self, viewing, bg_start=None, bg_length=None, background_range=None, resample_period=None,
-                   channels=[0, 1], yscale='log', cusum_window=30, xlim=None, x_sigma=2, k_model:str=None):
+                   channels=[0, 1], yscale='log', cusum_window=30, xlim=None, x_sigma=2, k_model: str = None):
         """
         This method runs Poisson-CUSUM onset analysis for the Event object.
 
@@ -1504,7 +1500,6 @@ class Event:
                     if self.species in ['p', 'i']:
                         df_flux = self.current_df_i[f'Side{self.viewing}_P{channels}']
                         en_channel_string = self.current_energies[f'Side{self.viewing}_Proton_Bins_str'][f'P{channels}']
-
 
         if self.spacecraft.lower() == 'psp':
             if self.sensor.lower() == 'isois-epihi':
@@ -2567,7 +2562,7 @@ class Event:
     def calculate_particle_speeds(self):
         """
         Calculates average particle speeds by input channel energy boundaries.
-        
+
         :meta private:
         """
 
@@ -2663,10 +2658,10 @@ class Event:
 
         if self.sensor == "3dp":
             channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
-        
+
         if self.sensor == 'sixs-p' and self.data_level == 'l3':
             channel_numbers = [int(name.split('_')[1][-1]) for name in channel_names]
-        
+
         if self.sensor == 'sixs-p' and self.data_level == 'l2':
             custom_notification("print_energies() is not supporting internal Level 2 data of BepiColombo/SIXS-P!")
             return
@@ -2697,8 +2692,8 @@ class Event:
         # Finally display the dataframe such that ALL rows are shown
         if not return_df:
             with pd.option_context('display.max_rows', None,
-                                 'display.max_columns', None,
-                                 ):
+                                   'display.max_columns', None,
+                                   ):
                 display(df)
         else:
             return df

@@ -121,7 +121,7 @@ def bepi_sixsp_l3_loader(startdate, enddate=None, resample=None, path=None, pos_
     filelist = []
     for i, doy in enumerate(dates.month):
         try:
-            f = glob.glob(f"{path}{os.sep}six_der_sc_{dates[i].year}{dates[i].strftime('%m')}_l3_data.csv")[0] # sept_{dates[i].year}_{doy}_*.dat")[0]
+            f = glob.glob(f"{path}{os.sep}six_der_sc_{dates[i].year}{dates[i].strftime('%m')}_l3_data.csv")[0]  # sept_{dates[i].year}_{doy}_*.dat")[0]
         except IndexError:
             # print(f"File not found locally from {path}, downloading...")
             f = bepi_sixsp_download(dates[i], path)
