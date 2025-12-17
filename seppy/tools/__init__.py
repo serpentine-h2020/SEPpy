@@ -16,11 +16,11 @@ from matplotlib.offsetbox import AnchoredText
 from seppy.loader.bepi import bepi_sixsp_l3_loader
 from seppy.loader.psp import calc_av_en_flux_PSP_EPIHI, calc_av_en_flux_PSP_EPILO, psp_isois_load
 from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
-from seppy.loader.solo import epd_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
 from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, flux2series, resample_df, k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
+from solo_epd_loader import epd_load
 
 
 # This is to get rid of this specific warning:
