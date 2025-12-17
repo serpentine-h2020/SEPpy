@@ -105,9 +105,9 @@ species_drop = widgets.Dropdown(options=species_dict[(spacecraft_drop.value, sen
                                 )
 
 level_drop = widgets.Dropdown(options=level_dict[(spacecraft_drop.value, sensor_drop.value)],
-                                description="Data level:",
-                                disabled=False,
-                                )
+                              description="Data level:",
+                              disabled=False,
+                              )
 
 # A button to enable radio spectrum (Leave this out for now, sincde it doesn't work in the server as of 2022-09-30)
 radio_button = widgets.Checkbox(value=False,
