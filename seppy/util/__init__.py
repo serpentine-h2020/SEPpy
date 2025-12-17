@@ -136,7 +136,6 @@ def sqrt_sum_squares(series):
         Sqrt of sum of squares divided by number of samples
     """
 
-    # TODO: What about NaNs?
     return np.sqrt(np.nansum(series**2)) / len(series)
 
 
@@ -182,7 +181,7 @@ def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
     return sorted(list(patterns))
 
 
-def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[]):
+def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='auto'):
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
     just a simple wrapper around the pandas resample function that is
@@ -203,15 +202,17 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
             Controls if the origin of resampling is at the first entry of the
             input dataframe/series ('start'), or at the start of the day
             ('start_day')
-    cols_unc : list, default []  # TODO: change default to 'auto' later?
+    cols_unc : list, default 'auto'
             List of columns in the dataframe (or name of the series) that
             contain uncertainties. These columns will be resampled using a
             custom function (sqrt of the sum of squares divided by number of
-            samples in the bin) instead of just the arithmetic mean. If set to
-            'auto', the function will try to automatically detect columns with
-            uncertainties based on their names (looking for 'uncertainty', 'err',
-            or 'sigma' in the column name). Note that this automatic detection
-            only works for single-level column DataFrames and Series.
+            samples in the bin) instead of just the arithmetic mean. It an empty
+            list is provided (i.e. []), all columns will bre resampled using the
+            arithmetic mean. If set to 'auto' (default), the function will try
+            to automatically detect columns with uncertainties based on their
+            names (looking for 'uncertainty', 'err', or 'sigma' in the column
+            name). Note that this automatic detection only works for single-
+            level column DataFrames and Series.
 
     Returns
     -------
@@ -276,8 +277,6 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc=[
     except ValueError:
         raise ValueError(f"Your resample option of '{resample} doesn't seem to be a proper Pandas frequency!")
 
-    if len(cols_unc) > 0:
-        custom_warning("Internal function sqrt_sum_squares is not handling NaN values yet!")  # TODO: remove when implemented
     return df
 
 
