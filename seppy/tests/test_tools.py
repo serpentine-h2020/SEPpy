@@ -606,7 +606,7 @@ def test_onset_Bepi_SIXS_L2_offline():
     assert isinstance(flux, pd.Series)
     assert flux.shape == (161,)
     assert len(onset_stats) == 6
-    #assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)
+    # assert isinstance(onset_stats[5], pd._libs.tslibs.nattype.NaTType)
     assert onset_stats[5].isoformat().split('.')[0] == "2023-07-19T02:05:30"
     assert onset_found
     assert peak_time.isoformat().split('.')[0] == '2023-07-19T02:25:30'
@@ -644,7 +644,7 @@ def test_resample_df_sept_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     df, meta = stereo_load(instrument='SEPT', startdate=startdate, enddate=enddate, spacecraft='STA',
-                                             sept_species='p', sept_viewing='sun', path=lpath)
+                           sept_species='p', sept_viewing='sun', path=lpath)
     unc_id = 'err_ch_'
     cols_unc = df.filter(like=unc_id).columns
     #
