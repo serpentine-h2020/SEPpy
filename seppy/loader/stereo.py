@@ -434,9 +434,11 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
             #     df = df.replace(-2147483648, np.nan)
             # if instrument.upper() == 'MAG':
             #     df = df.replace(-1e+31, np.nan)
-            # if instrument.upper() == 'MAGPLASMA':
-            #     df = df.replace(-1.0e+30, np.nan)
-            # 4 Apr 2023: previous 9 lines removed because they are taken care of with sunpy
+            #
+            # 18 Dec 2025: for some reason, MAGPLASMA replacement is not working anymore as of end of 2025. maybe some problems with the data files? TODO: check again later, until then just do it here:
+            if instrument.upper() == 'MAGPLASMA':
+                df = df.replace(np.float32(-1e+30), np.nan)
+            # 4 Apr 2023: previous xxx lines removed because they are taken care of with sunpy
             # 4.1.0:
             # https://docs.sunpy.org/en/stable/whatsnew/changelog.html#id7
             # https://github.com/sunpy/sunpy/pull/5956
