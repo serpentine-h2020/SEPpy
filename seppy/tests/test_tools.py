@@ -653,9 +653,11 @@ def test_resample_df_sept_online():
         df_resampled_auto = resample_df(df, resample, cols_unc='auto')
     #
     resample = '5min'
-    df_resampled_none = resample_df(df, resample)
+    df_resampled_default = resample_df(df, resample)
+    df_resampled_none = resample_df(df, resample, cols_unc=[])
     df_resampled_manu = resample_df(df, resample, cols_unc=cols_unc)
     df_resampled_auto = resample_df(df, resample, cols_unc='auto')
+    pd.testing.assert_frame_equal(df_resampled_default, df_resampled_auto)
     pd.testing.assert_frame_equal(df_resampled_manu, df_resampled_auto)
     with pytest.raises(AssertionError):
         pd.testing.assert_frame_equal(df_resampled_none, df_resampled_manu)

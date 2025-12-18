@@ -62,7 +62,7 @@ def test_juice_radem_load_wit_resample():
 
 def test_psp_load_online():
     df, meta = psp_isois_load(dataset='PSP_ISOIS-EPIHI_L2-HET-RATES60', startdate="2021/05/31",
-                              enddate="2021/06/01", path=None, resample="1min")
+                              enddate="2021/06/01", path=None, resample=None)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (48, 3244)
     assert meta['H_ENERGY_LABL'].flatten()[0] == '  6.7 -   8.0 MeV'
