@@ -233,20 +233,24 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
 
     # automatically detect columns with uncertainties if not provided
     if type(cols_unc) is str and cols_unc == 'auto':
-        if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
-            if isinstance(df, pd.DataFrame):
-                # if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
+        if isinstance(df, pd.DataFrame):
+            if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
                 cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
-            elif isinstance(df, pd.Series):
+            elif type(df.columns) is pd.core.indexes.multi.MultiIndex:
+                cols_unc = []
+                custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
+        elif isinstance(df, pd.Series):
+            try:
                 if 'unc' in df.name.lower() or 'error' in df.name.lower():
                     cols_unc = [df.name]
-            if len(cols_unc) > 0 and cols_unc != 'auto':
-                custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}. Please report this behaviour if you think it is wrong!")
-            else:
-                custom_warning("\nNo columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter. Please report this behaviour if you think it should work automatically.\n")
-        else:  # if type(df.columns) is pd.core.indexes.multi.MultiIndex:
-            cols_unc = []
-            custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
+                else:
+                    cols_unc = []
+            except AttributeError:
+                cols_unc = []
+        if len(cols_unc) > 0 and cols_unc != 'auto':
+            custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}. Please report this behaviour if you think it is wrong!")
+        else:
+            custom_warning("\nNo columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter. Please report this behaviour if you think it should work automatically.\n")
 
     # resampling
     try:
