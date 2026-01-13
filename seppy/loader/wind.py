@@ -121,8 +121,8 @@ def wind3dp_single_download(file, path=None):
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=file, path=path, progressbar=True)
     except ModuleNotFoundError:
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=file, path=path, progressbar=False)
-    except requests.HTTPError:
-        print(f'No corresponding data found at {url}')
+    except (requests.HTTPError, requests.ReadTimeout) as e:
+        print(f'No corresponding data found at {url}: {e}')
         downloaded_file = []
     print('')
 
