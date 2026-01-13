@@ -2,6 +2,7 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import pytest
+import requests
 from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.bepi import bepi_sixsp_l3_loader
@@ -10,7 +11,8 @@ from seppy.loader.psp import psp_isois_load
 from seppy.loader.soho import soho_load
 from seppy.loader.solo import mag_load
 from seppy.loader.stereo import stereo_load
-from seppy.loader.wind import wind3dp_load
+from seppy.loader.wind import wind3dp_load, wind3dp_single_download
+from unittest.mock import patch
 
 
 def test_bepi_sixs_load_online():
@@ -237,3 +239,22 @@ def test_wind3dp_load_offline():
     assert meta['FLUX_LABELS'].flatten()[0] == 'ElecNoFlux_Ch1_Often~27keV '
     # Check that fillvals are replaced by NaN
     assert np.sum(np.isnan(df['FLUX_0'])) == 352
+
+
+def test_wind3dp_single_download_exceptions():
+    """
+    Test wind3dp_single_download with mocked request exceptions.
+    """
+    wind_file = 'wi_sfsp_3dp_20220602_v01.cdf'
+
+    with patch('requests.get', side_effect=requests.exceptions.ReadTimeout):
+        downloaded_file = wind3dp_single_download(wind_file)
+        assert downloaded_file == []
+
+    with patch('requests.get', side_effect=requests.exceptions.Timeout):
+        downloaded_file = wind3dp_single_download(wind_file)
+        assert downloaded_file == []
+
+    with patch('requests.get', side_effect=requests.exceptions.HTTPError):
+        with pytest.raises(requests.exceptions.HTTPError):
+            downloaded_file = wind3dp_single_download(wind_file)
