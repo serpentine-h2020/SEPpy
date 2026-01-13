@@ -113,7 +113,7 @@ def wind3dp_single_download(file, path=None):
 
     data = file.split('_')[1]  # e.g. 'sfsp'
     year = file.split('_')[3][:4]
-    base = f"https://sprg.ssl.berkeley.edu/wind3dp/data/wi/3dp/{data}/{year}/"
+    base = f"https://sprg.ssl.berkeley.edu/wind3dp/data/wi/3dp/{data}/{year}"
 
     url = base+'/'+file
 
@@ -121,7 +121,7 @@ def wind3dp_single_download(file, path=None):
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=file, path=path, progressbar=True)
     except ModuleNotFoundError:
         downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=file, path=path, progressbar=False)
-    except (requests.HTTPError, requests.ReadTimeout) as e:
+    except (requests.ReadTimeout, requests.Timeout) as e:
         print(f'No corresponding data found at {url}: {e}')
         downloaded_file = []
     print('')
