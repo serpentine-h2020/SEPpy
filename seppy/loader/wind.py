@@ -218,7 +218,7 @@ def _wind3dp_load(files, resample="1min", threshold=None):
         df = pd.concat([df2, df], axis=1)
 
     if isinstance(resample, str):
-        df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
+        df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start", cols_unc=[])
 
     return df
     # except:
