@@ -17,7 +17,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import custom_notification, custom_warning, resample_df
+from seppy.util import resample_df  # custom_notification, custom_warning
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -214,7 +214,7 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
         if isinstance(resample, str):
             df = resample_df(df, resample, pos_timestamp=pos_timestamp)
 
-        custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
+        # custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
     else:
         df = []
 

@@ -148,10 +148,10 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
             df = data.to_dataframe()
 
             metadata = _get_metadata(dataset, downloaded_files[0])
-            if dataset.upper() == 'SOHO_ERNE-HED_L2-1MIN' or dataset.upper() == 'SOHO_ERNE-LED_L3I-1MIN':
-                custom_warning(f'The format of "channels_dict_df_p" in the metadata for {dataset} has been changed providing the full width of energy channels for DE (instead of the half)!')
-            elif dataset.upper() == 'SOHO_ERNE-LED_L2-1MIN':
-                custom_warning(f'The format of the metadata for {dataset} has been changed. The previous metadata is now provided in meta["energy_labels"]!')
+            # if dataset.upper() == 'SOHO_ERNE-HED_L2-1MIN' or dataset.upper() == 'SOHO_ERNE-LED_L3I-1MIN':
+            #     custom_warning(f'The format of "channels_dict_df_p" in the metadata for {dataset} has been changed providing the full width of energy channels for DE (instead of the half)!')
+            # elif dataset.upper() == 'SOHO_ERNE-LED_L2-1MIN':
+            #     custom_warning(f'The format of the metadata for {dataset} has been changed. The previous metadata is now provided in meta["energy_labels"]!')
 
             # remove this (i.e. following lines) when sunpy's read_cdf is updated,
             # and FILLVAL will be replaced directly, see
@@ -406,7 +406,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
             cs_he25 = '25 - 53 MeV/n'
         if max(fmodes)==2:
             # # warnings.warn('Careful: EPHIN ring off!')
-            custom_warning('SOHO/EPHIN ring is off! This means high risk of contaminated measurements!')
+            custom_warning('SOHO/EPHIN ring is off. This means high risk of contaminated measurements!')
 
         # failure mode D since 4 Oct 2017:
         # dates[-1].date() is enddate, used to catch cases when enddate is a string
