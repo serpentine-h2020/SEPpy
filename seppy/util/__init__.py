@@ -181,7 +181,7 @@ def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
     return sorted(list(patterns))
 
 
-def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='auto'):
+def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='auto', keywords_unc=['unc', 'err', 'sigma']):
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
     just a simple wrapper around the pandas resample function that is
@@ -203,16 +203,21 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             input dataframe/series ('start'), or at the start of the day
             ('start_day')
     cols_unc : list, default 'auto'
-            List of columns in the dataframe (or name of the series) that
-            contain uncertainties. These columns will be resampled using a
-            custom function (sqrt of the sum of squares divided by number of
-            samples in the bin) instead of just the arithmetic mean. It an empty
-            list is provided (i.e. []), all columns will bre resampled using the
-            arithmetic mean. If set to 'auto' (default), the function will try
-            to automatically detect columns with uncertainties based on their
-            names (looking for 'uncertainty', 'err', or 'sigma' in the column
-            name). Note that this automatic detection only works for single-
-            level column DataFrames and Series.
+            List of specific column names in the dataframe (or name of the
+            series) that contain uncertainties. These columns will be resampled
+            using a custom function (sqrt of the sum of squares divided by
+            number of samples in the bin) instead of just the arithmetic mean.
+            If an empty list is provided (i.e. []), all columns will be
+            resampled using the arithmetic mean. If set to 'auto' (default), the
+            function will try to automatically detect columns with uncertainties
+            based on their names (looking for the keywords provided in
+            keywords_unc, by default 'unc', 'err' or 'sigma'). Note that this
+            automatic detection only works for single-level column DataFrames
+            and Series.
+    keywords_unc : list, default ['unc', 'err', 'sigma']
+            List of keywords to use for automatic detection of uncertainty. All
+            columns with these keywords in their name will be treated as
+            uncertainty columns when cols_unc is set to 'auto'.
 
     Returns
     -------
@@ -235,13 +240,16 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
     if type(cols_unc) is str and cols_unc == 'auto':
         if isinstance(df, pd.DataFrame):
             if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
-                cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
+                # cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
+                cols_unc = [col for col in df.columns if any(keyword in col.lower() for keyword in keywords_unc)]
             elif type(df.columns) is pd.core.indexes.multi.MultiIndex:
                 cols_unc = []
                 custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
         elif isinstance(df, pd.Series):
             try:
-                if 'unc' in df.name.lower() or 'error' in df.name.lower():
+                # if 'unc' in df.name.lower() or 'error' in df.name.lower():
+                if any(keyword in df.name.lower() for keyword in keywords_unc):
+
                     cols_unc = [df.name]
                 else:
                     cols_unc = []
