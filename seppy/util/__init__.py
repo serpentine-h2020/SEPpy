@@ -181,7 +181,7 @@ def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
     return sorted(list(patterns))
 
 
-def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='auto', keywords_unc=['unc', 'err', 'sigma']):
+def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='auto', keywords_unc=['unc', 'err', 'sigma'], verbose=True):
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
     just a simple wrapper around the pandas resample function that is
@@ -218,6 +218,10 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             List of keywords to use for automatic detection of uncertainty. All
             columns with these keywords in their name will be treated as
             uncertainty columns when cols_unc is set to 'auto'.
+    verbose : bool, default True
+            If True, will print additional ebug information, e.g., about
+            automatically detected uncertainty columns. Warnings and Errors will
+            always be printed regardless of this setting.
 
     Returns
     -------
@@ -256,7 +260,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             except AttributeError:
                 cols_unc = []
         if len(cols_unc) > 0 and cols_unc != 'auto':
-            custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}. Please report this behaviour if you think it is wrong!")
+            if verbose:
+                custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}. Please report this behaviour if you think it is wrong!")
         else:
             custom_warning("\nNo columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter. Please report this behaviour if you think it should work automatically.\n")
 
