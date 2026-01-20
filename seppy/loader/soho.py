@@ -122,7 +122,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
         raise ValueError('"pos_timestamp" must be either "original", "center", or "start"!')
 
     if dataset == 'SOHO_COSTEP-EPHIN_L2-1MIN':
-        df, metadata = soho_ephin_loader(startdate, enddate, resample=resample, path=path, all_columns=False, pos_timestamp=pos_timestamp)
+        df, metadata = soho_ephin_loader(startdate, enddate, resample=None, path=path, all_columns=False, pos_timestamp=pos_timestamp)
     else:
         trange = a.Time(startdate, enddate)
         cda_dataset = a.cdaweb.Dataset(dataset)
@@ -140,7 +140,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
                 if os.path.exists(f) and os.path.getsize(f) == 0:
                     os.remove(f)
                 if not os.path.exists(f):
-                    downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
+                    _downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
 
             # downloaded_files = Fido.fetch(result, path=path, max_conn=max_conn)  # use Fido.fetch(result, path='/ThisIs/MyPath/to/Data/{file}') to use a specific local folder for saving data files
             # downloaded_files.sort()
@@ -178,7 +178,13 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
                     df.index = df.index-pd.Timedelta('7.5s')
 
             if isinstance(resample, str):
-                df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+                if dataset.upper() in ['SOHO_COSTEP-EPHIN_L2-1MIN', 'SOHO_ERNE-HED_L2-1MIN', 'SOHO_ERNE-LED_L2-1MIN']:
+                    cols_unc = []
+                    keywords_unc = []
+                elif dataset.upper() in ['SOHO_COSTEP-EPHIN_L3I-1MIN']:
+                    cols_unc = 'auto'
+                    keywords_unc = ['_sys_', '_stat_']
+                df = resample_df(df, resample, pos_timestamp=pos_timestamp, cols_unc=cols_unc, verbose=False, keywords_unc=keywords_unc)
         except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data!')
             downloaded_files = []
@@ -426,7 +432,7 @@ def soho_ephin_loader(startdate, enddate, resample=None, path=None, all_columns=
 
         # optional resampling:
         if isinstance(resample, str):
-            df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+            df = resample_df(df, resample, pos_timestamp=pos_timestamp, cols_unc=[], verbose=False)
     else:
         df = []
 

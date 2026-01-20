@@ -375,7 +375,13 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
                 energies_dict = ''
 
         if isinstance(resample, str):
-            df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
+            if dataset.upper() in ['PSP_ISOIS-EPILO_L2-PE']:
+                cols_unc = []
+                keywords_unc = []
+            elif dataset.upper() in ['PSP_ISOIS-EPIHI_L2-HET-RATES60', 'PSP_ISOIS-EPIHI_L2-LET1-RATES60', 'PSP_ISOIS-EPIHI_L2-LET2-RATES60', 'PSP_ISOIS-EPILO_L2-IC']:
+                cols_unc = 'auto'
+                keywords_unc=['unc', 'err', 'sigma', '_DELTA_']  # 'PSP_ISOIS-EPILO_L2-IC' has 'H_Flux_ChanP_DELTA_Exx_Pxx' uncertainty columns
+            df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start", cols_unc=cols_unc, verbose=False, keywords_unc=keywords_unc)
 
     except (RuntimeError, IndexError):
         print(f'Unable to obtain "{dataset}" data!')
