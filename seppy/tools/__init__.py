@@ -18,7 +18,7 @@ from seppy.loader.psp import calc_av_en_flux_PSP_EPIHI, calc_av_en_flux_PSP_EPIL
 from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, flux2series, resample_df, k_parameter, k_legacy
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, _flux2series, resample_df, k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
 from solo_epd_loader import epd_load
 
@@ -2264,8 +2264,8 @@ class Event:
         for i, channel in enumerate(selected_channels):
 
             # construct series and its normalized counterpart
-            series = flux2series(dataframe[channel], dataframe.index, resample)
-            series_normalized = flux2series(series.values/np.nanmax(series.values), series.index, resample)
+            series = _flux2series(dataframe[channel], dataframe.index, resample)
+            series_normalized = _flux2series(series.values/np.nanmax(series.values), series.index, resample)
 
             # store all series to arrays for later referencing
             series_natural.append(series)

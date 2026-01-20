@@ -296,7 +296,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
     return df
 
 
-def flux2series(flux, dates, cadence=None):
+def _flux2series(flux, dates, cadence=None):
     """
     Converts an array of observed particle flux + timestamps into a pandas series
     with the desired cadence.
