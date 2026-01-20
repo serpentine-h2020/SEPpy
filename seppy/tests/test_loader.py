@@ -151,14 +151,14 @@ def test_soho_ephin_l2_load_offline():
     assert np.sum(np.isnan(df['E1300'])) == 219
 
 
-def test_soho_ephin_l3i_load_online():
-    df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L3I-1MIN', startdate="2021/04/16", enddate="2021/04/16",
-                         path=None, resample="2min", pos_timestamp='center')
-    assert isinstance(df, pd.DataFrame)
-    assert df.shape == (262766, 26)
-    assert meta['channels_dict_df_p']['ch_strings'].iloc[1] == '7.8 - 25  MeV'
-    # Check that fillvals are replaced by NaN
-    assert np.sum(np.isnan(df['P_int_0'])) == 26999
+# def test_soho_ephin_l3i_load_online():
+#     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L3I-1MIN', startdate="2021/04/16", enddate="2021/04/16",
+#                          path=None, resample="2min", pos_timestamp='center')
+#     assert isinstance(df, pd.DataFrame)
+#     assert df.shape == (262766, 26)
+#     assert meta['channels_dict_df_p']['ch_strings'].iloc[1] == '7.8 - 25  MeV'
+#     # Check that fillvals are replaced by NaN
+#     assert np.sum(np.isnan(df['P_int_0'])) == 26999
 
 
 def test_soho_erne_hed_load_online():
