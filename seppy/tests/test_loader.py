@@ -51,7 +51,7 @@ def test_juice_radem_load_without_resample():
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
-def test_juice_radem_load_wit_resample():
+def test_juice_radem_load_with_resample():
     df, energies, metadata = juice_radem_load(startdate=dt.datetime(2025, 1, 1), enddate=dt.datetime(2025, 1, 1), resample='1h', path=None, pos_timestamp="start")
     assert "TIME_OBT" not in df.columns
     assert pd.api.types.is_datetime64_any_dtype(df["TIME_UTC"])
@@ -60,6 +60,17 @@ def test_juice_radem_load_wit_resample():
     assert df['PROTONS_5'].sum() == pytest.approx(np.float64(0.8500000000000001))
     assert energies['LABEL_PROTONS'][0] == 'P-Stack_Bin_1'
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
+    assert df.keys().to_list() == ['CONFIGURATION_ID', 'CUSTOM_0', 'CUSTOM_1', 'CUSTOM_2', 'CUSTOM_3',
+                                   'CUSTOM_4', 'CUSTOM_5', 'CUSTOM_6', 'CUSTOM_7', 'CUSTOM_8', 'CUSTOM_9',
+                                   'CUSTOM_10', 'CUSTOM_11', 'DD_0', 'DD_1', 'DD_2', 'DD_3', 'DD_4',
+                                   'DD_5', 'DD_6', 'DD_7', 'DD_8', 'DD_9', 'DD_10', 'DD_11', 'DD_12',
+                                   'DD_13', 'DD_14', 'DD_15', 'DD_16', 'DD_17', 'DD_18', 'DD_19', 'DD_20',
+                                   'DD_21', 'DD_22', 'DD_23', 'DD_24', 'DD_25', 'DD_26', 'DD_27', 'DD_28',
+                                   'DD_29', 'DD_30', 'ELECTRONS_0', 'ELECTRONS_1', 'ELECTRONS_2',
+                                   'ELECTRONS_3', 'ELECTRONS_4', 'ELECTRONS_5', 'ELECTRONS_6',
+                                   'ELECTRONS_7', 'HEAVY_IONS_0', 'HEAVY_IONS_1', 'INTEGRATION_TIME',
+                                   'PROTONS_0', 'PROTONS_1', 'PROTONS_2', 'PROTONS_3', 'PROTONS_4',
+                                   'PROTONS_5', 'PROTONS_6', 'PROTONS_7', 'TIME_UTC']
 
 
 def test_psp_load_online():
