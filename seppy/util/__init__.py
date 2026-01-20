@@ -245,15 +245,14 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
         if isinstance(df, pd.DataFrame):
             if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
                 # cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
-                cols_unc = [col for col in df.columns if any(keyword in col.lower() for keyword in keywords_unc)]
+                cols_unc = [col for col in df.columns if any(keyword.lower() in col.lower() for keyword in keywords_unc)]
             elif type(df.columns) is pd.core.indexes.multi.MultiIndex:
                 cols_unc = []
                 custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
         elif isinstance(df, pd.Series):
             try:
                 # if 'unc' in df.name.lower() or 'error' in df.name.lower():
-                if any(keyword in df.name.lower() for keyword in keywords_unc):
-
+                if any(keyword.lower() in df.name.lower() for keyword in keywords_unc):
                     cols_unc = [df.name]
                 else:
                     cols_unc = []
@@ -321,7 +320,7 @@ def flux2series(flux, dates, cadence=None):
     # if no cadence given, then just return the series with the original
     # time resolution
     if cadence is not None:
-        flux_series = resample_df(df=flux_series, resample=cadence, pos_timestamp="center", origin="start")
+        flux_series = resample_df(df=flux_series, resample=cadence, pos_timestamp="center", origin="start")  # TODO: remove this too generic call of resample_df here as it should be called with specific options per dataset (JG, 20-01-2026)
 
     return flux_series
 
