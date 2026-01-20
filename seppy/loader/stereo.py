@@ -382,7 +382,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                                                       spacecraft=spacecraft,
                                                       species=sept_species,
                                                       viewing=sept_viewing,
-                                                      resample=None,
+                                                      resample=resample,
                                                       path=path,
                                                       all_columns=False,
                                                       pos_timestamp=pos_timestamp)
@@ -466,7 +466,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
             if isinstance(resample, str):
                 if instrument.upper() in ['LET', 'MAG', 'MAGB', 'MAGPLASMA']:
                     cols_unc = []
-                elif instrument.upper() in ['HET', 'SEPT']:
+                elif instrument.upper() in ['HET']:
                     cols_unc = 'auto'
                 df = resample_df(df, resample, pos_timestamp=pos_timestamp, cols_unc=cols_unc, verbose=False)
         except (RuntimeError, IndexError):

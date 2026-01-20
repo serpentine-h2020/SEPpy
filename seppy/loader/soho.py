@@ -122,7 +122,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
         raise ValueError('"pos_timestamp" must be either "original", "center", or "start"!')
 
     if dataset == 'SOHO_COSTEP-EPHIN_L2-1MIN':
-        df, metadata = soho_ephin_loader(startdate, enddate, resample=None, path=path, all_columns=False, pos_timestamp=pos_timestamp)
+        df, metadata = soho_ephin_loader(startdate, enddate, resample=resample, path=path, all_columns=False, pos_timestamp=pos_timestamp)
     else:
         trange = a.Time(startdate, enddate)
         cda_dataset = a.cdaweb.Dataset(dataset)
@@ -178,7 +178,7 @@ def soho_load(dataset, startdate, enddate, path=None, resample=None, pos_timesta
                     df.index = df.index-pd.Timedelta('7.5s')
 
             if isinstance(resample, str):
-                if dataset.upper() in ['SOHO_COSTEP-EPHIN_L2-1MIN', 'SOHO_ERNE-HED_L2-1MIN', 'SOHO_ERNE-LED_L2-1MIN']:
+                if dataset.upper() in ['SOHO_ERNE-HED_L2-1MIN', 'SOHO_ERNE-LED_L2-1MIN']:
                     cols_unc = []
                     keywords_unc = []
                 elif dataset.upper() in ['SOHO_COSTEP-EPHIN_L3I-1MIN']:
