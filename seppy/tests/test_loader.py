@@ -151,6 +151,7 @@ def test_soho_ephin_l2_load_offline():
     assert np.sum(np.isnan(df['E1300'])) == 219
 
 
+# deactivating testing of SOHO EPHIN L3I loading bc. it increases the total test duration by a factor of 3.5 (JG 2026/01/21)
 # def test_soho_ephin_l3i_load_online():
 #     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L3I-1MIN', startdate="2021/04/16", enddate="2021/04/16",
 #                          path=None, resample="2min", pos_timestamp='center')
