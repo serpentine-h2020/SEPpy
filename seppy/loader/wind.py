@@ -387,7 +387,7 @@ def _read_cdf_wind3dp(fname, ignore_vars=[]):
         except ValueError:
             # Empty index for cdflib >= 0.3.20
             continue
-        # TODO: use to_astropy_time() instead here when we drop pandas in timeseries
+        # use to_astropy_time() instead here when we drop pandas in timeseries
         index = CDFepoch.to_datetime(index)
         df = pd.DataFrame(index=pd.DatetimeIndex(name=index_key, data=index))
         # units = {}

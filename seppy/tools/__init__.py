@@ -1535,7 +1535,7 @@ class Event:
 
         if resample_period is not None:
 
-            df_averaged = resample_df(df=df_flux, resample=resample_period, cols_unc=[])  # TODO: this ignore all uncertainty columns, but they are not used anyway
+            df_averaged = resample_df(df=df_flux, resample=resample_period, cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used anyway
 
         else:
 
@@ -1777,7 +1777,7 @@ class Event:
 
         # Resample only if requested
         if resample is not None:
-            particle_data = resample_df(df=particle_data, resample=resample, cols_unc=[])  # TODO: this ignore all uncertainty columns, but they are not used anyway
+            particle_data = resample_df(df=particle_data, resample=resample, cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used anyway
 
         if xlim is None:
             df = particle_data[:]
@@ -1925,7 +1925,7 @@ class Event:
 
             # Resample only if requested
             if resample is not None:
-                particle_data1 = resample_df(df=particle_data1, resample=resample, cols_unc=[])  # TODO: this ignore all uncertainty columns, but they are not used anyway
+                particle_data1 = resample_df(df=particle_data1, resample=resample, cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used anyway
 
             if xlim is None:
                 df1 = particle_data1[:]

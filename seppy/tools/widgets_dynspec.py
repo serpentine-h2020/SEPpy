@@ -79,7 +79,7 @@ radio_dict = {
     "None": None,
     "STEREO-A": ("ahead", "STEREO-A"),
     "STEREO-B": ("behind", "STEREO-B"),
-    # "WIND (Coming soon!)": ("wind", "WIND")  # TODO: re-add when supported!
+    # "WIND (Coming soon!)": ("wind", "WIND")
 }
 
 spacecraft_drop = widgets.Dropdown(options=list_of_sc,
