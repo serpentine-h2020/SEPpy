@@ -219,9 +219,9 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             columns with these keywords in their name will be treated as
             uncertainty columns when cols_unc is set to 'auto'.
     verbose : bool, default True
-            If True, will print additional ebug information, e.g., about
-            automatically detected uncertainty columns. Warnings and Errors will
-            always be printed regardless of this setting.
+            If True, will print additional debug information, e.g., about
+            automatically detected uncertainty columns. Deactivate at own risk
+            and only if you know what you are doing!
 
     Returns
     -------
@@ -262,7 +262,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             if verbose:
                 custom_notification(f"Automatically detected columns with uncertainties: {reduce_list_generic(cols_unc)}. Please report this behaviour if you think it is wrong!")
         else:
-            custom_warning("\nNo columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter. Please report this behaviour if you think it should work automatically.\n")
+            custom_warning("No columns with uncertainties automatically detected! You might need to provide them manually via the 'cols_unc' parameter. Please report this behaviour if you think it should work automatically.")
 
     # resampling
     try:
