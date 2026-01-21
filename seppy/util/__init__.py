@@ -136,7 +136,7 @@ def sqrt_sum_squares(series):
         Sqrt of sum of squares divided by number of samples
     """
 
-    return np.sqrt(np.nansum(series**2)) / len(series)
+    return np.sqrt(np.nansum(series**2)) / series.count()
 
 
 def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
