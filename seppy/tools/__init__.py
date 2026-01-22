@@ -2264,9 +2264,8 @@ class Event:
         for i, channel in enumerate(selected_channels):
 
             # construct series and its normalized counterpart
-            # TODO: this uses "cols_unc=[]" for resampling, which ignores all uncertainty columns! But they are not used here anyway for now.
-            series = _flux2series(dataframe[channel], dataframe.index, resample)
-            series_normalized = _flux2series(series.values/np.nanmax(series.values), series.index, resample)
+            series = _flux2series(dataframe[channel], dataframe.index, resample)  # TODO: this uses "cols_unc=[]" for resampling, which ignores all uncertainty columns! But they are not used here anyway for now.
+            series_normalized = _flux2series(series.values/np.nanmax(series.values), series.index)  # deactivate resampling here be. series is already resampled in the line above
 
             # store all series to arrays for later referencing
             series_natural.append(series)
