@@ -320,7 +320,7 @@ def _flux2series(flux, dates, cadence=None):
     # if no cadence given, then just return the series with the original
     # time resolution
     if cadence is not None:
-        flux_series = resample_df(df=flux_series, resample=cadence, pos_timestamp="center", origin="start")  # TODO: remove this too generic call of resample_df here as it should be called with specific options per dataset (JG, 20-01-2026)
+        flux_series = resample_df(df=flux_series, resample=cadence, pos_timestamp="center", origin="start", cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used here anyway
 
     return flux_series
 
