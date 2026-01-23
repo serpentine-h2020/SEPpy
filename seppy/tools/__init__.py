@@ -1790,7 +1790,12 @@ class Event:
             df = particle_data.loc[(particle_data.index >= (t_start-td)) & (particle_data.index <= (t_end+td))]
 
         # In practice this seeks the date on which the highest flux is observed
-        date_of_event = df.iloc[np.argmax(df[df.columns[0]])].name.date()
+        # Addendum JG 2026-01-23: returns the first date of the data if all data is NaN
+        if not df[df.columns[0]].isna().all():
+            # Since pandas 3.0.0, this raises an ValueError if df consists only of NaNs. Older pandas versions would return -1 (!) in that case 
+            date_of_event = df.iloc[np.argmax(df[df.columns[0]])].name.date()
+        else:
+            date_of_event = df.iloc[0].name.date()
 
         # Assert time and channel bins
         time = df.index
