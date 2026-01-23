@@ -51,7 +51,7 @@ def test_juice_radem_load_without_resample():
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
 
 
-def test_juice_radem_load_wit_resample():
+def test_juice_radem_load_with_resample():
     df, energies, metadata = juice_radem_load(startdate=dt.datetime(2025, 1, 1), enddate=dt.datetime(2025, 1, 1), resample='1h', path=None, pos_timestamp="start")
     assert "TIME_OBT" not in df.columns
     assert pd.api.types.is_datetime64_any_dtype(df["TIME_UTC"])
@@ -60,6 +60,17 @@ def test_juice_radem_load_wit_resample():
     assert df['PROTONS_5'].sum() == pytest.approx(np.float64(0.8500000000000001))
     assert energies['LABEL_PROTONS'][0] == 'P-Stack_Bin_1'
     assert metadata['PROTONS']['FILLVAL'] == 4294967295
+    assert df.keys().to_list() == ['CONFIGURATION_ID', 'CUSTOM_0', 'CUSTOM_1', 'CUSTOM_2', 'CUSTOM_3',
+                                   'CUSTOM_4', 'CUSTOM_5', 'CUSTOM_6', 'CUSTOM_7', 'CUSTOM_8', 'CUSTOM_9',
+                                   'CUSTOM_10', 'CUSTOM_11', 'DD_0', 'DD_1', 'DD_2', 'DD_3', 'DD_4',
+                                   'DD_5', 'DD_6', 'DD_7', 'DD_8', 'DD_9', 'DD_10', 'DD_11', 'DD_12',
+                                   'DD_13', 'DD_14', 'DD_15', 'DD_16', 'DD_17', 'DD_18', 'DD_19', 'DD_20',
+                                   'DD_21', 'DD_22', 'DD_23', 'DD_24', 'DD_25', 'DD_26', 'DD_27', 'DD_28',
+                                   'DD_29', 'DD_30', 'ELECTRONS_0', 'ELECTRONS_1', 'ELECTRONS_2',
+                                   'ELECTRONS_3', 'ELECTRONS_4', 'ELECTRONS_5', 'ELECTRONS_6',
+                                   'ELECTRONS_7', 'HEAVY_IONS_0', 'HEAVY_IONS_1', 'INTEGRATION_TIME',
+                                   'PROTONS_0', 'PROTONS_1', 'PROTONS_2', 'PROTONS_3', 'PROTONS_4',
+                                   'PROTONS_5', 'PROTONS_6', 'PROTONS_7', 'TIME_UTC']
 
 
 def test_psp_load_online():
@@ -118,7 +129,7 @@ def test_psp_load_online():
 #     assert np.sum(np.isnan(df['B_H_Uncertainty_14'])) == 48
 
 
-def test_soho_ephin_load_online():
+def test_soho_ephin_l2_load_online():
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
                          path=None, resample="2min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
@@ -128,7 +139,7 @@ def test_soho_ephin_load_online():
     assert np.sum(np.isnan(df['E1300'])) == 219
 
 
-def test_soho_ephin_load_offline():
+def test_soho_ephin_l2_load_offline():
     fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
     path = Path(fullpath).parent.as_posix()
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
@@ -140,13 +151,33 @@ def test_soho_ephin_load_offline():
     assert np.sum(np.isnan(df['E1300'])) == 219
 
 
-def test_soho_erne_load_online():
+# deactivating testing of SOHO EPHIN L3I loading bc. it increases the total test duration by a factor of 3.5 (JG 2026/01/21)
+# def test_soho_ephin_l3i_load_online():
+#     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L3I-1MIN', startdate="2021/04/16", enddate="2021/04/16",
+#                          path=None, resample="2min", pos_timestamp='center')
+#     assert isinstance(df, pd.DataFrame)
+#     assert df.shape == (262766, 26)
+#     assert meta['channels_dict_df_p']['ch_strings'].iloc[1] == '7.8 - 25  MeV'
+#     # Check that fillvals are replaced by NaN
+#     assert np.sum(np.isnan(df['P_int_0'])) == 26999
+
+
+def test_soho_erne_hed_load_online():
     df, meta = soho_load(dataset='SOHO_ERNE-HED_L2-1MIN', startdate="2021/04/16", enddate="2021/04/17",
                          path=None, resample="1min", pos_timestamp='center')
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1145, 41)
     assert meta['channels_dict_df_p']['ch_strings'].iloc[9] == '100 - 130 MeV'
     assert df['PHC_9'].sum() == 1295.0
+
+
+def test_soho_erne_led_load_online():
+    df, meta = soho_load(dataset='SOHO_ERNE-LED_L2-1MIN', startdate="2002/04/16", enddate="2002/04/17",
+                         path=None, resample="1min", pos_timestamp='center')
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (1438, 41)
+    assert meta['channels_dict_df_p']['ch_strings'].iloc[9] == '10  - 13  MeV'
+    assert df['PLC_9'].sum() == 155.0
 
 
 def test_solo_mag_load_online():

@@ -142,7 +142,7 @@ def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp
     df['TIME_UTC'] = pd.to_datetime(df['TIME_UTC'])
 
     if resample:
-        df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+        df = resample_df(df, resample, pos_timestamp=pos_timestamp, cols_unc=[], verbose=False)
 
     energies_dict, metadata_dict = juice_radem_load_metadata(filename=downloaded_files[0])
 

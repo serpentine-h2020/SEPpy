@@ -18,7 +18,7 @@ from seppy.loader.psp import calc_av_en_flux_PSP_EPIHI, calc_av_en_flux_PSP_EPIL
 from seppy.loader.soho import calc_av_en_flux_ERNE, soho_load
 from seppy.loader.stereo import calc_av_en_flux_SEPT, calc_av_en_flux_ST_HET, stereo_load
 from seppy.loader.wind import wind3dp_load
-from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, flux2series, resample_df, k_parameter, k_legacy
+from seppy.util import bepi_sixs_load, calc_av_en_flux_sixs, custom_notification, custom_warning, _flux2series, resample_df, k_parameter, k_legacy
 from solo_epd_loader import combine_channels as solo_epd_combine_channels
 from solo_epd_loader import epd_load
 
@@ -1535,7 +1535,7 @@ class Event:
 
         if resample_period is not None:
 
-            df_averaged = resample_df(df=df_flux, resample=resample_period)
+            df_averaged = resample_df(df=df_flux, resample=resample_period, cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used anyway
 
         else:
 
@@ -1777,7 +1777,7 @@ class Event:
 
         # Resample only if requested
         if resample is not None:
-            particle_data = resample_df(df=particle_data, resample=resample)
+            particle_data = resample_df(df=particle_data, resample=resample, cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used anyway
 
         if xlim is None:
             df = particle_data[:]
@@ -1790,7 +1790,12 @@ class Event:
             df = particle_data.loc[(particle_data.index >= (t_start-td)) & (particle_data.index <= (t_end+td))]
 
         # In practice this seeks the date on which the highest flux is observed
-        date_of_event = df.iloc[np.argmax(df[df.columns[0]])].name.date()
+        # Addendum JG 2026-01-23: returns the first date of the data if all data is NaN
+        if not df[df.columns[0]].isna().all():
+            # Since pandas 3.0.0, this raises an ValueError if df consists only of NaNs. Older pandas versions would return -1 (!) in that case 
+            date_of_event = df.iloc[np.argmax(df[df.columns[0]])].name.date()
+        else:
+            date_of_event = df.iloc[0].name.date()
 
         # Assert time and channel bins
         time = df.index
@@ -1925,7 +1930,7 @@ class Event:
 
             # Resample only if requested
             if resample is not None:
-                particle_data1 = resample_df(df=particle_data1, resample=resample)
+                particle_data1 = resample_df(df=particle_data1, resample=resample, cols_unc=[])  # TODO: this ignores all uncertainty columns, but they are not used anyway
 
             if xlim is None:
                 df1 = particle_data1[:]
@@ -2264,8 +2269,8 @@ class Event:
         for i, channel in enumerate(selected_channels):
 
             # construct series and its normalized counterpart
-            series = flux2series(dataframe[channel], dataframe.index, resample)
-            series_normalized = flux2series(series.values/np.nanmax(series.values), series.index, resample)
+            series = _flux2series(dataframe[channel], dataframe.index, resample)  # TODO: this uses "cols_unc=[]" for resampling, which ignores all uncertainty columns! But they are not used here anyway for now.
+            series_normalized = _flux2series(series.values/np.nanmax(series.values), series.index)  # deactivate resampling here be. series is already resampled in the line above
 
             # store all series to arrays for later referencing
             series_natural.append(series)

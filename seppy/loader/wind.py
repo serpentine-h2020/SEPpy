@@ -14,7 +14,7 @@ import sunpy
 from sunpy.net import Fido
 from sunpy.net import attrs as a
 
-from seppy.util import custom_notification, custom_warning, resample_df
+from seppy.util import resample_df  # custom_notification, custom_warning
 
 
 logger = pooch.get_logger()
@@ -79,7 +79,7 @@ def wind3dp_download_fido(dataset, startdate, enddate, path=None, max_conn=5):
             if os.path.exists(f) and os.path.getsize(f) == 0:
                 os.remove(f)
             if not os.path.exists(f):
-                downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
+                _downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
         # downloaded_files = Fido.fetch(result, path=path, max_conn=max_conn)
         # downloaded_files.sort()
     except (RuntimeError, IndexError):
@@ -218,7 +218,7 @@ def _wind3dp_load(files, resample="1min", threshold=None):
         df = pd.concat([df2, df], axis=1)
 
     if isinstance(resample, str):
-        df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start")
+        df = resample_df(df=df, resample=resample, pos_timestamp="center", origin="start", cols_unc=[])
 
     return df
     # except:
@@ -289,7 +289,7 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
         for col in ['mean_E', 'delta_e', 'DE', 'lower_E', 'upper_E']:
             energies[col] = energies[col]/1e6  # convert energies to MeV
 
-        custom_warning('Wind/3DP: The energy values in the metadata are now provided as MeV (previously eV)! Also DE is now 2*delta_e (previously just delta_e). Please adapt your scripts accordingly!')
+        # custom_warning('Wind/3DP: The energy values in the metadata are now provided as MeV (previously eV)! Also DE is now 2*delta_e (previously just delta_e). Please adapt your scripts accordingly!')
 
         meta = {'channels_dict_df': energies,
                 'ENERGY_UNITS': metacdf.varattsget('ENERGY')['UNITS'],
@@ -301,7 +301,7 @@ def wind3dp_load(dataset, startdate, enddate, resample="1min", multi_index=True,
         try:
             meta['APPROX_ENERGY_LABELS'] = metacdf.varget('APPROX_ENERGY_LABELS')
             meta['FLUX_LABELS'] = metacdf.varget('FLUX_ENERGY_LABL')
-        except:
+        except ValueError:
             pass
 
         # create multi-index data frame of flux
@@ -362,12 +362,12 @@ def _read_cdf_wind3dp(fname, ignore_vars=[]):
     cdf = cdflib.CDF(str(fname))
     # Extract the time varying variables
     cdf_info = cdf.cdf_info()
-    meta = cdf.globalattsget()
+    # meta = cdf.globalattsget()
     if hasattr(cdflib, "__version__") and Version(cdflib.__version__) >= Version("1.0.0"):
         all_var_keys = cdf_info.rVariables + cdf_info.zVariables
     else:
         all_var_keys = cdf_info['rVariables'] + cdf_info['zVariables']
-    var_attrs = {key: cdf.varattsget(key) for key in all_var_keys}
+    # var_attrs = {key: cdf.varattsget(key) for key in all_var_keys}
 
     # Get keys that depend on time
     # var_keys = [var for var in var_attrs if 'DEPEND_0' in var_attrs[var] and var_attrs[var]['DEPEND_0'] is not None]
@@ -379,7 +379,7 @@ def _read_cdf_wind3dp(fname, ignore_vars=[]):
     # Manually define time index key for Wind/3DP cdf files, as they don't follow the standard
     time_index_keys = [var_keys.pop(var_keys.index('Epoch'))]
 
-    all_ts = []
+    # all_ts = []
     # For each time index, construct a GenericTimeSeries
     for index_key in time_index_keys:
         try:
@@ -387,7 +387,7 @@ def _read_cdf_wind3dp(fname, ignore_vars=[]):
         except ValueError:
             # Empty index for cdflib >= 0.3.20
             continue
-        # TODO: use to_astropy_time() instead here when we drop pandas in timeseries
+        # use to_astropy_time() instead here when we drop pandas in timeseries
         index = CDFepoch.to_datetime(index)
         df = pd.DataFrame(index=pd.DatetimeIndex(name=index_key, data=index))
         # units = {}
@@ -397,7 +397,7 @@ def _read_cdf_wind3dp(fname, ignore_vars=[]):
             if var_key in ignore_vars:
                 continue  # leave for-loop, skipping var_key
 
-            attrs = var_attrs[var_key]
+            # attrs = var_attrs[var_key]
             # Skip the following check for Wind/3DP cdf files, as they don't follow the standard
             # # If this variable doesn't depend on this index, continue
             # if attrs['DEPEND_0'] != index_key:

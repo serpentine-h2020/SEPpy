@@ -17,7 +17,7 @@ from sunpy.net import Fido
 from sunpy.net import attrs as a
 from sunpy.timeseries import TimeSeries
 
-from seppy.util import custom_notification, custom_warning, resample_df
+from seppy.util import resample_df  # custom_notification, custom_warning
 
 # omit Pandas' PerformanceWarning
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -212,9 +212,9 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
 
         # optional resampling:
         if isinstance(resample, str):
-            df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+            df = resample_df(df, resample, pos_timestamp=pos_timestamp, cols_unc='auto', verbose=False)
 
-        custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
+        # custom_warning('The format of "channels_dict_df_X" in the the metadata for STEREO/SEPT has been changed providing "mean_E" in MeV (instead of keV)! The metadata is also now given as a dictionary containing the dataframe "channels_dict_df_X".')
     else:
         df = []
 
@@ -416,7 +416,7 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                 if os.path.exists(f) and os.path.getsize(f) == 0:
                     os.remove(f)
                 if not os.path.exists(f):
-                    downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
+                    _downloaded_file = Fido.fetch(result[0][i], path=path, max_conn=max_conn)
 
             # downloaded_files = Fido.fetch(result, path=path, max_conn=max_conn)
             data = TimeSeries(downloaded_files, concatenate=True)
@@ -464,7 +464,11 @@ def stereo_load(instrument, startdate, enddate, spacecraft='ahead', mag_coord='R
                     df.index = df.index-pd.Timedelta('30s')
 
             if isinstance(resample, str):
-                df = resample_df(df, resample, pos_timestamp=pos_timestamp)
+                if instrument.upper() in ['LET', 'MAG', 'MAGB', 'MAGPLASMA']:
+                    cols_unc = []
+                elif instrument.upper() in ['HET']:
+                    cols_unc = 'auto'
+                df = resample_df(df, resample, pos_timestamp=pos_timestamp, cols_unc=cols_unc, verbose=False)
         except (RuntimeError, IndexError):
             print(f'Unable to obtain "{dataset}" data for {startdate}-{enddate}!')
             downloaded_files = []
