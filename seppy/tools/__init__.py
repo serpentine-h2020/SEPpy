@@ -1880,7 +1880,7 @@ class Event:
 
             # Colormesh
             cplot = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, grid, shading='auto', cmap=cmap, norm=normscale)
-            greymesh = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, maskedgrid, shading='auto', cmap='Greys', vmin=-1, vmax=1)
+            _greymesh = ax[DYN_SPEC_INDX].pcolormesh(time, y_arr, maskedgrid, shading='auto', cmap='Greys', vmin=-1, vmax=1)
 
             cb = fig.colorbar(cplot, orientation='vertical', ax=ax[DYN_SPEC_INDX])
             clabel = r"Intensity $\cdot$ $E^{2}$" + "\n" + r"[MeV/(cm$^{2}$ sr s)]"
@@ -1992,7 +1992,7 @@ class Event:
             # return time1, y_arr1, grid1
             # Colormesh
             cplot1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, grid1, shading='auto', cmap=cmap, norm=normscale)
-            greymesh1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, maskedgrid1, shading='auto', cmap='Greys', vmin=-1, vmax=1)
+            _greymesh1 = ax[DYN_SPEC_INDX].pcolormesh(time1, y_arr1, maskedgrid1, shading='auto', cmap='Greys', vmin=-1, vmax=1)
 
             # Updating the colorbar
             cb = fig.colorbar(cplot1, orientation='vertical', ax=ax[DYN_SPEC_INDX])
