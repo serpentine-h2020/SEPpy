@@ -13,6 +13,7 @@ import sunpy.sun.constants as sconst
 from astropy.utils.data import get_pkg_data_filename
 from sunpy.coordinates import get_horizons_coord
 from tqdm.auto import tqdm
+from typing import Callable
 
 # Utilities toolbox, contains helpful functions
 
@@ -120,23 +121,75 @@ def k_legacy(mu: float, sigma: float, sigma_multiplier: float) -> float:
     return np.round(nominator/denominator)
 
 
-def sqrt_sum_squares(series):
+# def sqrt_sum_squares(series):
+#     """
+#     Custom aggregation function for uncertainties, which calculates the
+#     sqrt of the sum of squares divided by number of samples in the bin
+
+#     Parameters
+#     ----------
+#     series : pd.Series
+#         The series to aggregate
+
+#     Returns
+#     -------
+#     float
+#         Sqrt of sum of squares divided by number of samples
+#     """
+#     if isinstance(series, pd.DataFrame):
+#         custom_warning("The sqrt_sum_squares function is not tested for DataFrames yet! Proceed with caution and report any issues you find!")
+
+#     return np.sqrt(np.nansum(series**2)) / series.count()
+
+
+def rms_uncertainty(data: pd.Series | pd.DataFrame) -> float | pd.Series:
     """
-    Custom aggregation function for uncertainties, which calculates the
-    sqrt of the sum of squares divided by number of samples in the bin
+    Aggregation function for uncertainties, which calculates the square root
+    of the sum of squares divided by the number of samples in the bin.
+
+    This differs from the standard Root Mean Square (RMS), where the division
+    by n occurs *inside* the square root: sqrt(sum(x**2) / n). Here, the
+    division occurs *outside*: sqrt(sum(x**2)) / n. This form is appropriate
+    for propagating uncertainties when averaging n measurements.
+
+    Works for both pd.Series and pd.DataFrame. In the case of a DataFrame,
+    the calculation is performed per column.
 
     Parameters
     ----------
-    series : pd.Series
-        The series to aggregate
+    data : pd.Series or pd.DataFrame
+        The data to aggregate
 
     Returns
     -------
-    float
-        Sqrt of sum of squares divided by number of samples
-    """
+    float or pd.Series
+        Sqrt of sum of squares divided by number of samples.
+        Returns a single float for pd.Series input, or a pd.Series
+        (one value per column) for pd.DataFrame input.
+        Returns np.nan if the input is empty, all-NaN, or (for DataFrames)
+        for any column that is empty or all-NaN.
 
-    return np.sqrt(np.nansum(series**2)) / series.count()
+    Raises
+    ------
+    TypeError
+        If data is not a pd.Series or pd.DataFrame.
+    """
+    if isinstance(data, pd.Series):
+        count = data.count()
+        # Return np.nan early if count is zero (empty or all-NaN) to avoid division by zero
+        if count == 0:
+            return np.nan
+        return np.sqrt(np.nansum(data**2)) / count
+
+    elif isinstance(data, pd.DataFrame):
+        count = data.count()  # per-column Series
+        # Replace zero counts with np.nan before dividing to avoid division by zero
+        if (count == 0).any():
+            count = count.where(count > 0, other=np.nan)
+        return np.sqrt(np.nansum(data**2, axis=0)) / count
+
+    else:
+        raise TypeError(f"Expected pd.Series or pd.DataFrame, got {type(data).__name__}")
 
 
 def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
@@ -181,7 +234,15 @@ def reduce_list_generic(original_list, placeholder="xx", seperator="_"):
     return sorted(list(patterns))
 
 
-def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='auto', keywords_unc=['unc', 'err', 'sigma'], verbose=True):
+def resample_df(
+    df: pd.DataFrame | pd.Series,
+    resample: str,
+    pos_timestamp: str = "center",
+    origin: str = "start",
+    cols_unc: list[str] | str = 'auto',
+    keywords_unc: list[str] = ['unc', 'err', 'sigma'],
+    verbose: bool = True
+) -> pd.DataFrame | pd.Series:
     """
     Resamples a Pandas Dataframe or Series to a new frequency. Note that this is
     just a simple wrapper around the pandas resample function that is
@@ -243,20 +304,16 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
     # automatically detect columns with uncertainties if not provided
     if type(cols_unc) is str and cols_unc == 'auto':
         if isinstance(df, pd.DataFrame):
-            if type(df.columns) is not pd.core.indexes.multi.MultiIndex:
+            if type(df.columns) is not pd.MultiIndex:
                 # cols_unc = [col for col in df.columns if 'uncertainty' in col.lower() or 'err' in col.lower() or 'sigma' in col.lower()]
                 cols_unc = [col for col in df.columns if any(keyword.lower() in col.lower() for keyword in keywords_unc)]
-            elif type(df.columns) is pd.core.indexes.multi.MultiIndex:
+            elif type(df.columns) is pd.MultiIndex:
                 cols_unc = []
                 custom_warning("\nResampling of MultiIndex DataFrames with uncertainty columns not implemented yet! Proceeding without uncertainty handling.\n")
         elif isinstance(df, pd.Series):
-            try:
-                # if 'unc' in df.name.lower() or 'error' in df.name.lower():
-                if any(keyword.lower() in df.name.lower() for keyword in keywords_unc):
-                    cols_unc = [df.name]
-                else:
-                    cols_unc = []
-            except AttributeError:
+            if isinstance(df.name, str) and any(keyword.lower() in df.name.lower() for keyword in keywords_unc):
+                cols_unc = [df.name]
+            else:
                 cols_unc = []
         if len(cols_unc) > 0 and cols_unc != 'auto':
             if verbose:
@@ -271,7 +328,7 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             # save column order
             df_columns = df.columns
             #
-            agg_dict = {col: sqrt_sum_squares for col in cols_unc}
+            agg_dict: dict[str, Callable[..., float | pd.Series] | str] = {col: rms_uncertainty for col in cols_unc}
             for col in df.columns.difference(cols_unc):
                 agg_dict[col] = 'mean'
             df = df.resample(resample, origin=origin, label="left").agg(agg_dict)
@@ -279,8 +336,8 @@ def resample_df(df, resample, pos_timestamp="center", origin="start", cols_unc='
             df = df[df_columns]
         # Handle Series input
         elif isinstance(df, pd.Series):
-            if df.name in cols_unc:
-                df = df.resample(resample, origin=origin, label="left").agg(sqrt_sum_squares)
+            if isinstance(df.name, str) and df.name in cols_unc:
+                df = df.resample(resample, origin=origin, label="left").agg(rms_uncertainty)
             else:
                 df = df.resample(resample, origin=origin, label="left").mean()  # This is actually the original functionality before adding cols_unc
         # Adjust timestamp position
