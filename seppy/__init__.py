@@ -1,5 +1,5 @@
 
-from .version import version as __version__
+from .version import version as __version__  # noqa: F401
 from seppy.util import custom_warning
 
 # __all__ = []  # defines which functions, variables etc. will be loaded when running "from pyonset import *"

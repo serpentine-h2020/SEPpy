@@ -78,7 +78,7 @@ def mag_load(startdate, enddate, level='l2', data_type='normal', frame='rtn', pa
         if os.path.exists(f) and os.path.getsize(f) == 0:
             os.remove(f)
         if not os.path.exists(f):
-            downloaded_file = Fido.fetch(result[0][i], path=path)
+            _downloaded_file = Fido.fetch(result[0][i], path=path)
     # files = Fido.fetch(result, path=path)
 
     solo_mag = TimeSeries(filelist, concatenate=True)
