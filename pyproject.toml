@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "seppy"
 description = "SEPpy"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 license = "BSD-3-Clause"
 authors = [
@@ -38,7 +38,6 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
