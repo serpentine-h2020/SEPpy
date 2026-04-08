@@ -142,7 +142,7 @@ def k_legacy(mu: float, sigma: float, sigma_multiplier: float) -> float:
 #     return np.sqrt(np.nansum(series**2)) / series.count()
 
 
-def rms_uncertainty(data: pd.Series | pd.DataFrame) -> float | pd.Series:
+def propagated_mean_uncertainty(data: pd.Series | pd.DataFrame) -> float | pd.Series:
     """
     Aggregation function for uncertainties, which calculates the square root
     of the sum of squares divided by the number of samples in the bin.
@@ -328,7 +328,7 @@ def resample_df(
             # save column order
             df_columns = df.columns
             #
-            agg_dict: dict[str, Callable[..., float | pd.Series] | str] = {col: rms_uncertainty for col in cols_unc}
+            agg_dict: dict[str, Callable[..., float | pd.Series] | str] = {col: propagated_mean_uncertainty for col in cols_unc}
             for col in df.columns.difference(cols_unc):
                 agg_dict[col] = 'mean'
             df = df.resample(resample, origin=origin, label="left").agg(agg_dict)
@@ -337,7 +337,7 @@ def resample_df(
         # Handle Series input
         elif isinstance(df, pd.Series):
             if isinstance(df.name, str) and df.name in cols_unc:
-                df = df.resample(resample, origin=origin, label="left").agg(rms_uncertainty)
+                df = df.resample(resample, origin=origin, label="left").agg(propagated_mean_uncertainty)
             else:
                 df = df.resample(resample, origin=origin, label="left").mean()  # This is actually the original functionality before adding cols_unc
         # Adjust timestamp position
