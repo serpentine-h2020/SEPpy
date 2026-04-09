@@ -125,23 +125,45 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
         spacecraft = 'behind'
 
     # channel dicts from Nina:
-    ch_strings = ['45.0-55.0 keV', '55.0-65.0 keV', '65.0-75.0 keV', '75.0-85.0 keV', '85.0-105.0 keV', '105.0-125.0 keV', '125.0-145.0 keV', '145.0-165.0 keV', '165.0-195.0 keV', '195.0-225.0 keV', '225.0-255.0 keV', '255.0-295.0 keV', '295.0-335.0 keV', '335.0-375.0 keV', '375.0-425.0 keV']
-    mean_E = []
-    for i in range(len(ch_strings)):
-        temp  = ch_strings[i].split(' keV')
+    e_ch_strings = ['45.0-55.0 keV', '55.0-65.0 keV', '65.0-75.0 keV', '75.0-85.0 keV', '85.0-105.0 keV', '105.0-125.0 keV', '125.0-145.0 keV', '145.0-165.0 keV', '165.0-195.0 keV', '195.0-225.0 keV', '225.0-255.0 keV', '255.0-295.0 keV', '295.0-335.0 keV', '335.0-375.0 keV', '375.0-425.0 keV']
+    e_lower_E = []
+    e_upper_E = []
+    e_mean_E = []
+    for i in range(len(e_ch_strings)):
+        temp  = e_ch_strings[i].split(' keV')
         clims = temp[0].split('-')
         lower = float(clims[0])
         upper = float(clims[1])
-        mean_E.append(np.sqrt(upper*lower))
+        e_lower_E.append(lower)
+        e_upper_E.append(upper)
+        e_mean_E.append(np.sqrt(upper*lower))
     #
     echannels = {'bins': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-                 'ch_strings': ch_strings,
+                 'ch_strings': e_ch_strings,
                  'DE': [0.0100, 0.0100, 0.0100, 0.0100, 0.0200, 0.0200, 0.0200, 0.0200, 0.0300, 0.0300, 0.0300, 0.0400, 0.0400, 0.0400, 0.0500],
-                 'mean_E': np.array(mean_E)/1000.}
+                 'lower_E': np.array(e_lower_E)/1000.,
+                 'upper_E': np.array(e_upper_E)/1000.,
+                 'mean_E': np.array(e_mean_E)/1000.}
+
+    p_ch_strings = ['84.1-92.7 keV', '92.7-101.3 keV', '101.3-110.0 keV', '110.0-118.6 keV', '118.6-137.0 keV', '137.0-155.8 keV', '155.8-174.6 keV', '174.6-192.6 keV', '192.6-219.5 keV', '219.5-246.4 keV', '246.4-273.4 keV', ' 273.4-312.0 keV', '312.0-350.7 keV', '350.7-389.5 keV', '389.5-438.1 keV', '438.1-496.4 keV', '496.4-554.8 keV', ' 554.8-622.9 keV', '622.9-700.7 keV', '700.7-788.3 keV', '788.3-875.8 keV', '875.8- 982.8 keV', '982.8-1111.9 keV', '1111.9-1250.8 keV', '1250.8-1399.7 keV', '1399.7-1578.4 keV', '1578.4-1767.0 keV', '1767.0-1985.3 keV', '1985.3-2223.6 keV', '2223.6-6500.0 keV']
+    p_lower_E = []
+    p_upper_E = []
+    p_mean_E = []
+    for i in range(len(p_ch_strings)):
+        temp  = p_ch_strings[i].split(' keV')
+        clims = temp[0].split('-')
+        lower = float(clims[0])
+        upper = float(clims[1])
+        p_lower_E.append(lower)
+        p_upper_E.append(upper)
+        p_mean_E.append(np.sqrt(upper*lower))
+
     pchannels = {'bins': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
-                 'ch_strings': ['84.1-92.7 keV', '92.7-101.3 keV', '101.3-110.0 keV', '110.0-118.6 keV', '118.6-137.0 keV', '137.0-155.8 keV', '155.8-174.6 keV', '174.6-192.6 keV', '192.6-219.5 keV', '219.5-246.4 keV', '246.4-273.4 keV', ' 273.4-312.0 keV', '312.0-350.7 keV', '350.7-389.5 keV', '389.5-438.1 keV', '438.1-496.4 keV', '496.4-554.8 keV', ' 554.8-622.9 keV', '622.9-700.7 keV', '700.7-788.3 keV', '788.3-875.8 keV', '875.8- 982.8 keV', '982.8-1111.9 keV', '1111.9-1250.8 keV', '1250.8-1399.7 keV', '1399.7-1578.4 keV', '1578.4-1767.0 keV', '1767.0-1985.3 keV', '1985.3-2223.6 keV', '2223.6-6500.0 keV'],
+                 'ch_strings': p_ch_strings,
                  'DE': [0.0086, 0.0086, 0.0087, 0.0086, 0.0184, 0.0188, 0.0188, 0.018, 0.0269, 0.0269, 0.027, 0.0386, 0.0387, 0.0388, 0.0486, 0.0583, 0.0584, 0.0681, 0.0778, 0.0876, 0.0875, 0.107, 0.1291, 0.1389, 0.1489, 0.1787, 0.1886, 0.2183, 0.2383, 4.2764],
-                 'mean_E': np.array([88.30, 96.90, 105.56, 114.22, 127.47, 146.10, 164.93, 183.38, 205.61, 232.56, 259.55, 292.06, 330.78, 369.59, 413.09, 466.34, 524.79, 587.86, 660.66, 743.21, 830.90, 927.76, 1045.36, 1179.31, 1323.16, 1486.37, 1670.04, 1872.97, 2101.07, 3801.76])/1000.}
+                 'lower_E': np.array(p_lower_E)/1000.,
+                 'upper_E': np.array(p_upper_E)/1000.,
+                 'mean_E': np.array(p_mean_E)/1000.}
     # :channel dicts from Nina
 
     if species == 'ele':
