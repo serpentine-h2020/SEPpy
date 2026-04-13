@@ -21,6 +21,14 @@ logger = pooch.get_logger()
 logger.setLevel("WARNING")
 
 
+def _download_file(url, fname, path):
+    try:
+        downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
+    except ModuleNotFoundError:
+        downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
+    return downloaded_file
+
+
 def _download_metafile(dataset, path=None):
     """
     Download master cdf file from cdaweb for 'dataset'
@@ -28,12 +36,15 @@ def _download_metafile(dataset, path=None):
     if not path:
         path = sunpy.config.get('downloads', 'sample_dir')
     base_url = 'https://spdf.gsfc.nasa.gov/pub/software/cdawlib/0MASTERS/'
+    base_url_mirror = 'https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0MASTERS/'
     fname = dataset.lower() + '_00000000_v01.cdf'
     url = base_url + fname
+    url_mirror = base_url_mirror + fname
     try:
-        downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
-    except ModuleNotFoundError:
-        downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
+        downloaded_file = _download_file(url=url, fname=fname, path=path)
+    except requests.exceptions.ReadTimeout:
+        print(f'Unable to download master file from {url} due to timeout. Trying mirror site...')
+        downloaded_file = _download_file(url=url_mirror, fname=fname, path=path)
     #
     return downloaded_file
 
