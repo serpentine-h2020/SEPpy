@@ -42,8 +42,8 @@ def _download_metafile(dataset, path=None):
     url_mirror = base_url_mirror + fname
     try:
         downloaded_file = _download_file(url=url, fname=fname, path=path)
-    except requests.exceptions.ReadTimeout:
-        print(f'Unable to download master file from {url} due to timeout. Trying mirror site...')
+    except requests.exceptions.RequestException:
+        print(f'Unable to download CDF master file from {url}. Trying mirror site...')
         downloaded_file = _download_file(url=url_mirror, fname=fname, path=path)
     #
     return downloaded_file
