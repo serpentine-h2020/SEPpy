@@ -661,12 +661,12 @@ def test_resample_df_sept_online():
     pd.testing.assert_frame_equal(df_resampled_manu, df_resampled_auto)
     with pytest.raises(AssertionError):
         pd.testing.assert_frame_equal(df_resampled_none, df_resampled_manu)
-    df_resampled_none.index.freqstr == resample
-    df_resampled_auto.index.freqstr == resample
-    df_resampled_none.err_ch_31.mean() == pytest.approx(0.19295445763888888)
-    df_resampled_auto.err_ch_31.mean() == pytest.approx(0.0879893429380724)
-    df_resampled_none.err_ch_31.max() == pytest.approx(1.038175)
-    df_resampled_auto.err_ch_31.max() == pytest.approx(0.5191970236576863)
+    assert df_resampled_none.index.freqstr == resample
+    assert df_resampled_auto.index.freqstr == resample
+    assert df_resampled_none.err_ch_31.mean() == pytest.approx(0.19295445763888888)
+    assert df_resampled_auto.err_ch_31.mean() == pytest.approx(0.0879893429380724)
+    assert df_resampled_none.err_ch_31.max() == pytest.approx(1.038175)
+    assert df_resampled_auto.err_ch_31.max() == pytest.approx(0.5191970236576863)
     #
     resample = None
     with pytest.raises(ValueError, match="Resample period is set to 'None'. No resampling will be applied."):
