@@ -61,11 +61,16 @@ repository = "https://github.com/serpentine-h2020/SEPpy"
 
 [tool.setuptools]
 zip-safe = false
-include-package-data = true
+include-package-data = false
+
+[tool.setuptools.package-data]
+seppy = [
+    "data/bepi_sixsp_instrumental_constants/**/*",
+]
 
 [tool.setuptools.packages.find]
 include = ["seppy*"]
-exclude = ["seppy._dev*"]
+exclude = ["seppy._dev*", "seppy.tests*"]
 
 [tool.setuptools_scm]
 version_file = "seppy/_version.py"
