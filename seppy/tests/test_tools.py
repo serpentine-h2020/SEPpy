@@ -1,4 +1,4 @@
-from astropy.utils.data import get_pkg_data_filename
+# from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.stereo import stereo_load
 from seppy.tools import Event
@@ -557,8 +557,9 @@ def test_onset_spectrum_tsa_SOHO_ERNE_online():
 def test_onset_tsa_SOHO_ERNE_offline():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    fullpath = get_pkg_data_filename('data/test/soho_erne-hed_l2-1min_20211028_v01.cdf', package='seppy')
-    lpath = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/soho_erne-hed_l2-1min_20211028_v01.cdf', package='seppy')
+    # lpath = Path(fullpath).parent.as_posix()
+    lpath = (Path(__file__).parent.parent / "data" / "test").as_posix()
     Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath)
     print(Event1.print_energies())
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
@@ -583,8 +584,9 @@ def test_onset_tsa_SOHO_ERNE_offline():
 def test_dynamic_spectrum_SOHO_ERNE_offline():
     startdate = datetime.date(2021, 10, 28)
     enddate = datetime.date(2021, 10, 29)
-    fullpath = get_pkg_data_filename('data/test/soho_erne-hed_l2-1min_20211028_v01.cdf', package='seppy')
-    lpath = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/soho_erne-hed_l2-1min_20211028_v01.cdf', package='seppy')
+    # lpath = Path(fullpath).parent.as_posix()
+    lpath = (Path(__file__).parent.parent / "data" / "test").as_posix()
     radio_spacecraft = None  # use ('ahead', 'STEREO-A') if #27 is fixed and radio files can be provided offline
     Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=radio_spacecraft)
     Event1.dynamic_spectrum(view=None)
@@ -596,9 +598,10 @@ def test_dynamic_spectrum_SOHO_ERNE_offline():
 def test_onset_Bepi_SIXS_L2_offline():
     startdate = datetime.date(2023, 7, 19)
     enddate = datetime.date(2023, 7, 19)
-    fullpath = get_pkg_data_filename('data/test/20230719_side1.csv', package='seppy')
-    lpath = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/20230719_side1.csv', package='seppy')
+    # lpath = Path(fullpath).parent.as_posix()
     # lpath = '/home/jagies/data/bepi/bc_mpo_sixs/data_csv/cruise/sixs-p/raw'
+    lpath = (Path(__file__).parent.parent / "data" / "test").as_posix()
     Event1 = Event(spacecraft='Bepi', sensor='SIXS-P', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, viewing='1')
     background_range = (datetime.datetime(2023, 7, 19, 0, 30, 0), datetime.datetime(2023, 7, 19, 1, 30, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='1', background_range=background_range, channels=2, resample_period="1min", yscale='log', cusum_window=30)

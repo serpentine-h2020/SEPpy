@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import requests
-from astropy.utils.data import get_pkg_data_filename
+# from astropy.utils.data import get_pkg_data_filename
 from pathlib import Path
 from seppy.loader.bepi import bepi_sixsp_l3_loader
 from seppy.loader.juice import juice_radem_load
@@ -140,8 +140,9 @@ def test_soho_ephin_l2_load_online():
 
 
 def test_soho_ephin_l2_load_offline():
-    fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
-    path = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/epi21106.rl2', package='seppy')
+    # path = Path(fullpath).parent.as_posix()
+    path = (Path(__file__).parent.parent / "data" / "test").as_posix()
     df, meta = soho_load(dataset='SOHO_COSTEP-EPHIN_L2-1MIN', startdate="2021/04/16", enddate="2021/04/16",
                          path=path, resample="2min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
@@ -189,8 +190,9 @@ def test_solo_mag_load_online():
 
 def test_solo_mag_load_offline():
     # offline data files need to be replaced if data "version" is updated!
-    fullpath = get_pkg_data_filename('data/test/solo_l2_mag-rtn-normal-1-minute_20210712_v01.cdf', package='seppy')
-    path = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/solo_l2_mag-rtn-normal-1-minute_20210712_v01.cdf', package='seppy')
+    # path = Path(fullpath).parent.as_posix()
+    path = (Path(__file__).parent.parent / "data" / "test").as_posix()
     df = mag_load("2021/07/12", "2021/07/13", level='l2', data_type='normal-1-minute', frame='rtn', path=path)
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1437, 7)
@@ -208,8 +210,9 @@ def test_stereo_het_load_online():
 
 def test_stereo_het_load_offline():
     # offline data files need to be replaced if data "version" is updated!
-    fullpath = get_pkg_data_filename('data/test/sta_l1_het_20211028_v01.cdf', package='seppy')
-    path = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/sta_l1_het_20211028_v01.cdf', package='seppy')
+    # path = Path(fullpath).parent.as_posix()
+    path = (Path(__file__).parent.parent / "data" / "test").as_posix()
     df, meta = stereo_load(instrument="HET", startdate="2021/10/28", enddate="2021/10/29",
                            path=path, resample="1min", pos_timestamp=None)
     assert isinstance(df, pd.DataFrame)
@@ -230,8 +233,9 @@ def test_stereo_sept_load_online():
 
 def test_stereo_sept_load_offline():
     # offline data files need to be replaced if data "version" is updated!
-    fullpath = get_pkg_data_filename('data/test/sept_ahead_ele_sun_2006_318_1min_l2_v03.dat', package='seppy')
-    path = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/sept_ahead_ele_sun_2006_318_1min_l2_v03.dat', package='seppy')
+    # path = Path(fullpath).parent.as_posix()
+    path = (Path(__file__).parent.parent / "data" / "test").as_posix()
     df, meta = stereo_load(instrument="SEPT", startdate="2006/11/14", enddate="2006/11/14",
                            path=path, resample="1min", pos_timestamp=None, sept_viewing='sun')
     assert isinstance(df, pd.DataFrame)
@@ -257,8 +261,9 @@ def test_wind3dp_load_online():
 
 def test_wind3dp_load_offline():
     # offline data files need to be replaced if data "version" is updated!
-    fullpath = get_pkg_data_filename('data/test/wi_sfsp_3dp_20200213_v01.cdf', package='seppy')
-    path = Path(fullpath).parent.as_posix()
+    # fullpath = get_pkg_data_filename('data/test/wi_sfsp_3dp_20200213_v01.cdf', package='seppy')
+    # path = Path(fullpath).parent.as_posix()
+    path = (Path(__file__).parent.parent / "data" / "test").as_posix()
     df, meta = wind3dp_load(dataset="WI_SFSP_3DP",
                             startdate="2020/02/13",
                             enddate="2020/02/14",

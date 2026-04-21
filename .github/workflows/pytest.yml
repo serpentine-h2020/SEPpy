@@ -64,3 +64,37 @@ jobs:
       uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  test-wheel:
+    if: github.event_name == 'pull_request'
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+    - name: Build wheel
+      run: |
+        uv venv .venv --python ${{ matrix.python-version }}
+        source .venv/bin/activate
+        uv pip install build
+        python -m build
+    - name: Install from wheel
+      run: |
+        source .venv/bin/activate
+        uv pip install nbmake pytest pytest-doctestplus pytest-cov
+        uv pip install dist/seppy-*.whl
+    - name: Test with pytest
+      run: |
+        source .venv/bin/activate
+        mv seppy seppy_src
+        pytest seppy_src/tests/
