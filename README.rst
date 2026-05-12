@@ -6,8 +6,8 @@ seppy
 .. |pypi Version| image:: https://img.shields.io/pypi/v/seppy?style=flat&logo=pypi
    :target: https://pypi.org/project/seppy/
 .. |python version| image:: https://img.shields.io/pypi/pyversions/seppy?style=flat&logo=python
-.. |zenodo doi| image:: https://zenodo.org/badge/451799504.svg
-   :target: https://zenodo.org/badge/latestdoi/451799504
+.. |zenodo doi| image:: https://img.shields.io/badge/DOI-10.5281%2Fzenodo.7100437-blue
+   :target: https://doi.org/10.5281/zenodo.7100437
 .. |pytest| image:: https://github.com/serpentine-h2020/SEPpy/actions/workflows/pytest.yml/badge.svg?branch=main
 .. |codecov| image:: https://codecov.io/gh/serpentine-h2020/SEPpy/branch/main/graph/badge.svg?token=FYELM4Y7DF 
    :target: https://codecov.io/gh/serpentine-h2020/SEPpy
