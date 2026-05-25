@@ -327,13 +327,30 @@ def resample_df(
         if isinstance(df, pd.DataFrame):
             # save column order
             df_columns = df.columns
-            #
-            agg_dict: dict[str, Callable[..., float | pd.Series] | str] = {col: propagated_mean_uncertainty for col in cols_unc}
+
+            # Identify non-object columns (this includes numeric columns but also datetime columns, etc.) to avoid resampling of object columns (such as strings), which would raise errors.
+            non_object_cols = df.select_dtypes(exclude='object').columns
+
+            agg_dict: dict[str, Callable[..., float | pd.Series] | str] = {}
+            for col in cols_unc:
+                if col in non_object_cols:
+                    agg_dict[col] = propagated_mean_uncertainty
             for col in df.columns.difference(cols_unc):
-                agg_dict[col] = 'mean'
+                if col in non_object_cols:
+                    agg_dict[col] = 'mean'
+
             df = df.resample(resample, origin=origin, label="left").agg(agg_dict)
-            # restore column order
-            df = df[df_columns]
+
+            # restore column order (only for columns that survived resampling)
+            df = df[[col for col in df_columns if col in df.columns]]
+
+            # Check for non-numeric columns that were dropped during resampling and print a warning if verbose is True
+            dropped_cols = [col for col in df_columns if col not in non_object_cols]
+            if dropped_cols: 
+                if verbose:
+                    custom_warning(f"The following non-numeric columns were dropped during resampling: {dropped_cols}")
+                else: 
+                    custom_warning("Some non-numeric columns were dropped during resampling.")
         # Handle Series input
         elif isinstance(df, pd.Series):
             if isinstance(df.name, str) and df.name in cols_unc:
