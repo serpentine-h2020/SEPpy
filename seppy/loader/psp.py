@@ -230,8 +230,8 @@ def psp_isois_load(dataset, startdate, enddate, epilo_channel='F', epilo_thresho
 
         if isinstance(resample, str):
             if dataset.upper() in ['PSP_ISOIS-EPILO_L2-PE']:
-                cols_unc = []
-                keywords_unc = []
+                cols_unc = 'auto'
+                keywords_unc = ['_DELTA_E']  # uncertainty columns for EPILO PE have '_DELTA_E' in their name, e.g. 'Electron_Flux_ChanE_DELTA_E47_P6'. There is also 'Epoch_ChanE_DELTA' column for the time uncertainty, but this should not be resampled with the same method as the flux uncertainties, so it is not included here.
             elif dataset.upper() in ['PSP_ISOIS-EPIHI_L2-HET-RATES60', 'PSP_ISOIS-EPIHI_L2-LET1-RATES60', 'PSP_ISOIS-EPIHI_L2-LET2-RATES60', 'PSP_ISOIS-EPILO_L2-IC']:
                 cols_unc = 'auto'
                 keywords_unc=['unc', 'err', 'sigma', '_DELTA_']  # 'PSP_ISOIS-EPILO_L2-IC' has 'H_Flux_ChanP_DELTA_Exx_Pxx' uncertainty columns
@@ -347,7 +347,12 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
     if mode.lower() == 'pe':
         if species.lower() in ['e', 'electrons']:
             species_str = 'Electron'
-            flux_key = 'Electron_CountRate'
+            # check if electron flux columns are in the dataframe, because they are (so far) only available for chanE!
+            # fall back to count rates if not available
+            if 'Electron_Flux_Chan{chan}_E0_P0' in df.keys():
+                flux_key = 'Electron_Flux'
+            else:
+                flux_key = 'Electron_CountRate'
         # if species.lower() in ['p', 'protons', 'i', 'ions', 'h']:
         #     species_str = 'H'
         #     flux_key = 'H_Flux'
@@ -404,7 +409,7 @@ def calc_av_en_flux_PSP_EPILO(df, en_dict, en_channel, species, mode, chan, view
             df_out = pd.concat([df_out, flux_out], axis=1)
 
         # calculate mean of all viewings:
-        df_out2 = pd.DataFrame({'flux': df_out.mean(axis=1, skipna=True)}, index=df_out.index)
+        df_out2 = pd.DataFrame({flux_key: df_out.mean(axis=1, skipna=True)}, index=df_out.index)
         en_channel_string_all.append(en_channel_string)
 
     # check if not all elements of en_channel_string_all are the same:
