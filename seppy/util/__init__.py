@@ -347,7 +347,7 @@ def resample_df(
             # Check for non-numeric columns that were dropped during resampling and print a warning if verbose is True
             dropped_cols = [col for col in df_columns if col not in non_object_cols]
             if dropped_cols: 
-                if not verbose:
+                if verbose:
                     custom_warning(f"The following non-numeric columns were dropped during resampling: {dropped_cols}")
                 else: 
                     custom_warning("Some non-numeric columns were dropped during resampling.")
