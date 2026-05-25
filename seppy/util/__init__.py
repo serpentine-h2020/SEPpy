@@ -344,13 +344,13 @@ def resample_df(
             # restore column order (only for columns that survived resampling)
             df = df[[col for col in df_columns if col in df.columns]]
 
-        # Check for non-numeric columns that were dropped during resampling and print a warning if verbose is True
-        dropped_cols = [col for col in df_columns if col not in non_object_cols]
-        if dropped_cols: 
-            if not verbose:
-                custom_warning(f"The following non-numeric columns were dropped during resampling: {dropped_cols}")
-            else: 
-                custom_warning("Some non-numeric columns were dropped during resampling.")
+            # Check for non-numeric columns that were dropped during resampling and print a warning if verbose is True
+            dropped_cols = [col for col in df_columns if col not in non_object_cols]
+            if dropped_cols: 
+                if not verbose:
+                    custom_warning(f"The following non-numeric columns were dropped during resampling: {dropped_cols}")
+                else: 
+                    custom_warning("Some non-numeric columns were dropped during resampling.")
         # Handle Series input
         elif isinstance(df, pd.Series):
             if isinstance(df.name, str) and df.name in cols_unc:
