@@ -40,7 +40,7 @@ This software is provided "as is", with no guarantee. It is no official data sou
 Installation
 ------------
 
-seppy requires python >= 3.10.
+seppy requires python >= 3.11.
 
 It can be installed from `PyPI <https://pypi.org/project/seppy/>`_ using:
 
