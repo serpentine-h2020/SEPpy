@@ -212,13 +212,13 @@ def stereo_sept_loader(startdate, enddate, spacecraft, species, viewing, resampl
     filelist = []
     for i, doy in enumerate(dates.day_of_year):
         try:
-            file = glob.glob(f"{path}{os.sep}sept_{spacecraft}_{species}_{viewing}_{dates[i].year}_{doy}_*.dat")[0]
+            file = glob.glob(f"{path}{os.sep}sept_{spacecraft}_{species}_{viewing}_{dates[i].year}_{doy:03d}_*.dat")[0]
         except IndexError:
             if not offline:
                 # print(f"File not found locally from {path}, downloading from http://www2.physik.uni-kiel.de/STEREO/data/sept/level2/")
                 file = stereo_sept_download(dates[i], spacecraft, species, viewing, path)
             else:
-                custom_warning(f"File sept_{spacecraft}_{species}_{viewing}_{dates[i].year}_{doy}_*.dat not found locally at {path}. Skipping (offline mode enabled).")
+                custom_warning(f"File sept_{spacecraft}_{species}_{viewing}_{dates[i].year}_{doy:03d}_*.dat not found locally at {path}. Skipping (offline mode enabled).")
                 file = ''
         if len(file) > 0:
             filelist.append(file)
