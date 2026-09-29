@@ -1,5 +1,7 @@
 import os
 import datetime
+from typing import Any
+from numpy._typing._array_like import NDArray
 import sunpy
 import warnings
 import matplotlib.pyplot as plt
@@ -210,12 +212,12 @@ class Event:
                        "bg_mean": self.bg_mean
                        }
 
-    def update_viewing(self, viewing) -> None:
+    def update_viewing(self, viewing):
         """
         :meta private:
         """
 
-        invalid_viewing_msg: str = f"{viewing} is an invalid viewing direction for {self.spacecraft}/{self.sensor}!"
+        invalid_viewing_msg = f"{viewing} is an invalid viewing direction for {self.spacecraft}/{self.sensor}!"
 
         if self.spacecraft != "wind":
 
@@ -1611,7 +1613,7 @@ class Event:
     # Deactivated in August 2025. Remove later if no problems occur.
     # analyse = copy.copy(find_onset)
 
-    def dynamic_spectrum(self, view=None, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False,
+    def dynamic_spectrum(self, view, cmap: str = 'magma', xlim: tuple = None, resample: str = None, save: bool = False,
                          other=None) -> None:
         """
         Shows all the different energy channels in a single 2D plot, and color codes the corresponding intensity*energy^2 by a colormap.
@@ -1619,7 +1621,7 @@ class Event:
         Parameters:
         -----------
         view : str or None
-                The viewing direction of the sensor. Default None, which will then pick the last used viewing.
+                The viewing direction of the sensor
         cmap : str, default='magma'
                 The colormap for the dynamic spectrum plot
         xlim : 2-tuple of datetime strings (str, str)
@@ -1711,15 +1713,7 @@ class Event:
         # Boolean value for checking if y-axis requires a white stripe
         is_solohetions = (spacecraft == "solo" and instrument == "het" and species == 'p')
 
-        # Check if a viewing was provided, if not, use the last used viewing, which may still be None
-        # if the instrument only has one aperture.
-        if view is None:
-            view: None | str = self.viewing
-
-        # This method has to be run before doing anything else to make sure that the viewing is correct.
-        # If no viewing was provided for the method, then view will at this line be the last used viewing,
-        # which most probably is correct because the class may not be initialized with an incorrect viewing. 
-        # If a viewing was provided, it is validated here. If it is invalid, an exception is raised.
+        # This method has to be run before doing anything else to make sure that the viewing is correct
         self.choose_data(view)
 
         # Check that the data that was loaded is valid. If not, abort with warning.
@@ -1794,10 +1788,6 @@ class Event:
 
                 s_identifier = "electrons"
                 # raise Warning('SOHO/EPHIN is not implemented yet in the dynamic spectrum tool!')
-            if instrument.lower() == "ephin_l3":
-                # Hard-coding the channel selection, not the most elegant solution. 
-                particle_data: pd.DataFrame = self.current_df_e.copy(deep=True).loc[:, [f"E{i}" for i in range(15)]]
-                s_identifier = "electrons"
 
         if spacecraft == "psp":
             if instrument.lower() == "isois-epihi":
@@ -1865,12 +1855,7 @@ class Event:
         time = df.index
 
         # The low and high ends of each energy channel
-        if self.sensor.lower() != "ephin_l3":
-            e_lows, e_highs = self.get_channel_energy_values()  # this function return energy in eVs
-        else:
-            # For EPHIN level 3 data product, these are effective energies
-            # Here the e_lows and e_highs are two identical arrays
-            e_lows, e_highs = self.get_channel_energy_values()  # this function return energy in eVs
+        e_lows, e_highs = self.get_channel_energy_values()  # this function return energy in eVs
 
         # The mean energy of each channel in eVs
         mean_energies = np.sqrt(np.multiply(e_lows, e_highs))
