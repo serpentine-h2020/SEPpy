@@ -1344,7 +1344,7 @@ class Event:
             self.viewing_used = ''
         elif (self.spacecraft.lower() == 'soho' and self.sensor == 'erne'):
             self.viewing_used = ''
-        elif (self.spacecraft.lower() == 'soho' and self.sensor in ["ephin", "ephin-5", "ephin-15", "ephin_l3"]):
+        elif (self.spacecraft.lower() == 'soho' and self.sensor in ["ephin", "ephin-5", "ephin-15"]):
             self.viewing_used = ''
 
         # Check that the data that was loaded is valid. If not, abort with warning.
@@ -1478,16 +1478,6 @@ class Event:
                     if self.species == 'e':
                         df_flux = self.current_df_e[f"E{channels}"]
                         en_channel_string = self.current_energies[f"E{channels}"]
-
-                if self.sensor == "ephin_l3":
-                    if isinstance(channels, list):
-                        if len(channels) == 1:
-                            channels = channels[0]
-                        else:
-                            raise Exception("No multi-channel support for SOHO/EPHIN L3 included yet! Select only one single channel.")
-
-                    df_flux: pd.Series = self.current_df_e[f"E{channels}"]
-                    en_channel_string: str = self.current_energies["Electron_ENERGY_LABL"][channels]
 
             except KeyError:
                 raise Exception(f"{channels} is an invalid channel or a combination of channels!")
