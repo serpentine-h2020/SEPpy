@@ -1,7 +1,5 @@
 import os
 import datetime
-from typing import Any
-from numpy._typing._array_like import NDArray
 import sunpy
 import warnings
 import matplotlib.pyplot as plt
