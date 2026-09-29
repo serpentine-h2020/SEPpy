@@ -144,8 +144,8 @@ class Event:
                        "bg_mean": self.bg_mean
                        }
 
-        if self.data_level == 'l3' and self.spacecraft != 'bepi':
-            raise Warning("Data level 'l3' is only supported for BepiColombo/SIXS-P data!")
+        if self.data_level == "l3" and self.spacecraft not in ["bepi", "soho"]:
+            raise Warning("Data level 'l3' is only supported for BepiColombo/SIXS-P and SOHO/EPHIN data!")
 
         # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
         # because now it has to be run inside self.print_energies() to make sure that either
@@ -352,7 +352,7 @@ class Event:
 
                 return df, meta
 
-            if self.sensor == 'ephin':
+            if self.sensor == 'ephin' and data_level.lower() == "l2":
                 df, meta = soho_load(dataset="SOHO_COSTEP-EPHIN_L2-1MIN",
                                      startdate=self.start_date,
                                      enddate=self.end_date,
@@ -382,6 +382,17 @@ class Event:
                 # - add pos_timestamp here
 
                 return df, meta
+
+            if self.sensor == "ephin_l3" and data_level.lower() == "l3":
+                            df, meta = soho_load(dataset="SOHO_COSTEP-EPHIN_L3E-1MIN",
+                                                 startdate=self.start_date,
+                                                 enddate=self.end_date,
+                                                 path=self.data_path,
+                                                 resample=None,
+                                                 pos_timestamp="center",
+                                                 offline=self.offline)
+            
+                            return df, meta
 
         if self.spacecraft.lower() == 'wind':
 
@@ -546,19 +557,34 @@ class Event:
                 # self.current_df_e = self.df.filter(like='Electron')
                 self.current_energies = self.meta
 
-            if self.sensor.lower() == 'ephin':
+            elif self.sensor.lower() == 'ephin':
                 self.df, self.meta =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
                                    self.data_level)
                 self.current_df_e = self.df.filter(like='E')
                 self.current_energies = self.meta
 
-            if self.sensor.lower() in ("ephin-5", "ephin-15"):
+            elif self.sensor.lower() in ("ephin-5", "ephin-15"):
                 self.df, self.meta =\
                     self.load_data(self.spacecraft, self.sensor, 'None',
                                    self.data_level)
                 self.current_df_e = self.df
                 self.current_energies = self.meta
+
+            elif self.sensor.lower() == "ephin_l3" and self.data_level.lower() == "l3":
+                            if self.species.lower() == 'p':
+                                raise Warning("SOHO/EPHIN L3 data is only available for electrons, not protons!")
+                            self.df, self.meta =\
+                                self.load_data(self.spacecraft, self.sensor, "None",
+                                               self.data_level)
+                            self.current_df_e = self.df
+                            self.current_energies = self.meta
+            elif self.sensor.lower() == "ephin_l3" and self.data_level.lower() != "l3":
+                raise Warning("SOHO/EPHIN L3 data is only available with data_level='l3'!")
+            else:
+                # Here self.sensor is not "ephin_l3", neither is it anything else that 
+                # is defined above, so the sensor is invalid.
+                raise Warning(f"Sensor {self.sensor} is not valid for SOHO!")
 
         if self.spacecraft.lower() == 'wind':
             if self.sensor.lower() == '3dp':
@@ -2453,6 +2479,8 @@ class Event:
                 energy_ranges = [val for val in self.current_energies['energy_labels'].values()][:4]
             if self.sensor.lower() in ("ephin-5", "ephin-15"):
                 energy_ranges = [value for _, value in self.current_energies.items()]
+            if self.sensor.lower() == "ephin_l3":
+                energy_ranges: list = [value for value in self.current_energies["Electron_ENERGY_LABL"]]
 
         if self.spacecraft == "psp":
             energy_dict = self.meta
@@ -2524,6 +2552,11 @@ class Event:
                 try:
                     lower_bound, temp = energy_str.split('-')
                 except ValueError:
+
+                    # For level 3 EPHIN data product these are effective energies, not energy ranges.
+                    if self.sensor=="ephin_l3":
+                        eff_energies = np.array([float(elem.split(' ')[0]) for elem in energy_ranges])
+                        return eff_energies * 1e6, eff_energies * 1e6 # Convert MeV to eV
                     continue
 
                 # Generalize a bit here, since temp.split(' ') may yield a variety of different lists
@@ -2611,14 +2644,17 @@ class Event:
 
         return np.array(beta)*const.c.value
 
-    def print_energies(self, return_df=False):
+    def print_energies(self, return_df=False) -> None | pd.DataFrame:
         """
-        Prints out the channel name / energy range pairs
+        Prints out the channel name / energy range pairs, or returns a 
+        pandas dataframe with the same information.
 
         Parameter:
         ---------
         return_df : {bool} default False. If True, returns the df instead of displaying it.
         """
+
+        SENSORS_WITH_EFF_ENERGY: tuple[str] = ("sixs-p", "ephin_l3")
 
         from IPython.display import display
 
@@ -2671,6 +2707,12 @@ class Event:
         if self.sensor in ["ephin-5", "ephin-15"]:
             channel_numbers = [5, 15]
 
+        if self.sensor == "ephin_l3":
+            # Based on the fact that if a column name contains '_', is it not an intensity channel but instead something
+            # else, and that all intensity channels start with an 'E'.
+            channel_names: list[str] = [name for name in channel_names if name[0]=='E' and not '_' in name]
+            channel_numbers: list[int] = [int(name.split('E')[-1]) for name in channel_names]
+
         if self.sensor == "isois-epihi":
             channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
@@ -2689,7 +2731,7 @@ class Event:
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
-        energy_strs = self.get_channel_energy_values("str")
+        energy_strs: list[str] = self.get_channel_energy_values("str")
 
         # The following behaviour has been fixed upstream. Keeping this here for
         # now in case someone is missing it.
@@ -2699,16 +2741,16 @@ class Event:
 
         # Assemble a pandas dataframe here for nicer presentation
         column_names = ("Channel", "Energy range")
-        if self.spacecraft == 'bepi' and self.data_level == 'l3':
+        if self.sensor in SENSORS_WITH_EFF_ENERGY:
             column_names = ("Channel", "Effective energy")
         column_data = {
             column_names[0]: channel_numbers,
             column_names[1]: energy_strs}
 
-        df = pd.DataFrame(data=column_data)
+        df: pd.DataFrame = pd.DataFrame(data=column_data)
 
         # Set the channel number as the index of the dataframe
-        df = df.set_index(column_names[0])
+        df: pd.DataFrame = df.set_index(column_names[0])
 
         # Finally display the dataframe such that ALL rows are shown
         if not return_df:
