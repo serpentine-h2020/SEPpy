@@ -2663,7 +2663,6 @@ class Event:
         if self.viewing != 'all':
             if self.spacecraft == 'solo' and not self.viewing:
                 raise Warning("For this operation the instrument's 'viewing' direction must be defined in the call of 'Event'! Please define and re-run.")
-                return
             else:
                 self.choose_data(self.viewing)
         else:
