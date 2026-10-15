@@ -2758,6 +2758,7 @@ class Event:
                                    'display.max_columns', None,
                                    ):
                 display(df)
+            return None
         else:
             return df
 
