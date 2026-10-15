@@ -2675,12 +2675,8 @@ class Event:
 
         if self.species in ['e', "electron"]:
             channel_names = self.current_df_e.columns
-            SOLO_EPT_CHANNELS_AMOUNT = 34
-            SOLO_HET_CHANNELS_AMOUNT = 4
         if self.species in ['p', 'i', 'H', "proton", "ion"]:
             channel_names = self.current_df_i.columns
-            SOLO_EPT_CHANNELS_AMOUNT = 64
-            SOLO_HET_CHANNELS_AMOUNT = 36
 
         # Extract only the numbers from channel names
         if self.spacecraft == "solo":
@@ -2689,12 +2685,9 @@ class Event:
                 channel_names = list(channel_names)
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
-            if self.sensor == "ept":
-                channel_names = [name[1] for name in channel_names[:SOLO_EPT_CHANNELS_AMOUNT]]
-                channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
-
-            if self.sensor == "het":
-                channel_names = [name[1] for name in channel_names[:SOLO_HET_CHANNELS_AMOUNT]]
+            if self.sensor in ("ept", "het"):
+                flux_mask = channel_names.get_level_values(0).str.contains("Flux")
+                channel_names = list(channel_names[flux_mask].get_level_values(1))
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.spacecraft in ["sta", "stb"] or self.sensor == "erne":
@@ -2726,7 +2719,7 @@ class Event:
 
         if self.sensor == 'sixs-p' and self.data_level == 'l2':
             custom_notification("print_energies() is not supporting internal Level 2 data of BepiColombo/SIXS-P!")
-            return
+            return None
 
         # Remove any duplicates from the numbers array, since some dataframes come with, e.g., 'ch_2' and 'err_ch_2'
         channel_numbers = np.unique(channel_numbers)
