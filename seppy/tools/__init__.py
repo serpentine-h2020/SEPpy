@@ -52,10 +52,10 @@ SOLO_STEP_VIEWINGS = ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 
 PSP_EPILO_VIEWINGS = ('3', '7')
 PSP_EPIHI_VIEWINGS = ('A', 'B')
 SC_WITH_LVL3_DATA = ("bepi", "soho", "solo") # spacecraft that have L3 data available
-SOLO_L3_VIEWINGS: dict[str, str] = {"sun": 'A',
-                                    "asun": 'D',
+SOLO_L3_VIEWINGS: dict[str, str] = {"sun": 'S',
+                                    "asun": 'A',
                                     "north": 'N',
-                                    "south": 'S'}
+                                    "south": 'D'}
 
 class Event:
 
