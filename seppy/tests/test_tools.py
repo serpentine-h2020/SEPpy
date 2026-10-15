@@ -38,7 +38,9 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_old_data_online():
     #
     # ions
     Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', viewing='Pixel averaged', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (48, 1)
+    assert df_pe.loc[47, "Energy range"] == '0.0799 - 0.0865 MeV/n'
     # Pixel averaged
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel averaged', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
@@ -78,7 +80,9 @@ def test_onset_spectrum_tsa_SOLO_STEP_ions_new_data_online():
     background_range = (datetime.datetime(2022, 1, 9, 10, 0, 0), datetime.datetime(2022, 1, 9, 12, 0, 0))
     # ions
     Event1 = Event(spacecraft='Solar Orbiter', sensor='STEP', viewing='Pixel averaged', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (32, 1)
+    assert df_pe.loc[31, "Energy range"] == '0.0629 - 0.0680 MeV'
     # Pixel averaged
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='Pixel averaged', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
@@ -122,7 +126,9 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     background_range = (datetime.datetime(2022, 11, 8, 0, 0, 0), datetime.datetime(2022, 11, 8, 1, 0, 0))
     # viewing "sun", single channel, protons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', viewing='sun', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (36, 1)
+    assert df_pe.loc[35, "Energy range"] == '97.6300 - 104.9000 MeV'
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='sun', background_range=background_range, channels=1, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (73,)
@@ -133,7 +139,9 @@ def test_onset_spectrum_tsa_SOLO_HET_online():
     assert fig.get_axes()[0].get_title() == 'SOLO/HET 7.3540 - 7.8900 MeV protons\n5min averaging, viewing: SUN'
     # viewing "north", combined channel, electrons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='HET', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (4, 1)
+    assert df_pe.loc[3, "Energy range"] == '5.9930 - 18.8300 MeV'
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[0, 3], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (73,)
@@ -164,7 +172,9 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     background_range = (datetime.datetime(2022, 6, 6, 0, 0, 0), datetime.datetime(2022, 6, 6, 1, 0, 0))
     # viewing "sun", single channel, ions
     Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (64, 1)
+    assert df_pe.loc[63, "Energy range"] == '5.8322 - 6.1316 MeV'
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='sun', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
@@ -175,7 +185,9 @@ def test_onset_spectrum_tsa_SOLO_EPT_online():
     assert fig.get_axes()[0].get_title() == 'SOLO/EPT 0.0608 - 0.0678 MeV protons\n5min averaging, viewing: SUN'
     # viewing "north", combined channel, electrons
     Event1 = Event(spacecraft='Solar Orbiter', sensor='EPT', viewing='sun', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (34, 1)
+    assert df_pe.loc[33, "Energy range"] == '0.4353 - 0.4742 MeV'
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[5, 10], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (288,)
@@ -206,7 +218,9 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewing "A", single channel, electrons
     Event1 = Event(spacecraft='PSP', sensor='isois-epihi', viewing='A', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (19, 1)
+    assert df_pe.loc[18, "Energy range"] == '  9.5 -  11.3 MeV'
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='A', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (194,)
@@ -217,7 +231,9 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPIHI_online():
     assert fig.get_axes()[0].get_title() == 'PSP/ISOIS-EPIHI 0.8 - 1.0 MeV electrons\n5min averaging, viewing: A'
     # viewing "B", combined channel, protons
     Event1 = Event(spacecraft='PSP', sensor='isois-epihi', viewing='B', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (15, 1)
+    assert df_pe.loc[14, "Energy range"] == ' 76.1 -  90.5 MeV'
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='B', background_range=background_range, channels=[1, 5], resample_period="5min", yscale='log', cusum_window=30)
     assert isinstance(flux, pd.Series)
     assert flux.shape == (194,)
@@ -246,7 +262,9 @@ def test_onset_spectrum_tsa_PSP_ISOIS_EPILO_e_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='PSP', sensor='isois-epilo', viewing='7', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (12, 1)
+    assert df_pe.loc[11, "Energy range"] == '4519.0 - 9660.5 keV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewing "7", single channel
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='7', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
@@ -286,7 +304,9 @@ def test_onset_spectrum_tsa_Wind_3DP_p_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='Wind', sensor='3DP', data_level='l2', viewing="Sector 3", species='protons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (9, 1)
+    assert df_pe.loc[8, "Energy range"] == '4721.37 - 8768.26 keV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     # viewng "sector 3"
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='sector 3', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
@@ -327,7 +347,9 @@ def test_onset_spectrum_tsa_Wind_3DP_e_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='Wind', sensor='3DP', viewing="Sector 3", data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)  # TODO: radio_spacecraft=('wind', 'WIND')
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (7, 1)
+    assert df_pe.loc[6, "Energy range"] == '360.68 - 669.83 keV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     #
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='sector 3', background_range=background_range, channels=4, resample_period="5min", yscale='log', cusum_window=30)
@@ -368,7 +390,9 @@ def test_onset_spectrum_tsa_STEREOB_HET_p_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-B', sensor='HET', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (11, 1)
+    assert df_pe.loc[10, "Energy range"] == '60 - 100 MeV    '
     background_range = (datetime.datetime(2006, 12, 13, 0, 0, 0), datetime.datetime(2006, 12, 13, 2, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=[5, 8], resample_period="5min", yscale='log', cusum_window=30)
 
@@ -399,7 +423,9 @@ def test_onset_spectrum_tsa_STEREOB_HET_e_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-B', sensor='HET', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('behind', 'STEREO-B'), offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (3, 1)
+    assert df_pe.loc[2, "Energy range"] == '2.8 - 4.0 MeV'
     background_range = (datetime.datetime(2006, 12, 13, 0, 0, 0), datetime.datetime(2006, 12, 13, 2, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=[1], resample_period="5min", yscale='log', cusum_window=30)
 
@@ -430,7 +456,9 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_p_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', viewing="north", data_level='l2', species='ions', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (30, 1)
+    assert df_pe.loc[29, "Energy range"] == '1767.0-1985.3 keV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='north', background_range=background_range, channels=[5, 8], resample_period="5min", yscale='log', cusum_window=30)
 
@@ -461,7 +489,9 @@ def test_onset_spectrum_tsa_STEREOA_SEPT_e_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='STEREO-A', sensor='SEPT', viewing="asun", data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'), offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (15, 1)
+    assert df_pe.loc[14, "Energy range"] == '295.0-335.0 keV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing='asun', background_range=background_range, channels=[8], resample_period="5min", yscale='log', cusum_window=30)
 
@@ -492,7 +522,9 @@ def test_onset_spectrum_tsa_SOHO_EPHIN_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='SOHO', sensor='EPHIN', data_level='l2', species='electrons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (4, 1)
+    assert df_pe.loc[3000, "Energy range"] == '4.80 - 10.4 MeV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=150, resample_period="5min", yscale='log', cusum_window=30)
 
@@ -530,7 +562,9 @@ def test_onset_spectrum_tsa_SOHO_ERNE_online():
     lpath = f"{os.getcwd()}{os.sep}data"
     lpath = jupyterhub_data_path(lpath)
     Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, radio_spacecraft=('ahead', 'STEREO-A'), offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (7, 1)
+    assert df_pe.loc[6, "Energy range"] == '50  - 64  MeV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=3, resample_period="5min", yscale='log', cusum_window=30)
 
@@ -563,7 +597,9 @@ def test_onset_tsa_SOHO_ERNE_offline():
     # lpath = Path(fullpath).parent.as_posix()
     lpath = (Path(__file__).parent.parent / "data" / "test").as_posix()
     Event1 = Event(spacecraft='SOHO', sensor='ERNE-HED', data_level='l2', species='protons', start_date=startdate, end_date=enddate, data_path=lpath, offline=OFFLINE)
-    print(Event1.print_energies())
+    df_pe = Event1.print_energies(return_df=True)
+    assert df_pe.shape == (7, 1)
+    assert df_pe.loc[6, "Energy range"] == '50  - 64  MeV'
     background_range = (datetime.datetime(2021, 10, 28, 10, 0, 0), datetime.datetime(2021, 10, 28, 12, 0, 0))
     flux, onset_stats, onset_found, peak_flux, peak_time, fig, bg_mean = Event1.find_onset(viewing=None, background_range=background_range, channels=[1, 3], resample_period="5min", yscale='log', cusum_window=30)
 
