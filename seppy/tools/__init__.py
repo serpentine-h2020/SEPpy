@@ -301,7 +301,7 @@ class Event:
                                             autodownload=not self.offline)
 
                     # Extract the relevant columns from the dataframe with df.filter()
-                    df_e: pd.DataFrame = df_all.filter(like=f"Electron_Flux_{SOLO_L3_VIEWINGS.get(viewing)}")
+                    df_e: pd.DataFrame = df_all.filter(like=f"Electron_Corrected_Flux_{SOLO_L3_VIEWINGS.get(viewing)}")
                     df_i: pd.DataFrame = df_all.filter(like=f"Ion_Flux_{SOLO_L3_VIEWINGS.get(viewing)}")
 
                     return df_i, df_e, energies
