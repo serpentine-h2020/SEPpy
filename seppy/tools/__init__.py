@@ -2720,7 +2720,7 @@ class Event:
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.spacecraft in ["sta", "stb"] or self.sensor == "erne":
-            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_nameschannel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.sensor == "ephin":
             channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
