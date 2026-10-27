@@ -51,7 +51,11 @@ SOLO_STEP_VIEWINGS = ("Pixel averaged", "Pixel 1", "Pixel 2", "Pixel 3", "Pixel 
                       "Pixel 14", "Pixel 15")
 PSP_EPILO_VIEWINGS = ('3', '7')
 PSP_EPIHI_VIEWINGS = ('A', 'B')
-
+SC_WITH_LVL3_DATA = ("bepi", "soho", "solo") # spacecraft that have L3 data available
+SOLO_L3_VIEWINGS: dict[str, str] = {"sun": 'S',
+                                    "asun": 'A',
+                                    "north": 'N',
+                                    "south": 'D'}
 
 class Event:
 
@@ -144,8 +148,8 @@ class Event:
                        "bg_mean": self.bg_mean
                        }
 
-        if self.data_level == "l3" and self.spacecraft not in ["bepi", "soho"]:
-            raise Warning("Data level 'l3' is only supported for BepiColombo/SIXS-P and SOHO/EPHIN data!")
+        if self.data_level == "l3" and self.spacecraft not in SC_WITH_LVL3_DATA:
+            raise Warning("Data level 'l3' is only supported for BepiColombo/SIXS-P, Solar Orbiter/EPT and SOHO/EPHIN data!")
 
         # I think it could be worth considering to run self.choose_data(viewing) when the object is created,
         # because now it has to be run inside self.print_energies() to make sure that either
@@ -270,16 +274,41 @@ class Event:
         if self.spacecraft == 'solo':
 
             if self.sensor in ("ept", "het"):
-                df_i, df_e, meta = epd_load(sensor=sensor,
-                                            viewing=viewing,
+
+                if data_level.lower() == "l2":
+                    df_i, df_e, meta = epd_load(sensor=sensor,
+                                                viewing=viewing,
+                                                level=data_level,
+                                                startdate=self.start_date,
+                                                enddate=self.end_date,
+                                                path=self.data_path,
+                                                # offline=self.offline,
+                                                autodownload=not self.offline)
+
+                    return df_i, df_e, meta
+
+                # The level 3 data comes out of the loader in 3 dataframes, from which only the "first" one is relevant
+                # for us here. It contains 16 (0--16) electron channels and 31 (0--30) ion channels per side (A, D, N, S), 
+                # and some other columns that contain e.g., pitch-angle data.
+                elif data_level.lower() == "l3":
+
+                    df_all, _, _, energies, meta = epd_load(sensor=sensor,
+                                            viewing=None,
                                             level=data_level,
                                             startdate=self.start_date,
                                             enddate=self.end_date,
                                             path=self.data_path,
-                                            # offline=self.offline,
                                             autodownload=not self.offline)
 
-                return df_i, df_e, meta
+                    # Extract the relevant columns from the dataframe with df.filter()
+                    df_e: pd.DataFrame = df_all.filter(like=f"Electron_Corrected_Flux_{SOLO_L3_VIEWINGS.get(viewing)}")
+                    df_i: pd.DataFrame = df_all.filter(like=f"Ion_Flux_{SOLO_L3_VIEWINGS.get(viewing)}")
+
+                    return df_i, df_e, energies
+
+                # Here data level was not l2 nor was it l3 -> raise a warning
+                else:
+                    raise Warning(f"Data level {data_level} is not valid for Solar Orbiter/EPD data!")
 
             elif self.sensor == "step":
                 df, meta = epd_load(sensor=sensor,
@@ -2691,7 +2720,7 @@ class Event:
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.spacecraft in ["sta", "stb"] or self.sensor == "erne":
-            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
+            channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_nameschannel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.sensor == "ephin":
             channel_numbers = np.array([int(name.split('E')[-1]) for name in channel_names])
