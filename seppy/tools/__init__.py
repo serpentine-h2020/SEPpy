@@ -2716,7 +2716,14 @@ class Event:
 
             if self.sensor in ("ept", "het"):
                 flux_mask = channel_names.get_level_values(0).str.contains("Flux")
-                channel_names = list(channel_names[flux_mask].get_level_values(1))
+                if isinstance(channel_names, pd.MultiIndex):
+                    lvl_idx: int = 1
+                elif isinstance(channel_names, pd.Index):
+                    lvl_idx: int = 0
+                else:
+                    # If channel_names is not MultiIndex nor Index, .get_level_values() is not applicable.
+                    raise TypeError(f"Unexpected type of channel_names: {type(channel_names)}")
+                channel_names = list(channel_names[flux_mask].get_level_values(lvl_idx))
                 channel_numbers = np.array([int(name.split('_')[-1]) for name in channel_names])
 
         if self.spacecraft in ["sta", "stb"] or self.sensor == "erne":
