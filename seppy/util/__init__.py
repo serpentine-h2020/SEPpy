@@ -584,22 +584,36 @@ def radial_distance_to_sun(spacecraft, time='now'):
     return sc_coords.separation_3d(get_sun_coords(time=time))
 
 
-def calc_spiral_length(radial_dist, sw_speed):
+def calc_spiral_length(radial_dist, sw_speed, lat=0):
     '''
-    Calculates the Parker spiral length from the Sun up to a given radial distance.
+    Calculates the Parker spiral arc length from the Sun up to a given radial
+    distance using the exact integral (no R_sun=0 approximation in the
+    integrand) and accounting for heliographic latitude.
 
     Args:
-        radial_dist (astropy units): radial distance to the Sun.
-        sw_speed (astropy units): solar wind speed.
+        radial_dist (astropy Quantity, length): radial distance from the Sun.
+        sw_speed (astropy Quantity, speed): solar wind speed.
+        lat (astropy Quantity, angle): heliographic latitude.
 
     Returns:
-        astropy units: Parker spiral length.
+        astropy Quantity (length): Parker spiral arc length.
     '''
+    b_km      = (sw_speed / SOLAR_ROT).to(u.km / u.rad).value
+    r_km      = radial_dist.to(u.km).value
+    r0_km     = (1 * u.R_sun).to(u.km).value
+    sin_colat = np.cos(lat.to(u.rad).value)  # sin(colatitude) = cos(latitude)
 
-    temp_const = ((SOLAR_ROT/sw_speed)*(radial_dist.to(u.km)-const.R_sun)).value
-    sqrt_temp_const = np.sqrt(temp_const**2 + 1)
+    def G(u):
+        # antiderivative of sqrt(1 + u^2)
+        s = np.sqrt(1 + u**2)
+        return 0.5 * (u * s + np.log(u + s))
 
-    return 0.5*u.rad * (sw_speed/SOLAR_ROT) * (temp_const*sqrt_temp_const + np.log(temp_const + sqrt_temp_const))
+    u1 = r_km  * sin_colat / b_km
+    u0 = r0_km * sin_colat / b_km
+
+    spiral_len = (b_km / sin_colat) * (G(u1) - G(u0)) * u.km
+
+    return spiral_len.to(u.AU)
 
 
 def calc_particle_speed(mass, kinetic_energy):
@@ -614,15 +628,18 @@ def calc_particle_speed(mass, kinetic_energy):
         astropy units: relativistic particle speed.
     '''
 
-    gamma = np.sqrt(1 - (mass*const.c**2/(kinetic_energy + mass*const.c**2))**2)
+    beta = np.sqrt(1 - (mass*const.c**2/(kinetic_energy + mass*const.c**2))**2)
 
-    return gamma*const.c
+    return beta*const.c
 
 
-def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
+def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed, lat=0):
     '''
     Calculates the inferred injection time of a particle (electron or proton) from the Sun,
     given a detection time at some spacecraft.
+    
+    Computes the Parker spiral arc length using the exact integral (no R_sun=0
+    approximation in the integrand) and accounting for heliographic latitude.
 
     Args:
         spacecraft (str): name of the spacecraft.
@@ -630,6 +647,7 @@ def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
         species (str): particle species, 'p' or 'e'.
         kinetic_energy (astropy units): kinetic energy of particle. If no unit is supplied, is converted to MeV.
         sw_speed (astropy units): solar wind speed. If no unit is supplied, is converted to km/s.
+        lat (astropy Quantity, angle): heliographic latitude. If no unit is supplied, is converted to degrees.
 
     Returns:
         datetime.datetime: inferred injection time.
@@ -641,13 +659,16 @@ def inf_inj_time(spacecraft, onset_time, species, kinetic_energy, sw_speed):
     if type(sw_speed) is not u.quantity.Quantity:
         sw_speed = sw_speed * u.km/u.s
 
+    if type(lat) is not u.quantity.Quantity:
+        lat = lat * u.deg
+
     mass_dict = {'p': const.m_p,
                  'e': const.m_e
                  }
 
     radial_distance = radial_distance_to_sun(spacecraft, time=onset_time)
 
-    spiral_length = calc_spiral_length(radial_distance, sw_speed)
+    spiral_length = calc_spiral_length(radial_distance, sw_speed, lat)
     particle_speed = calc_particle_speed(mass_dict[species], kinetic_energy)
 
     travel_time = spiral_length/particle_speed
