@@ -1,3 +1,5 @@
+import csv
+import io
 import os
 
 import cdflib
@@ -5,7 +7,6 @@ import pandas as pd
 import pooch
 import requests
 import sunpy
-from bs4 import BeautifulSoup
 from packaging.version import Version
 from seppy.util import custom_notification, custom_warning, resample_df
 from sunpy.timeseries import TimeSeries
@@ -34,61 +35,58 @@ def juice_radem_download(date, path=None):
         path = sunpy.config.get('downloads', 'download_dir')
 
     # add a OS-specific '/' to end end of 'path'
-    if path:
-        if not path[-1] == os.sep:
-            path = f'{path}{os.sep}'
+    if path and path[-1] != os.sep:
+        path = f'{path}{os.sep}'
 
-    # URL of the webpage containing the downloadable files
-    base_url = f"https://archives.esac.esa.int/psa/ftp/Juice/juice_radem/data_raw/cruise/sc/{date.year}{date.strftime('%m')}/"
+    # query the ESA PSA TAP service for the file name of the JUICE/RADEM SC data file for the given date
+    day = date.strftime("%Y%m%d")
+    query = f"""
+    SELECT granule_uid
+    FROM epn_core
+    WHERE instrument_name = 'RADEM'
+      AND granule_uid LIKE '%radem_raw_sc_{day}%'
+    """
 
-    # Send an HTTP GET request to the webpage
-    response = requests.get(base_url)
-
-    # Check if the request was successful
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Find all links on the page
-        links = soup.find_all('a')
-
-        # Filter for the file link
-        fname = None
-        for link in links:
-            href = link.get('href')
-            if href and f"radem_raw_sc_{date.year}{date.strftime('%m')}{date.strftime('%d')}__" in href and href.endswith('.cdf'):
-                fname = href
-                break  # Get the first found link
-
-        if fname:
-            url = base_url + fname
-
-            try:
-                downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
-            except ModuleNotFoundError:
-                downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
-            except requests.HTTPError:
-                print(f'No corresponding JUICE/RADEM data found at {url}')
-                downloaded_file = []
-
-            # # Download the file
-            # file_response = requests.get(file_url)
-
-            # # Save the file if the request was successful
-            # if file_response.status_code == 200:
-            #     fname = file_url.split('/')[-1]  # Extract fname from the URL
-            #     with open(fname, 'wb') as f:
-            #         f.write(file_response.content)
-            #     print(f"Downloaded: {fname}")
-            # else:
-            #     print(f"Failed to download file: {file_response.status_code}")
-
-            return downloaded_file
-        else:
-            print("No suitable file found online.")
-            return None
-    else:
-        print(f"Failed to fetch the webpage: {response.status_code}")
+    try:
+        response = requests.get(
+            "https://psa.esa.int/psa-tap/tap/sync",
+            params={
+                "REQUEST": "doQuery",
+                "LANG": "ADQL",
+                "FORMAT": "csv",
+                "QUERY": query,
+            },
+            timeout=60,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"Failed to query the PSA TAP service: {exc}")
         return None
+
+    records = csv.DictReader(io.StringIO(response.text))
+    record = next((row for row in records if row.get("granule_uid") and f"radem_raw_sc_{day}" in row["granule_uid"]), None, )
+
+    if not record:
+        print(f"No JUICE/RADEM SC data found for {date:%Y-%m-%d}.")
+        return None
+
+    granule_uid = record["granule_uid"]
+    product_id, version = granule_uid.split("::", 1)
+    product_name = product_id.rsplit(":", 1)[-1]
+    filename_version = version.replace(".", "_")
+    fname = f"{product_name}__{filename_version}.cdf"
+
+    url = f"https://psaftp.esac.esa.int/Juice/juice_radem/data_raw/cruise/sc/{date:%Y%m}/{fname}"
+
+    try:
+        downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
+    except ModuleNotFoundError:
+        downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
+    except requests.HTTPError:
+        print(f'No corresponding JUICE/RADEM data found at {url}')
+        downloaded_file = []
+
+    return downloaded_file
 
 
 def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp='center', offline=False):
