@@ -89,50 +89,6 @@ def juice_radem_download(date, path=None):
     return downloaded_file
 
 
-    # # URL of the webpage containing the downloadable files
-    # # base_url = f"https://archives.esac.esa.int/psa/ftp/Juice/juice_radem/data_raw/cruise/sc/{date.year}{date.strftime('%m')}/"
-    # base_url = f"https://psaftp.esac.esa.int/psa/ftp/Juice/juice_radem/data_raw/cruise/sc/{date.year}{date.strftime('%m')}/"
-
-    # # Send an HTTP GET request to the webpage
-    # response = requests.get(base_url)
-
-    # # Check if the request was successful
-    # if response.status_code == 200:
-    #     soup = BeautifulSoup(response.content, 'html.parser')
-
-    #     # Find all links on the page
-    #     links = soup.find_all('a')
-
-    #     # Filter for the file link
-    #     fname = None
-    #     for link in links:
-    #         href = link.get('href')
-    #         if href and f"radem_raw_sc_{date.year}{date.strftime('%m')}{date.strftime('%d')}__" in href and href.endswith('.cdf'):
-    #             fname = href
-    #             break  # Get the first found link
-
-    #     if fname:
-    #         url = base_url + fname
-
-    #         try:
-    #             downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=True)
-    #         except ModuleNotFoundError:
-    #             downloaded_file = pooch.retrieve(url=url, known_hash=None, fname=fname, path=path, progressbar=False)
-    #         except requests.HTTPError:
-    #             print(f'No corresponding JUICE/RADEM data found at {url}')
-    #             downloaded_file = []
-
-
-
-    #         return downloaded_file
-    #     else:
-    #         print("No suitable file found online.")
-    #         return None
-    # else:
-    #     print(f"Failed to fetch the webpage: {response.status_code}")
-    #     return None
-
-
 def juice_radem_load(startdate, enddate, resample=None, path=None, pos_timestamp='center', offline=False):
     """Download & load JUICE/RADEM cruise science data and returns it as Pandas DataFrame (and metadata dictionaries).
     Note that the data is provided in counts and not converted to physical units (as of Nov 2025); also the instrument configuration changes over time.
